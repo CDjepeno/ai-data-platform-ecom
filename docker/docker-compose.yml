@@ -1,0 +1,40 @@
+name: ecom-data-platform-dev
+
+services:
+
+  postgres:
+    image: postgres:15
+    env_file:
+      - ../.env
+    ports:
+    # host:container -> 5433 (machine) vers 5432 (postgres container)
+      - "5434:5432"
+    volumes:
+        - postgres_data_dev:/var/lib/postgresql/data
+        - ./postgres/init:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - etl_ecom
+
+  pipeline:
+    build: 
+      context: ..
+    depends_on:
+      postgres:
+        condition: service_healthy   
+    env_file:
+      - ../.env
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    networks:
+      - etl_ecom
+
+volumes:
+  postgres_data_dev:
+
+networks:
+  etl_ecom:
