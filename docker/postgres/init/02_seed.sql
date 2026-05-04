@@ -26,7 +26,7 @@ FROM users;
 INSERT INTO products (name, price)
 SELECT 
     CASE WHEN random() < 0.1 THEN NULL ELSE 'Product ' || gs END,
-    CASE WHEN random() < 0.1 THEN -50 ELSE round(random()*200,2) END
+    CASE WHEN random() < 0.1 THEN -50 ELSE round((random()*200)::numeric, 2) END
 FROM generate_series(1,500) gs;
 
 -- BRANCHES
@@ -46,7 +46,7 @@ SELECT
     o.order_id,
     (SELECT product_id FROM products ORDER BY random() LIMIT 1),
     (random()*5)::int,
-    round(random()*200,2)
+    round((random()*200)::numeric, 2)
 FROM orders o
 CROSS JOIN generate_series(1,3);
 
@@ -54,7 +54,7 @@ CROSS JOIN generate_series(1,3);
 INSERT INTO payments (order_id, amount, status)
 SELECT 
     order_id,
-    CASE WHEN random() < 0.2 THEN NULL ELSE round(random()*300,2) END,
+    CASE WHEN random() < 0.2 THEN NULL ELSE round((random()*300)::numeric,2)  END,
     (ARRAY['pending','completed','failed'])[floor(random()*3+1)]::payment_status
 FROM orders;
 

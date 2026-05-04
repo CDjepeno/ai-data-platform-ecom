@@ -1,13 +1,19 @@
 
 
+from etl_ecom.ingestion.run_raw import run_raw
 from etl_ecom.utils.logger import get_logger
 
+logger = get_logger(__name__)
 
 def main():
 
-    # initialisation des logs
-    logger = get_logger(__name__)
     logger.info("🚀 Starting Pipeline")
 
+    run_raw()
+
+    logger.info("🏁 Pipeline finished 🌞")
+    
+    
+    
 if __name__ == "__main__":
     main()

@@ -1,0 +1,119 @@
+tables:
+
+  users:
+    source: public.users
+    layers:
+      bronze: raw_users
+      silver: stg_users
+      gold: dim_users
+    primary_key: user_id
+    incremental:
+      enabled: true
+      watermark_column: updated_at
+      watermark_id: user_id
+
+  customers:
+    source: public.customers
+    layers:
+      bronze: raw_customers
+      silver: stg_customers
+      gold: dim_customers
+    primary_key: customer_id
+    incremental:
+      enabled: true
+      watermark_column: updated_at
+      watermark_id: customer_id
+
+  branches:
+    source: public.branches
+    layers:
+      bronze: raw_branches
+      silver: stg_branches
+      gold: dim_branches
+    primary_key: branch_id
+    incremental:
+      enabled: false
+
+  products:
+    source: public.products
+    layers:
+      bronze: raw_products
+      silver: stg_products
+      gold: dim_products
+    primary_key: product_id
+    incremental:
+      enabled: true
+      watermark_column: updated_at
+      watermark_id: product_id
+
+  branch_products:
+    source: public.branch_products
+    layers:
+      bronze: raw_branch_products
+      silver: stg_branch_products
+      gold: fct_branch_stock
+    primary_key: [branch_id, product_id]
+    incremental:
+      enabled: false
+
+  categories:
+    source: public.categories
+    layers:
+      bronze: raw_categories
+      silver: stg_categories
+      gold: dim_categories
+    primary_key: category_id
+    incremental:
+      enabled: false
+
+  product_categories:
+    source: public.product_categories
+    layers:
+      bronze: raw_product_categories
+      silver: stg_product_categories
+      gold: bridge_product_category
+    primary_key: [product_id, category_id]
+    incremental:
+      enabled: false
+
+  orders:
+    source: public.orders
+    layers:
+      bronze: raw_orders
+      silver: stg_orders
+      gold: fct_orders
+    primary_key: order_id
+    incremental:
+      enabled: true
+      watermark_column: updated_at
+      watermark_id: order_id
+
+  order_items:
+    source: public.order_items
+    layers:
+      bronze: raw_order_items
+      silver: stg_order_items
+      gold: fct_order_items
+    primary_key: order_item_id
+    incremental:
+      enabled: false
+
+  payments:
+    source: public.payments
+    layers:
+      bronze: raw_payments
+      silver: stg_payments
+      gold: fct_payments
+    primary_key: payment_id
+    incremental:
+      enabled: false
+
+  shipments:
+    source: public.shipments
+    layers:
+      bronze: raw_shipments
+      silver: stg_shipments
+      gold: fct_shipments
+    primary_key: shipment_id
+    incremental:
+      enabled: false
