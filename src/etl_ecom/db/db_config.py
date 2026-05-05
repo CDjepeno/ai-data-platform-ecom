@@ -33,7 +33,7 @@ class Config:
     # =========================
     # WAREHOUSE (DuckDB local)
     # =========================
-    DUCKDB_PATH = os.getenv("DUCKDB_PATH", "warehouse.duckdb")
+    DBT_DUCKDB_PATH_DEV = os.getenv("DBT_DUCKDB_PATH_DEV", "warehouse.duckdb")
 
     # =========================
     # MINIO (S3 compatible)
@@ -49,5 +49,5 @@ class Config:
 
 # Debug (optionnel)
 print("SOURCE_URL:", Config.SOURCE_URL)
-print("DUCKDB_PATH:", Config.DUCKDB_PATH)
+print("DBT_DUCKDB_PATH_DEV:", Config.DBT_DUCKDB_PATH_DEV)
 print("MINIO_ENDPOINT:", Config.MINIO_ENDPOINT)

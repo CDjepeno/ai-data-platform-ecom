@@ -16,7 +16,7 @@ def get_minio_client():
     )
 
 def get_duckdb_connection():
-    return duckdb.connect(Config.DUCKDB_PATH)
+    return duckdb.connect(Config.DBT_DUCKDB_PATH_DEV)
 
 
 def get_source_engine():
