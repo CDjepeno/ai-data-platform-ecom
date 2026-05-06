@@ -19,7 +19,7 @@ def log_row_metrics(
 
     # 📄 charger SQL
     BASE_DIR = Path(__file__).resolve().parents[2]
-    sql_path = BASE_DIR / "ingestion/sql/metadata/insert_row_metrics.sql"
+    sql_path = BASE_DIR / "sql/metadata/insert_row_metrics.sql"
 
     query = load_sql_file(sql_path)
 

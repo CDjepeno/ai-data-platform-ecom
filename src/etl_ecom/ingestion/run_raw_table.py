@@ -1,5 +1,6 @@
 from datetime import datetime
 import io
+from botocore.exceptions import ClientError
 
 import pandas as pd
 
@@ -25,6 +26,8 @@ def run_raw_table(table: str, run_id: str | None = None):
     con = get_duckdb_connection()
 
     bucket = "ecom-etl"
+    
+    ensure_bucket_exists(s3_client, bucket)
 
     try:
         logger.info(f"📥 Extracting table: {table}")
@@ -76,3 +79,19 @@ def run_raw_table(table: str, run_id: str | None = None):
 
     finally:
         con.close()
+
+
+def ensure_bucket_exists(s3_client, bucket: str):
+    try:
+        s3_client.head_bucket(Bucket=bucket)
+        logger.info(f"🪣 Bucket already exists: {bucket}")
+
+    except ClientError as e:
+        error_code = e.response["Error"]["Code"]
+
+        if error_code in ("404", "NoSuchBucket"):
+            logger.info(f"🪣 Creating bucket: {bucket}")
+            s3_client.create_bucket(Bucket=bucket)
+        else:
+            logger.error(f"❌ Unexpected error checking bucket: {e}")
+            raise

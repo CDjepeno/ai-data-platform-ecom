@@ -84,6 +84,90 @@ endif
 	done
 
 # ─────────────────────────────────────
+#  🪣 MinIO HELPERS
+# ─────────────────────────────────────
+
+MINIO_ALIAS ?= myminio
+MINIO_BUCKET ?= ecom-etl
+
+# 📦 Liste des buckets
+minio-buckets:
+	@echo "📦 Buckets disponibles:"
+	mc ls $(MINIO_ALIAS)
+
+# 📂 Contenu du bucket
+minio-ls:
+	@echo "📂 Contenu de $(MINIO_BUCKET):"
+	mc ls $(MINIO_ALIAS)/$(MINIO_BUCKET)
+
+# 🌲 Vue arborescente complète
+minio-tree:
+	@echo "🌲 Structure complète:"
+	mc tree $(MINIO_ALIAS)/$(MINIO_BUCKET)
+
+# 🔍 Recherche globale
+minio-find:
+	@echo "🔍 Recherche dans $(MINIO_BUCKET):"
+	mc find $(MINIO_ALIAS)/$(MINIO_BUCKET)
+
+# 📄 Lire un fichier
+minio-cat:
+ifndef FILE
+	$(error ❌ Usage: make minio-cat FILE=path/to/file)
+endif
+	@echo "📄 Lecture $(FILE):"
+	mc cat $(MINIO_ALIAS)/$(MINIO_BUCKET)/$(FILE)
+
+# ⬇️ Télécharger un fichier
+minio-get:
+ifndef FILE
+	$(error ❌ Usage: make minio-get FILE=path/to/file)
+endif
+	mc cp $(MINIO_ALIAS)/$(MINIO_BUCKET)/$(FILE) .
+
+# ⬆️ Upload un fichier
+minio-put:
+ifndef FILE
+	$(error ❌ Usage: make minio-put FILE=local_file DEST=path/in/bucket)
+endif
+ifndef DEST
+	$(error ❌ Usage: make minio-put FILE=local_file DEST=path/in/bucket)
+endif
+	mc cp $(FILE) $(MINIO_ALIAS)/$(MINIO_BUCKET)/$(DEST)
+
+# 🔁 Sync dossier local → MinIO
+minio-sync:
+ifndef DIR
+	$(error ❌ Usage: make minio-sync DIR=local_folder DEST=prefix)
+endif
+	mc mirror $(DIR) $(MINIO_ALIAS)/$(MINIO_BUCKET)/$(DEST)
+
+# 🧨 Supprimer fichier
+minio-rm:
+ifndef FILE
+	$(error ❌ Usage: make minio-rm FILE=path/to/file)
+endif
+	mc rm $(MINIO_ALIAS)/$(MINIO_BUCKET)/$(FILE)
+
+# 🧹 Nettoyer un prefix (danger)
+minio-clean-prefix:
+ifndef PREFIX
+	$(error ❌ Usage: make minio-clean-prefix PREFIX=raw/)
+endif
+	mc rm --recursive --force $(MINIO_ALIAS)/$(MINIO_BUCKET)/$(PREFIX)
+
+# 📊 Taille du bucket
+minio-du:
+	mc du $(MINIO_ALIAS)/$(MINIO_BUCKET)
+
+# 🧠 Voir metadata d’un fichier
+minio-stat:
+ifndef FILE
+	$(error ❌ Usage: make minio-stat FILE=path/to/file)
+endif
+	mc stat $(MINIO_ALIAS)/$(MINIO_BUCKET)/$(FILE)
+
+# ─────────────────────────────────────
 #  Inspection DuckDB
 # ─────────────────────────────────────
 
@@ -230,6 +314,17 @@ help:
 	@echo "🧨 MAINTENANCE"
 	@echo "  make reset-db              → Reset DuckDB"
 	@echo "  make reset-db-safe         → Reset avec confirmation"
+	@echo ""
+	@echo "🪣 MINIO"
+	@echo "  make minio-buckets         → Liste buckets"
+	@echo "  make minio-ls              → Contenu bucket"
+	@echo "  make minio-tree            → Vue complète"
+	@echo "  make minio-find            → Recherche fichiers"
+	@echo "  make minio-cat FILE=...    → Lire fichier"
+	@echo "  make minio-put FILE=... DEST=..."
+	@echo "  make minio-sync DIR=... DEST=..."
+	@echo "  make minio-clean-prefix PREFIX=..."
+	@echo "  
 	@echo ""
 	@echo "══════════════════════════════════════════"
 	@echo ""

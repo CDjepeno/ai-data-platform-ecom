@@ -1,61 +1,95 @@
--- ==============================
--- SEED DATA - DIRTY VERSION (REALISTIC)
--- ==============================
+-- ============================================
+-- 🌍 MARKETPLACE MULTI-BRANCH SEED (REALISTIC)
+-- ============================================
 
--- USERS (~1000)
+-- =============================
+-- BRANCHES (GLOBAL)
+-- =============================
+INSERT INTO branches (name, city, country)
+VALUES
+('Paris Store', 'Paris', 'FR'),
+('Berlin Store', 'Berlin', 'DE'),
+('Madrid Store', 'Madrid', 'ES'),
+('New York Store', 'New York', 'US'),
+('Tokyo Store', 'Tokyo', 'JP'),
+('Dubai Store', 'Dubai', 'AE');
+
+-- =============================
+-- USERS
+-- =============================
 INSERT INTO users (email, password_hash, role, created_at, updated_at)
 SELECT
     CASE
-        WHEN random() < 0.2 THEN NULL
-        WHEN random() < 0.1 THEN 'bad_email'
-        WHEN random() < 0.05 THEN '[duplicate@mail.com](mailto:duplicate@mail.com)'
+        WHEN random() < 0.1 THEN NULL
+        WHEN random() < 0.05 THEN 'duplicate@mail.com'
         ELSE 'user' || gs || '@mail.com'
     END,
     'hash',
-    CASE
-        WHEN random() < 0.1 THEN 'admin'::user_role
-        ELSE 'customer'::user_role
-    END,
-    now() - (random() * interval '60 days'),
-    now() - (random() * interval '5 days')
-FROM generate_series(1, 1000) AS gs;
+    CASE WHEN random() < 0.05 THEN 'admin' ELSE 'customer' END::user_role,
+    now() - (random() * interval '180 days'),
+    now() - (random() * interval '10 days')
+FROM generate_series(1, 2000) AS gs;
 
--- CUSTOMERS (~1000)
-INSERT INTO customers (user_id, first_name, last_name, city, created_at, updated_at)
+-- =============================
+-- CUSTOMERS
+-- =============================
+INSERT INTO customers (user_id, first_name, last_name, city, country)
 SELECT
     user_id,
-    CASE WHEN random() < 0.3 THEN NULL ELSE 'John' END,
-    CASE WHEN random() < 0.3 THEN NULL ELSE 'Doe' END,
-    (ARRAY['Paris', 'Berlin', 'Madrid', NULL])[floor(random() * 4 + 1)],
-    now() - (random() * interval '60 days'),
-    now() - (random() * interval '5 days')
+    CASE WHEN random() < 0.2 THEN NULL ELSE 'John' END,
+    CASE WHEN random() < 0.2 THEN NULL ELSE 'Doe' END,
+    (ARRAY['Paris', 'Berlin', 'Madrid', 'NY', 'Tokyo', 'Dubai'])[floor(random() * 6 + 1)],
+    (ARRAY['FR', 'DE', 'ES', 'US', 'JP', 'AE'])[floor(random() * 6 + 1)]
 FROM users;
 
--- PRODUCTS (~500)
-INSERT INTO products (name, price, created_at, updated_at)
+-- =============================
+-- PRODUCTS
+-- =============================
+INSERT INTO products (name, price, created_at)
 SELECT
-    CASE WHEN random() < 0.15 THEN NULL ELSE 'Product ' || gs END,
+    'Product ' || gs,
     CASE
-        WHEN random() < 0.1 THEN -50 -- prix négatif
-        WHEN random() < 0.05 THEN 999999 -- outlier
-        ELSE round((random() * 200)::numeric, 2)
+        WHEN random() < 0.05 THEN -10
+        WHEN random() < 0.02 THEN 99999
+        ELSE round((random() * 300)::numeric, 2)
     END,
-    now() - (random() * interval '90 days'),
-    now() - (random() * interval '10 days')
-FROM generate_series(1, 500) AS gs;
+    now() - (random() * interval '365 days')
+FROM generate_series(1, 800) AS gs;
 
--- BRANCHES
-INSERT INTO branches (name, city, country, created_at, updated_at)
-VALUES
-('Paris Store', 'Paris', 'FR', now(), now()),
-('Berlin Store', 'Berlin', 'DE', now(), now()),
-('Madrid Store', 'Madrid', 'ES', now(), now());
+-- =============================
+-- STOCK PAR BRANCH (🔥 IMPORTANT)
+-- =============================
+INSERT INTO branch_products (branch_id, product_id, stock)
+SELECT
+    b.branch_id,
+    p.product_id,
+    CASE
+        WHEN random() < 0.1 THEN 0
+        WHEN random() < 0.05 THEN -10 -- anomalie
+        ELSE (random() * 100)::int
+    END
+FROM branches AS b
+CROSS JOIN products AS p
+WHERE random() < 0.3; -- tous les produits ne sont pas partout
 
--- ORDERS (~3000)
-INSERT INTO orders (customer_id, branch_id, status, total_amount, created_at, updated_at)
+-- =============================
+-- ORDERS (LOGIQUE RÉALISTE)
+-- =============================
+WITH active_customers AS (
+    SELECT customer_id FROM customers
+    ORDER BY random()
+    LIMIT 400
+)
+
+INSERT INTO orders (customer_id, branch_id, status, order_date, total_amount)
 SELECT
     CASE
-        WHEN random() < 0.05 THEN NULL -- orphelin
+        WHEN random() < 0.05 THEN NULL
+        WHEN random() < 0.7
+            THEN (
+                SELECT customer_id FROM active_customers
+                ORDER BY random() LIMIT 1
+            )
         ELSE (
             SELECT customer_id FROM customers
             ORDER BY random() LIMIT 1
@@ -66,70 +100,86 @@ SELECT
         ORDER BY random() LIMIT 1
     ),
     (ARRAY['pending', 'paid', 'cancelled'])[floor(random() * 3 + 1)]::order_status,
-    round((random() * 500)::numeric, 2),
-    now() - (random() * interval '30 days'),
-    now() - (random() * interval '2 days')
-FROM generate_series(1, 3000);
+    now() - (random() * interval '60 days'),
+    round((random() * 200 + 20)::numeric, 2)
+FROM generate_series(1, 5000);
 
--- ORDER ITEMS (~9000)
-INSERT INTO order_items (order_id, product_id, quantity, price, created_at, updated_at)
+-- =============================
+-- ORDER ITEMS (LIÉS AU STOCK)
+-- =============================
+INSERT INTO order_items (order_id, product_id, quantity, price)
 SELECT
     o.order_id,
-    (
-        SELECT product_id FROM products
-        ORDER BY random() LIMIT 1
-    ),
-    CASE
-        WHEN random() < 0.05 THEN -1 -- quantité invalide
-        ELSE (random() * 5)::int
-    END,
-    round((random() * 200)::numeric, 2),
-    now() - (random() * interval '30 days'),
-    now() - (random() * interval '2 days')
+    bp.product_id,
+    greatest(1, (random() * 5)::int),
+    round((random() * 100)::numeric, 2)
 FROM orders AS o
-CROSS JOIN generate_series(1, 3);
+INNER JOIN branch_products AS bp ON o.branch_id = bp.branch_id
+ORDER BY random()
+LIMIT 15000;
 
+-- =============================
 -- PAYMENTS
-INSERT INTO payments (order_id, amount, status, created_at, updated_at)
+-- =============================
+INSERT INTO payments (order_id, amount, status)
 SELECT
     order_id,
     CASE
-        WHEN random() < 0.2 THEN NULL
-        WHEN random() < 0.05 THEN -100 -- incohérent
-        ELSE round((random() * 300)::numeric, 2)
+        WHEN random() < 0.1 THEN NULL
+        WHEN random() < 0.05 THEN -50
+        ELSE total_amount
     END,
-    (ARRAY['pending', 'completed', 'failed'])[floor(random() * 3 + 1)]::payment_status,
-    now() - (random() * interval '15 days'),
-    now() - (random() * interval '1 day')
+    CASE
+        WHEN random() < 0.7 THEN 'completed'
+        WHEN random() < 0.2 THEN 'failed'
+        ELSE 'pending'
+    END::payment_status
 FROM orders;
 
+-- =============================
 -- SHIPMENTS
-INSERT INTO shipments (order_id, status, created_at, updated_at)
+-- =============================
+INSERT INTO shipments (order_id, shipped_date, delivery_date, status)
 SELECT
     order_id,
-    (ARRAY['preparing', 'shipped', 'delivered'])[floor(random() * 3 + 1)]::shipment_status,
-    now() - (random() * interval '15 days'),
-    now() - (random() * interval '1 day')
+    order_date + (random() * interval '3 days'),
+    order_date + (random() * interval '10 days'),
+    (ARRAY['preparing', 'shipped', 'delivered'])[floor(random() * 3 + 1)]::shipment_status
 FROM orders;
 
--- ==============================
--- 🔥 POST-SEED ANOMALIES
--- ==============================
+-- ============================================
+-- 💥 ANOMALIES MÉTIER (IMPORTANT)
+-- ============================================
 
--- incohérences temporelles
-UPDATE users
-SET updated_at = created_at - interval '2 days'
+-- Paiement validé sur commande annulée
+UPDATE payments
+SET status = 'completed'
+WHERE
+    random() < 0.05
+    AND order_id IN (
+        SELECT order_id FROM orders
+        WHERE status = 'cancelled'
+    );
+
+-- Livraison sans paiement
+UPDATE shipments
+SET status = 'delivered'
+WHERE
+    random() < 0.05
+    AND order_id IN (
+        SELECT order_id FROM payments
+        WHERE status != 'completed'
+    );
+
+-- Stock négatif (déjà injecté + aggravation)
+UPDATE branch_products
+SET stock = stock - 50
+WHERE random() < 0.05;
+
+-- total incohérent
+UPDATE orders
+SET total_amount = total_amount * (random() * 3)
 WHERE random() < 0.1;
-
--- late arriving data (important pour incremental)
-UPDATE orders
-SET updated_at = now()
-WHERE order_id < 50;
-
--- incohérence business
-UPDATE orders
-SET total_amount = total_amount * (random() * 2)
-WHERE random() < 0.2;
 
 -- doublons email
 INSERT INTO users (email, password_hash, role)

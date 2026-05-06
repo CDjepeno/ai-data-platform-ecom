@@ -6,16 +6,8 @@ logger = get_logger(__name__)
 
 
 def load_sql_files(directory: str) -> dict[str, str]:
-    """
-    Charge tous les fichiers SQL d'un dossier.
-
-    Args:
-        directory: Chemin vers le dossier contenant les fichiers .sql
-
-    Returns:
-        Dictionnaire {nom_fichier_sans_extension: contenu_sql}
-    """
     path = Path(directory)
+    logger.info(f"🔍 Recherche SQL dans: {path.resolve()}") 
 
     if not path.exists():
         logger.warning(f"⚠️  Dossier SQL introuvable: {directory}")
@@ -23,13 +15,15 @@ def load_sql_files(directory: str) -> dict[str, str]:
 
     queries = {}
 
-    for sql_file in sorted(path.glob("*.sql")):
+    for sql_file in sorted(path.glob("**/*.sql")):  # ← changement ici
         try:
             with open(sql_file, "r", encoding="utf-8") as f:
                 query = f.read().strip()
 
-            queries[sql_file.stem] = query
-            logger.info(f"📄 Chargé: {sql_file.name}")
+            # Optionnel : clé avec chemin relatif pour éviter les collisions de noms
+            relative_key = sql_file.relative_to(path).with_suffix('')
+            queries[str(relative_key)] = query
+            logger.info(f"📄 Chargé: {sql_file.relative_to(path)}")
 
         except Exception as e:
             logger.error(f"❌ Erreur lors du chargement de {sql_file.name}: {e}")

@@ -6,28 +6,19 @@ from duckdb import DuckDBPyConnection
 
 from etl_ecom.utils.load_sql_files import load_sql_file
 from etl_ecom.utils.logger import get_logger
+import traceback
 
 logger = get_logger(__name__)
 
 
 def get_high_watermark_rows(table: str, warehouse_engine: DuckDBPyConnection) -> dict | None:
-    """
-    Récupère le high watermark depuis la table metadata.etl_watermark
 
-    Args:
-        table: Nom de la table
-        warehouse_engine: Connexion DuckDB
-
-    Returns:
-        Dictionnaire {high_watermark: datetime, watermark_id: int} ou None
-    """
-    import traceback
 
     try:
         
         BASE_DIR = Path(__file__).resolve().parents[2]
 
-        sql_path = BASE_DIR / "ingestion/sql/metadata/get_high_watermark.sql"
+        sql_path = BASE_DIR / "sql/metadata/get_high_watermark.sql"
         
         # 1. Charger la requête SQL
         sql_query = load_sql_file(sql_path)

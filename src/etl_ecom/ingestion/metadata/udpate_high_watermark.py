@@ -52,7 +52,7 @@ def update_high_watermark(
 
         # 📄 chemin SQL
         BASE_DIR = Path(__file__).resolve().parents[2]
-        sql_path = BASE_DIR / "ingestion/sql/metadata/upsert_watermark.sql"
+        sql_path = BASE_DIR / "sql/metadata/upsert_watermark.sql"
 
         # charger SQL
         sql_query = load_sql_file(sql_path)
