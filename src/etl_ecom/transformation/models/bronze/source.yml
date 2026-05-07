@@ -1,0 +1,171 @@
+version: 2
+
+sources:
+  - name: bronze
+    description: >
+      Couche bronze contenant les données brutes ingestées
+      depuis les systèmes sources ecommerce.
+
+    schema: bronze
+
+    tables:
+
+      # ==========================================================
+      # CUSTOMERS
+      # ==========================================================
+
+      - name: raw_customers
+        description: Données brutes des clients ecommerce
+
+        columns:
+          - name: customer_id
+            description: Identifiant unique du client
+            tests:
+              - not_null
+              - unique
+
+      # ==========================================================
+      # ORDERS
+      # ==========================================================
+
+      - name: raw_orders
+        description: Données brutes des commandes
+
+        columns:
+          - name: order_id
+            description: Identifiant unique de commande
+            tests:
+              - not_null
+              - unique
+
+          - name: customer_id
+            description: Référence du client
+
+          - name: branch_id
+            description: Référence de la branche/store
+
+      # ==========================================================
+      # ORDER ITEMS
+      # ==========================================================
+
+      - name: raw_order_items
+        description: Lignes produits des commandes
+
+        columns:
+          - name: order_item_id
+            description: Identifiant unique de ligne commande
+            tests:
+              - not_null
+              - unique
+
+          - name: order_id
+            description: Référence de commande
+
+          - name: product_id
+            description: Référence produit
+
+      # ==========================================================
+      # PRODUCTS
+      # ==========================================================
+
+      - name: raw_products
+        description: Catalogue brut des produits
+
+        columns:
+          - name: product_id
+            description: Identifiant unique produit
+            tests:
+              - not_null
+              - unique
+
+      # ==========================================================
+      # CATEGORIES
+      # ==========================================================
+
+      - name: raw_categories
+        description: Catégories produits
+
+        columns:
+          - name: category_id
+            description: Identifiant unique catégorie
+            tests:
+              - not_null
+              - unique
+
+      # ==========================================================
+      # PRODUCT CATEGORIES
+      # ==========================================================
+
+      - name: raw_product_categories
+        description: Table de liaison produits-catégories
+
+      # ==========================================================
+      # BRANCHES
+      # ==========================================================
+
+      - name: raw_branches
+        description: Informations des branches/stores
+
+        columns:
+          - name: branch_id
+            description: Identifiant unique branche
+            tests:
+              - not_null
+              - unique
+
+      # ==========================================================
+      # BRANCH PRODUCTS
+      # ==========================================================
+
+      - name: raw_branch_products
+        description: Produits disponibles par branche
+
+      # ==========================================================
+      # PAYMENTS
+      # ==========================================================
+
+      - name: raw_payments
+        description: Paiements des commandes
+
+        columns:
+          - name: payment_id
+            description: Identifiant unique paiement
+            tests:
+              - not_null
+              - unique
+
+          - name: order_id
+            description: Référence commande
+
+      # ==========================================================
+      # SHIPMENTS
+      # ==========================================================
+
+      - name: raw_shipments
+        description: Expéditions et livraisons
+
+        columns:
+          - name: shipment_id
+            description: Identifiant unique shipment
+            tests:
+              - not_null
+              - unique
+
+          - name: order_id
+            description: Référence commande
+
+      # ==========================================================
+      # USERS
+      # ==========================================================
+
+      - name: raw_users
+        description: Utilisateurs internes / administrateurs
+
+        columns:
+          - name: user_id
+            description: Identifiant unique utilisateur
+            tests:
+              - not_null
+              - unique
+
+

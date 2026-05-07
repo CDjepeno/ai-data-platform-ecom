@@ -1,6 +1,10 @@
-CREATE OR REPLACE TABLE bronze.raw_${table_name} AS
+-- sql/bronze/create_raw_table.sql
+CREATE OR REPLACE TABLE bronze.raw_{{ table_name }} AS
 SELECT *, 
        CURRENT_TIMESTAMP AS ingestion_time,
-       '${run_id}' AS run_id,
+       '{{ run_id }}' AS run_id,
        'postgresql' AS data_source
-FROM final_df;
+FROM read_parquet(
+    's3://{{ bucket }}/raw/postgres/{{ table_name }}/*/*.parquet',
+    hive_partitioning = true
+)

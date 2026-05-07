@@ -1,0 +1,21 @@
+# models/silver/schema.yml
+version: 2
+
+models:
+  - name: stg_customers
+    description: "Données clients nettoyées et standardisées"
+    
+    columns:
+      - name: customer_id
+        description: "Identifiant unique du client (clé primaire)"
+        tests:
+          - not_null
+          - unique
+
+      - name: email
+        description: "Email du client"
+        tests:
+          - not_null
+
+      - name: created_at
+        description: "Date de création du compte"

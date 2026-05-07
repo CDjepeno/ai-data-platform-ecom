@@ -1,0 +1,21 @@
+version: 2
+
+sources:
+  - name: metadata
+    description: Tables techniques de suivi ETL
+
+    schema: metadata
+
+    tables:
+
+      - name: etl_runs
+        description: Historique des exécutions ETL
+
+      - name: etl_step_runs
+        description: Historique des étapes ETL
+
+      - name: etl_metrics
+        description: Métriques d’exécution ETL
+
+      - name: etl_watermark
+        description: Watermarks pour chargements incrémentaux

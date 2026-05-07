@@ -6,6 +6,10 @@ import duckdb
 
 import boto3
 
+from etl_ecom.utils.logger import get_logger
+
+logger = get_logger(__name__)
+
 
 def get_minio_client():
     return boto3.client(
@@ -21,3 +25,18 @@ def get_duckdb_connection():
 
 def get_source_engine():
     return create_engine(Config.SOURCE_URL)
+
+def configure_duckdb_s3(conn: duckdb.DuckDBPyConnection) -> None:
+    try:
+        conn.execute(f"""
+            SET s3_region = 'us-east-1';
+            SET s3_endpoint = '{Config.MINIO_ENDPOINT.replace("http://", "")}';
+            SET s3_access_key_id = '{Config.MINIO_ROOT_USER}';
+            SET s3_secret_access_key = '{Config.MINIO_ROOT_PASSWORD}';
+            SET s3_url_style = 'path';
+            SET s3_use_ssl = false;
+        """)
+        logger.info("✅ DuckDB configuré pour MinIO")
+    except Exception as e:
+        logger.error(f"❌ Erreur configuration MinIO pour DuckDB : {e}")
+        raise

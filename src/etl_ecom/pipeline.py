@@ -3,8 +3,7 @@
 from datetime import datetime
 
 from etl_ecom.db.intit_db import init_db
-from etl_ecom.ingestion.metadata.step_runs import finish_step_run, start_step_run
-from etl_ecom.ingestion.minio_to_duckdb import load_all_tables_to_duckdb
+from etl_ecom.ingestion.loader import load_all_tables
 from etl_ecom.ingestion.run_raw import run_raw
 from etl_ecom.utils.logger import get_logger
 
@@ -21,10 +20,7 @@ def main():
     run_raw(run_id)
     
 
-    try:
-        rows_loaded = load_all_tables_to_duckdb(run_id)
-    except Exception as e:
-        raise
+    rows_loaded = load_all_tables(run_id)
 
     logger.info(f"📊 Total rows loaded: {rows_loaded}")
     logger.info("🏁 Pipeline finished 🌞")
