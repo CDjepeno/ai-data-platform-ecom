@@ -24,7 +24,7 @@ def get_high_watermark_rows(table: str, warehouse_engine: DuckDBPyConnection) ->
         sql_query = load_sql_file(sql_path)
 
         if not sql_query:
-            logger.error(f"❌ Impossible de charger le fichier SQL watermark.sql")
+            logger.error("❌ Impossible de charger le fichier SQL watermark.sql")
             return None
 
         # 2. Log de debug

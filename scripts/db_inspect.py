@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 """Inspection de la base DuckDB"""
-import duckdb
 import sys
 import os
+
+from etl_ecom.db.engine import get_duckdb_connection
 
 def main():
     if len(sys.argv) < 2:
@@ -11,7 +12,6 @@ def main():
 
     path = sys.argv[1]
 
-    # Vérifie que le fichier existe
     if not os.path.exists(path):
         print(f"❌ Base de données introuvable : {path}")
         print("   Vérifie que DBT_DUCKDB_PATH_DEV est bien défini")
@@ -20,13 +20,12 @@ def main():
     command = sys.argv[2] if len(sys.argv) > 2 else "tables"
 
     try:
-        con = duckdb.connect(path)
+        con = get_duckdb_connection()
     except Exception as e:
         print(f"❌ Erreur de connexion à {path}: {e}")
         sys.exit(1)
 
     try:
-        # 🔥 NOUVEAU : afficher les schemas
         if command == "schemas":
             print("📂 Schemas dans la base :")
             schemas = con.execute("""

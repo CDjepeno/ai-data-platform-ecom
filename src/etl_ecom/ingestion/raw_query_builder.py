@@ -1,7 +1,5 @@
-import json
 
 from duckdb import DuckDBPyConnection
-from sqlalchemy import Engine
 
 from etl_ecom.ingestion.config.table_config import TABLE_CONFIG
 from etl_ecom.ingestion.metadata.get_high_watermark import get_high_watermark_rows
@@ -17,7 +15,7 @@ def build_query(table: str, warehouse_engine: DuckDBPyConnection) -> str:
     """
     table_config = TABLE_CONFIG.get(table, {})
     
-    query = f"SELECT * FROM {table}"
+    query = f"SELECT * FROM postgres_db.public.{table}"
     
     incremental_cfg = table_config.get("incremental", {})
 
@@ -51,4 +49,4 @@ def build_query(table: str, warehouse_engine: DuckDBPyConnection) -> str:
         else:
             logger.info(f"  📦 Premier chargement pour {table} (pas de watermark existant)")
 
-    return query + ";"
+    return query

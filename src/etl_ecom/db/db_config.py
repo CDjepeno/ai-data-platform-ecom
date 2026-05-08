@@ -29,11 +29,25 @@ class Config:
         f"{get_env('POSTGRES_PORT')}/"
         f"{get_env('POSTGRES_DB')}"
     )
+    
+      
+    POSTGRES_DB= os.getenv("POSTGRES_DB")
+    POSTGRES_USER = os.getenv("POSTGRES_USER")
+    POSTGRES_PASSWORD = os.getenv("POSTGRES_PASSWORD")
+    POSTGRES_HOST = os.getenv("POSTGRES_HOST")
+    POSTGRES_PORT = os.getenv("POSTGRES_PORT")
 
     # =========================
     # WAREHOUSE (DuckDB local)
     # =========================
     DBT_DUCKDB_PATH_DEV = os.getenv("DBT_DUCKDB_PATH_DEV", "warehouse.duckdb")
+    
+    # =========================
+    # Iceberg / Nessie
+    # =========================
+
+    NESSIE_URI = get_env("NESSIE_URI")
+    ICEBERG_WAREHOUSE = get_env("ICEBERG_WAREHOUSE")
 
     # =========================
     # MINIO (S3 compatible)

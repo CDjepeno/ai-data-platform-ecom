@@ -2,8 +2,6 @@ import logging
 from pathlib import Path
 
 
-from sqlalchemy import text
-
 from etl_ecom.db.engine import get_duckdb_connection
 from etl_ecom.utils.load_sql_files import load_sql_files
 

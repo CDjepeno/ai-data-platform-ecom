@@ -51,17 +51,28 @@ dbt-seed:
 #  SQLFluff
 # ─────────────────────────────────────
 
+SQL_INGESTION_DIR := src/etl_ecom/sql/bronze
+SQL_DBT_DIR := src/etl_ecom/transformation
+
+# 🔍 Lint SQL ingestion (Jinja simple)
 lint-sql:
-	@echo "Lint SQL (global)..."
-	poetry run sqlfluff lint .
+	@echo "🔍 Lint SQL ingestion..."
+	poetry run sqlfluff lint $(SQL_INGESTION_DIR)
 
+# 🔍 Lint dbt models
 lint-dbt:
-	@echo "Lint SQL dbt..."
-	cd $(DBT_DIR) && poetry run sqlfluff lint . --templater dbt
+	@echo "🔍 Lint SQL dbt..."
+	cd $(SQL_DBT_DIR) && poetry run sqlfluff lint models
 
+# 🛠️ Fix SQL ingestion
 fix-sql:
-	@echo "Auto-fix SQL..."
-	poetry run sqlfluff fix .
+	@echo "🛠️ Auto-fix SQL ingestion..."
+	poetry run sqlfluff fix $(SQL_INGESTION_DIR)
+
+# 🛠️ Fix dbt models
+fix-dbt:
+	@echo "🛠️ Auto-fix SQL dbt..."
+	cd $(SQL_DBT_DIR) && poetry run sqlfluff fix models
 
 # ─────────────────────────────────────
 #  Simulation DATA 🔥
@@ -195,6 +206,9 @@ ifndef TABLE
 endif
 	$(PYTHON) $(DB_INSPECT) "$(DBT_DUCKDB_PATH_DEV)" count "$(TABLE)"
 
+show-all-tables:
+	$(PYTHON) $(DB_INSPECT) "$(DBT_DUCKDB_PATH_DEV)" query "SHOW ALL TABLES"
+
 query:
 ifndef SQL
 	$(error ❌ Usage: make query SQL="SELECT * FROM metadata.etl_watermark")
@@ -248,6 +262,65 @@ daily-run: seed-daily run
 full-run: seed-daily run dbt-build
 
 # ─────────────────────────────────────
+#  🧊 ICEBERG HELPERS
+# ─────────────────────────────────────
+
+iceberg-list-tables:
+	$(PYTHON) scripts/iceberg/list_tables.py
+
+iceberg-schema:
+ifndef TABLE
+	$(error ❌ Usage: make iceberg-schema TABLE=bronze.users)
+endif
+	$(PYTHON) scripts/iceberg/schema.py $(TABLE)
+
+iceberg-count:
+ifndef TABLE
+	$(error ❌ Usage: make iceberg-count TABLE=bronze.users)
+endif
+	$(PYTHON) scripts/iceberg/count.py $(TABLE)
+
+iceberg-history:
+ifndef TABLE
+	$(error ❌ Usage: make iceberg-history TABLE=bronze.users)
+endif
+	$(PYTHON) scripts/iceberg/history.py $(TABLE)
+
+iceberg-current-snapshot:
+ifndef TABLE
+	$(error ❌ Usage: make iceberg-current-snapshot TABLE=bronze.users)
+endif
+	$(PYTHON) scripts/iceberg/current_snapshot.py $(TABLE)
+
+iceberg-drop-table:
+ifndef TABLE
+	$(error ❌ Usage: make iceberg-drop-table TABLE=bronze.users)
+endif
+	$(PYTHON) scripts/iceberg/drop_table.py $(TABLE)
+
+iceberg-drop-all:
+	$(PYTHON) scripts/iceberg/drop_all_tables.py
+
+iceberg-preview:
+ifndef TABLE
+	$(error ❌ Usage: make iceberg-preview TABLE=bronze.users)
+endif
+	$(PYTHON) scripts/iceberg/preview.py $(TABLE)
+
+iceberg-describe:
+ifndef TABLE
+	$(error ❌ Usage: make iceberg-describe TABLE=bronze.users)
+endif
+	$(PYTHON) scripts/iceberg/describe.py $(TABLE)
+
+iceberg-snapshots:
+ifndef TABLE
+	$(error ❌ Usage: make iceberg-snapshots TABLE=bronze.users)
+endif
+	$(PYTHON) scripts/iceberg/snapshots.py $(TABLE)
+
+
+# ─────────────────────────────────────
 #  Commandes générales
 # ─────────────────────────────────────
 
@@ -281,6 +354,7 @@ help:
 	@echo "  make lint-sql              → Lint SQL global"
 	@echo "  make lint-dbt              → Lint SQL dbt"
 	@echo "  make fix-sql               → Auto-fix SQL"
+	@echo "  make fix-dbt               → Auto-fix SQL dbt"
 	@echo ""
 	@echo "🌱 DATA SIMULATION"
 	@echo "  make seed-daily            → Générer data (1 jour)"
@@ -310,6 +384,7 @@ help:
 	@echo "  make count-all TABLE=metadata.etl_watermark"
 	@echo "  make query SQL='SELECT * FROM table'"
 	@echo "  make db-tree               → Vue globale DB"
+	@echo "  make show-all-tables       → Vue globale tables"
 	@echo ""
 	@echo "🧨 MAINTENANCE"
 	@echo "  make reset-db              → Reset DuckDB"
@@ -324,7 +399,18 @@ help:
 	@echo "  make minio-put FILE=... DEST=..."
 	@echo "  make minio-sync DIR=... DEST=..."
 	@echo "  make minio-clean-prefix PREFIX=..."
-	@echo "  
+	@echo ""
+	@echo "🧊 ICEBERG"
+	@echo "  make iceberg-list-tables                 → Liste les tables Iceberg"
+	@echo "  make iceberg-schema TABLE=bronze.users  → Affiche le schéma"
+	@echo "  make iceberg-preview TABLE=bronze.users  → Aperçu des données"
+	@echo "  make iceberg-count TABLE=bronze.users  → Compte les lignes"
+	@echo "  make iceberg-history TABLE=bronze.users → Historique des snapshots"
+	@echo "  make iceberg-current-snapshot TABLE=bronze.users → Snapshot actif"
+	@echo "  make iceberg-drop-table TABLE=bronze.users      → suppression de la table"
+	@echo "  make iceberg-describe TABLE=bronze.users      → description de la table"
+	@echo "  make iceberg-drop-all      → suppression de toutes les tables"
+	@echo "  make iceberg-snapshots TABLE=bronze.users      → affiche les snapshots de la table"
 	@echo ""
 	@echo "══════════════════════════════════════════"
 	@echo ""

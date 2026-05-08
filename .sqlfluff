@@ -1,7 +1,5 @@
 [sqlfluff]
 dialect = duckdb
-
-# IMPORTANT → pas dbt globalement
 templater = jinja
 
 max_line_length = 120
@@ -9,10 +7,30 @@ max_line_length = 120
 exclude_paths =
     target/,
     dbt_packages/,
-    .venv/
+    .venv/,
+    logs/,
+    src/etl_ecom/sql/metadata/
 
-[sqlfluff:templater:dbt]
-project_dir = src/etl_ecom/transformation
-profiles_dir = /home/djepeno/.dbt
+[sqlfluff:templater:jinja:context]
+table_name = "orders"
+bucket = "ecom-etl"
+run_id = "local-run"
 
-[sqlfluff:rules]
+# =========================
+# RULES
+# =========================
+
+[sqlfluff:rules:capitalisation.keywords]
+capitalisation_policy = upper
+
+[sqlfluff:rules:capitalisation.identifiers]
+extended_capitalisation_policy = lower
+
+[sqlfluff:rules:capitalisation.functions]
+capitalisation_policy = upper
+
+[sqlfluff:rules:layout.long_lines]
+ignore_comment_lines = true
+
+[sqlfluff:indentation]
+tab_space_size = 4

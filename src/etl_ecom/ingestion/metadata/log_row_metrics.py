@@ -1,4 +1,4 @@
-from datetime import datetime, time
+from datetime import datetime
 from pathlib import Path
 from duckdb import DuckDBPyConnection
 

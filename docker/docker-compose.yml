@@ -33,6 +33,43 @@ services:
     networks:
       - etl_ecom
 
+  nessie:
+    image: ghcr.io/projectnessie/nessie:latest
+    container_name: nessie
+
+    ports:
+      - "19120:19120"
+
+    environment:
+      - QUARKUS_HTTP_PORT=19120
+
+      # =========================
+      # ICEBERG REST
+      # =========================
+
+      - nessie.catalog.default-warehouse=warehouse
+
+      - nessie.catalog.warehouses.warehouse.location=s3://ecom-etl/warehouse
+
+      # =========================
+      # MINIO
+      # =========================
+
+      - nessie.catalog.service.s3.default-options.endpoint=http://minio:9000
+      - nessie.catalog.service.s3.default-options.path-style-access=true
+      - nessie.catalog.service.s3.default-options.region=us-east-1
+
+      # 🔥 IMPORTANT
+      - nessie.catalog.service.s3.default-options.auth-type=application-global
+
+      # GLOBAL AWS CREDS
+      - AWS_ACCESS_KEY_ID=${MINIO_ROOT_USER}
+      - AWS_SECRET_ACCESS_KEY=${MINIO_ROOT_PASSWORD}
+      - AWS_REGION=us-east-1
+
+    networks:
+      - etl_ecom
+
 
 
   pipeline:
@@ -47,6 +84,7 @@ services:
       - "host.docker.internal:host-gateway"
     networks:
       - etl_ecom
+    
 
 volumes:
   minio_data_dev: 
