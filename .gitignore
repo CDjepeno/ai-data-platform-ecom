@@ -4,3 +4,47 @@ dbt_packages/
 logs/
 .env
 .duckdb
+
+# =========================
+# PYTHON
+# =========================
+
+__pycache__/
+*.py[cod]
+*.so
+
+# Virtual env
+.venv/
+venv/
+
+# Pytest
+.pytest_cache/
+
+# Ruff
+.ruff_cache/
+
+# Mypy
+.mypy_cache/
+
+# Coverage
+.coverage
+htmlcov/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# MacOS
+.DS_Store
+
+# VSCode
+.vscode/
+
+# Logs
+*.log
+
+# DuckDB
+*.duckdb
+*.wal
+
+# Env
+.env

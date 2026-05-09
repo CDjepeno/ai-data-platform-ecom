@@ -1,6 +1,6 @@
 from sys import argv
 
-from etl_ecom.db.iceberg import get_iceberg_catalog
+from scripts.iceberg.iceberg import get_iceberg_catalog
 
 
 def main():

@@ -1,4 +1,4 @@
-from etl_ecom.db.iceberg import get_iceberg_catalog
+from scripts.iceberg.iceberg import get_iceberg_catalog
 
 catalog = get_iceberg_catalog()
 

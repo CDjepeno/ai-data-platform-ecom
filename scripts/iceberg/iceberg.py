@@ -9,7 +9,6 @@ logger = get_logger(__name__)
 def get_iceberg_catalog():
 
     try:
-        print(Config.MINIO_ENDPOINT)
         catalog = load_catalog(
             "nessie",
             **{

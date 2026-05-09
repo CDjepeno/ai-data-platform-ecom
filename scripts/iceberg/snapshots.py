@@ -1,6 +1,6 @@
 import sys
 
-from etl_ecom.db.iceberg import get_iceberg_catalog
+from scripts.iceberg.iceberg import get_iceberg_catalog
 
 table_name = sys.argv[1]
 

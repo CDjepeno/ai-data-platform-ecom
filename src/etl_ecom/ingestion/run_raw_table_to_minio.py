@@ -14,7 +14,7 @@ from etl_ecom.utils.logger import get_logger
 logger = get_logger(__name__)
 
 
-def run_raw_table(table: str, run_id: str | None = None):
+def ingest_raw_table_to_minio(table: str, run_id: str | None = None):
 
     logger.info(f"🥉 Start ingestion for table: {table}")
 

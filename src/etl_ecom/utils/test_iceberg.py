@@ -1,7 +1,7 @@
 from pyiceberg.schema import Schema
 from pyiceberg.types import LongType, NestedField, StringType, TimestampType
 
-from etl_ecom.db.iceberg import get_iceberg_catalog
+from scripts.iceberg.iceberg import get_iceberg_catalog
 
 catalog = get_iceberg_catalog()
 

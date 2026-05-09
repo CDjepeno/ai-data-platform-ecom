@@ -62,6 +62,6 @@ class Config:
 
 
 # Debug (optionnel)
-print("SOURCE_URL:", Config.SOURCE_URL)
-print("DBT_DUCKDB_PATH_DEV:", Config.DBT_DUCKDB_PATH_DEV)
-print("MINIO_ENDPOINT:", Config.MINIO_ENDPOINT)
+# print("SOURCE_URL:", Config.SOURCE_URL)
+# print("DBT_DUCKDB_PATH_DEV:", Config.DBT_DUCKDB_PATH_DEV)
+# print("MINIO_ENDPOINT:", Config.MINIO_ENDPOINT)

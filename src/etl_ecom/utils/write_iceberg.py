@@ -3,7 +3,7 @@ from datetime import datetime
 from pyarrow import Table
 import pyarrow as pa
 
-from etl_ecom.db.iceberg import get_iceberg_catalog
+from scripts.iceberg.iceberg import get_iceberg_catalog
 
 catalog = get_iceberg_catalog()
 

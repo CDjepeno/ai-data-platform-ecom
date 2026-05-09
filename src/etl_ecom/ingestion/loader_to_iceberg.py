@@ -3,17 +3,13 @@
 from pathlib import Path
 import time
 
-from pyiceberg.schema import Schema
-from pyiceberg.types import NestedField
 from sqlalchemy.exc import NoSuchTableError
 from etl_ecom.db.engine import get_duckdb_connection, configure_duckdb_s3
-from etl_ecom.db.iceberg import get_iceberg_catalog
+from scripts.iceberg.iceberg import get_iceberg_catalog
 from etl_ecom.db.mapper.arrow_iceberg_mapper import arrow_to_iceberg_schema
 from etl_ecom.ingestion.config.table_config import TABLE_CONFIG
 from etl_ecom.utils.logger import get_logger
-import pyarrow as pa
-from pyiceberg.types import (BooleanType, IntegerType, LongType, FloatType, DoubleType,
-                             StringType, BinaryType, DateType, TimestampType, TimeType)
+
 
 SQL_TEMPLATE_DIR = Path(__file__).parent.parent / "sql" / "bronze"
 BUCKET = "ecom-etl"
@@ -50,7 +46,7 @@ def load_single_table_to_iceberg(table_name: str, run_id: str) -> int:
 
         # 2. Chargement catalogue Iceberg
         catalog = get_iceberg_catalog()
-        full_table_name = f"bronze.{table_name}"
+        full_table_name = f"raw.{table_name}"
 
         # 3. Création de la table si elle n'existe pas
         try:
@@ -58,11 +54,6 @@ def load_single_table_to_iceberg(table_name: str, run_id: str) -> int:
         except NoSuchTableError:
             logger.info(f"🆕 Creating table {full_table_name}")
 
-            # Créer le namespace bronze si besoin
-            try:
-                catalog.create_namespace("bronze")
-            except Exception:
-                pass
 
             # Inférer le schéma depuis le DataFrame PyArrow
             schema = arrow_to_iceberg_schema(df.schema)
@@ -104,11 +95,13 @@ def load_single_table_to_iceberg(table_name: str, run_id: str) -> int:
         conn.close()
 
 
-def load_all_tables_to_iceberg(run_id: str) -> int:
+def load_all_tables_minio_to_iceberg(run_id: str) -> int:
     """Charge toutes les tables configurées."""
     total = 0
     for table_name in TABLE_CONFIG.keys():
         total += load_single_table_to_iceberg(table_name, run_id)
+    
+    logger.info(f"📊 Total rows loaded to iceberg: {total}")
     return total
 
 

@@ -31,7 +31,7 @@ def load_sql_files(directory: str) -> dict[str, str]:
     return queries
 
 
-def load_sql_file(filepath: Path) -> str | None:
+def load_sql_file(filepath: Path) -> str:
     """
     Charge un fichier SQL depuis un chemin donné.
 
@@ -39,13 +39,13 @@ def load_sql_file(filepath: Path) -> str | None:
         filepath: Chemin complet vers le fichier .sql (ex: 'src/etl_ecom/ingestion/sql/watermark.sql')
 
     Returns:
-        Contenu du fichier (string) ou None si fichier introuvable
+        Contenu du fichier (string) ou chaîne vide si fichier introuvable
     """
     path = filepath
 
     if not path.exists():
         logger.warning(f"⚠️  Fichier introuvable: {path}")
-        return None
-
+        return ""
+    
     with open(path, "r", encoding="utf-8") as f:
         return f.read().strip()

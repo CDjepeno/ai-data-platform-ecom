@@ -6,7 +6,7 @@ export
 
 DBT_DIR := src/etl_ecom/transformation
 DBT := poetry run dbt
-PYTHON := poetry run python
+PYTHON := poetry run python 
 DB_INSPECT := scripts/db_inspect.py
 
 # 🔥 NEW
@@ -266,58 +266,58 @@ full-run: seed-daily run dbt-build
 # ─────────────────────────────────────
 
 iceberg-list-tables:
-	$(PYTHON) scripts/iceberg/list_tables.py
+	$(PYTHON) -m scripts.iceberg.list_tables
 
 iceberg-schema:
 ifndef TABLE
 	$(error ❌ Usage: make iceberg-schema TABLE=bronze.users)
 endif
-	$(PYTHON) scripts/iceberg/schema.py $(TABLE)
+	$(PYTHON) -m scripts.iceberg.schema $(TABLE)
 
 iceberg-count:
 ifndef TABLE
 	$(error ❌ Usage: make iceberg-count TABLE=bronze.users)
 endif
-	$(PYTHON) scripts/iceberg/count.py $(TABLE)
+	$(PYTHON) -m scripts.iceberg.count $(TABLE)
 
 iceberg-history:
 ifndef TABLE
 	$(error ❌ Usage: make iceberg-history TABLE=bronze.users)
 endif
-	$(PYTHON) scripts/iceberg/history.py $(TABLE)
+	$(PYTHON) -m scripts.iceberg.history $(TABLE)
 
 iceberg-current-snapshot:
 ifndef TABLE
 	$(error ❌ Usage: make iceberg-current-snapshot TABLE=bronze.users)
 endif
-	$(PYTHON) scripts/iceberg/current_snapshot.py $(TABLE)
+	$(PYTHON) -m scripts.iceberg.current_snapshot $(TABLE)
 
 iceberg-drop-table:
 ifndef TABLE
 	$(error ❌ Usage: make iceberg-drop-table TABLE=bronze.users)
 endif
-	$(PYTHON) scripts/iceberg/drop_table.py $(TABLE)
+	$(PYTHON) -m scripts.iceberg.drop_table $(TABLE)
 
 iceberg-drop-all:
-	$(PYTHON) scripts/iceberg/drop_all_tables.py
+	$(PYTHON) -m scripts.iceberg.drop_all_tables
 
 iceberg-preview:
 ifndef TABLE
 	$(error ❌ Usage: make iceberg-preview TABLE=bronze.users)
 endif
-	$(PYTHON) scripts/iceberg/preview.py $(TABLE)
+	$(PYTHON) -m scripts.iceberg.preview $(TABLE)
 
 iceberg-describe:
 ifndef TABLE
 	$(error ❌ Usage: make iceberg-describe TABLE=bronze.users)
 endif
-	$(PYTHON) scripts/iceberg/describe.py $(TABLE)
+	$(PYTHON) -m scripts.iceberg.describe $(TABLE)
 
 iceberg-snapshots:
 ifndef TABLE
 	$(error ❌ Usage: make iceberg-snapshots TABLE=bronze.users)
 endif
-	$(PYTHON) scripts/iceberg/snapshots.py $(TABLE)
+	$(PYTHON) -m scripts.iceberg.snapshots $(TABLE)
 
 
 # ─────────────────────────────────────
