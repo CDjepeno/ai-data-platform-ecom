@@ -3,6 +3,7 @@
 from pathlib import Path
 import time
 
+from duckdb import DuckDBPyConnection
 from sqlalchemy.exc import NoSuchTableError
 from etl_ecom.db.engine import get_duckdb_connection, configure_duckdb_s3
 from scripts.iceberg.iceberg import get_iceberg_catalog
@@ -17,11 +18,10 @@ BUCKET = "ecom-etl"
 logger = get_logger(__name__)
 
 
-def load_single_table_to_iceberg(table_name: str, run_id: str) -> int:
+def load_single_table_to_iceberg(table_name: str, run_id: str, conn: DuckDBPyConnection) -> int:
     start = time.time()
     logger.info(f"📤 Loading {table_name} to Iceberg...")
 
-    conn = get_duckdb_connection()
     configure_duckdb_s3(conn)
 
     try:
@@ -91,15 +91,14 @@ def load_single_table_to_iceberg(table_name: str, run_id: str) -> int:
     except Exception as e:
         logger.error(f"❌ Failed to load {table_name}: {e}")
         raise
-    finally:
-        conn.close()
 
 
-def load_all_tables_minio_to_iceberg(run_id: str) -> int:
+
+def load_all_tables_minio_to_iceberg(run_id: str, conn: DuckDBPyConnection) -> int:
     """Charge toutes les tables configurées."""
     total = 0
     for table_name in TABLE_CONFIG.keys():
-        total += load_single_table_to_iceberg(table_name, run_id)
+        total += load_single_table_to_iceberg(table_name, run_id, conn  )
     
     logger.info(f"📊 Total rows loaded to iceberg: {total}")
     return total

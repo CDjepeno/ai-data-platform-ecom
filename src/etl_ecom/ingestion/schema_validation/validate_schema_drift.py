@@ -1,5 +1,7 @@
 from pathlib import Path
 
+from duckdb import DuckDBPyConnection
+
 
 from etl_ecom.db.engine import get_duckdb_connection
 from etl_ecom.ingestion.schema_validation.mapping import TYPE_MAPPING
@@ -18,6 +20,9 @@ def get_iceberg_schema():
     for namespace in catalog.list_namespaces():
 
         for table_identifier in catalog.list_tables(namespace):
+            
+            if namespace[0] != "raw":
+                continue
 
             table = catalog.load_table(table_identifier)
 
@@ -42,61 +47,66 @@ def normalize_type(data_type: str) -> str:
 
     return TYPE_MAPPING.get(data_type, data_type)
 
-def main():
-
-    conn = get_duckdb_connection()
+def main(conn: DuckDBPyConnection):
     
-    try:
+    BASE_DIR = Path(__file__).resolve().parents[2]
+    sql_path = BASE_DIR / "sql/schema_validation/get_postgres_schema.sql"
+
+    sql = load_sql_file(sql_path)    
+
+    df = conn.execute(sql).fetchdf()
     
-        BASE_DIR = Path(__file__).resolve().parents[2]
-        sql_path = BASE_DIR / "sql/schema_validation/get_postgres_schema.sql"
-
-        sql = load_sql_file(sql_path)    
-
-        df = conn.execute(sql).fetchdf()
-        
-        iceberg_schema = get_iceberg_schema()
-        
-        source_columns = set(
-            (
-                row["table_name"],
-                row["column_name"],
-                normalize_type(row["data_type"])
-            )
-            for _, row in df.iterrows()
+    iceberg_schema = get_iceberg_schema()
+    
+    source_columns = set(
+        (
+            row["table_name"],
+            row["column_name"],
+            normalize_type(row["data_type"])
         )
-        
-        TECHNICAL_COLUMNS = {
-            "ingested_at",
-            "ingestion_date",
-            "run_id"
-        }
-        
-        iceberg_columns = set(
-            (
-                row["table_name"],
-                row["column_name"],
-                normalize_type(row["data_type"])
-            )
-            for row in iceberg_schema if row["column_name"] not in TECHNICAL_COLUMNS
-        )
-        
-            
-        missing_in_iceberg = source_columns - iceberg_columns
-
-        extra_in_iceberg = iceberg_columns - source_columns
-        
-        for row in sorted(missing_in_iceberg):
-            logger.info(row)
-
-        for row in sorted(extra_in_iceberg):
-            logger.info(row)
-
-        if missing_in_iceberg or extra_in_iceberg:
-            raise Exception("❌ Schema drift detected")
+        for _, row in df.iterrows()
+    )
     
-    finally:
-        conn.close()
+    TECHNICAL_COLUMNS = {
+        "ingested_at",
+        "ingestion_date",
+        "run_id"
+    }
+    
+    iceberg_columns = set(
+        (
+            row["table_name"],
+            row["column_name"],
+            normalize_type(row["data_type"])
+        )
+        for row in iceberg_schema if row["column_name"] not in TECHNICAL_COLUMNS
+    )
+    
+        
+    missing_in_iceberg = source_columns - iceberg_columns
 
+    extra_in_iceberg = iceberg_columns - source_columns
+    
+    if missing_in_iceberg:
+        logger.error("❌ Missing columns in Iceberg:")
+
+    for table_name, column_name, data_type in sorted(missing_in_iceberg):
+        logger.error(
+            f"Table={table_name} | Column={column_name} | Type={data_type}"
+        )
+
+    if extra_in_iceberg:
+        logger.error("❌ Extra columns in Iceberg:")
+
+        for table_name, column_name, data_type in sorted(extra_in_iceberg):
+            logger.error(
+                f"Table={table_name} | Column={column_name} | Type={data_type}"
+            )
+
+    if missing_in_iceberg or extra_in_iceberg:
+        raise Exception("❌ Schema drift detected")
+    
+   
 if __name__ == "__main__":
-    main()
+    conn = get_duckdb_connection()
+    main(conn)

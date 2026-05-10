@@ -2,6 +2,31 @@
 version: 2
 
 models:
+  - name: stg_branches
+    description: "Données branches nettoyées et standardisées"
+    
+    columns:
+      - name: branch_id
+        description: "Identifiant unique de la branche (clé primaire)"
+        tests:
+          - not_null
+          - unique
+
+      - name: name
+        description: "Nom du store"
+        tests:
+          - not_null
+
+      - name: city
+        description: "Ville du store"
+        tests:
+          - not_null
+
+      - name: country
+        description: "Pays du store"
+        tests:
+          - not_null
+  
   - name: stg_customers
     description: "Données clients nettoyées et standardisées"
     
@@ -12,10 +37,18 @@ models:
           - not_null
           - unique
 
-      - name: email
-        description: "Email du client"
+      - name: first_name
+        description: "Prénom du client"
         tests:
           - not_null
 
-      - name: created_at
-        description: "Date de création du compte"
+      - name: last_name
+        description: "Nom de famille du client"
+        tests:
+          - not_null
+
+      - name: email
+        description: "Adresse email du client"
+        tests:
+          - not_null
+          - unique

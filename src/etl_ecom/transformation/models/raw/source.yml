@@ -1,12 +1,12 @@
 version: 2
 
 sources:
-  - name: bronze
+  - name: raw
     description: >
       Couche bronze contenant les données brutes ingestées
       depuis les systèmes sources ecommerce.
 
-    schema: bronze
+    schema: raw
 
     tables:
 
@@ -14,7 +14,7 @@ sources:
       # CUSTOMERS
       # ==========================================================
 
-      - name: raw_customers
+      - name: customers
         description: Données brutes des clients ecommerce
 
         columns:
@@ -23,12 +23,16 @@ sources:
             tests:
               - not_null
               - unique
+              - relationships:
+                  arguments:
+                    to: ref('raw', 'users')
+                    field: user_id
 
       # ==========================================================
       # ORDERS
       # ==========================================================
 
-      - name: raw_orders
+      - name: orders
         description: Données brutes des commandes
 
         columns:
@@ -40,15 +44,25 @@ sources:
 
           - name: customer_id
             description: Référence du client
+            tests:
+              - relationships:
+                  arguments:
+                    to: ref('raw', 'customers')
+                    field: customer_id
 
           - name: branch_id
             description: Référence de la branche/store
+            tests:
+              - relationships:
+                  arguments:
+                    to: source('raw', 'branches')
+                    field: branch_id
 
       # ==========================================================
       # ORDER ITEMS
       # ==========================================================
 
-      - name: raw_order_items
+      - name: order_items
         description: Lignes produits des commandes
 
         columns:
@@ -60,15 +74,25 @@ sources:
 
           - name: order_id
             description: Référence de commande
+            tests:
+              - relationships:
+                  arguments:
+                    to: ref('raw', 'orders')
+                    field: order_id
 
           - name: product_id
             description: Référence produit
+            tests:
+              - relationships:
+                  arguments:
+                    to: ref('raw', 'products')
+                    field: product_id
 
       # ==========================================================
       # PRODUCTS
       # ==========================================================
 
-      - name: raw_products
+      - name: products
         description: Catalogue brut des produits
 
         columns:
@@ -82,7 +106,7 @@ sources:
       # CATEGORIES
       # ==========================================================
 
-      - name: raw_categories
+      - name: categories
         description: Catégories produits
 
         columns:
@@ -96,14 +120,33 @@ sources:
       # PRODUCT CATEGORIES
       # ==========================================================
 
-      - name: raw_product_categories
+      - name: product_categories
         description: Table de liaison produits-catégories
+
+        columns:
+        - name: product_id
+          description: Référence produit
+          tests:
+            - not_null
+            - relationships:
+                arguments:
+                  to: ref('raw', 'products')
+                  field: product_id
+
+        - name: category_id
+          description: Référence catégorie
+          tests:
+            - not_null
+            - relationships:
+                arguments:
+                  to: ref('raw', 'categories')
+                  field: category_id
 
       # ==========================================================
       # BRANCHES
       # ==========================================================
 
-      - name: raw_branches
+      - name: branches
         description: Informations des branches/stores
 
         columns:
@@ -117,14 +160,30 @@ sources:
       # BRANCH PRODUCTS
       # ==========================================================
 
-      - name: raw_branch_products
+      - name: branch_products
         description: Produits disponibles par branche
+
+        columns:
+          - name: branch_id
+            description: Référence branche
+            tests:
+              - relationships:
+                  arguments:
+                    to: ref('raw', 'branches')
+                    field: branch_id
+          - name: product_id
+            description: Référence produit
+            tests:
+              - relationships:
+                  arguments:
+                    to: ref('raw', 'products')
+                    field: product_id
 
       # ==========================================================
       # PAYMENTS
       # ==========================================================
 
-      - name: raw_payments
+      - name: payments
         description: Paiements des commandes
 
         columns:
@@ -136,12 +195,17 @@ sources:
 
           - name: order_id
             description: Référence commande
+            tests:
+            - relationships:
+                arguments:
+                  to: ref('raw', 'orders')
+                  field: order_id
 
       # ==========================================================
       # SHIPMENTS
       # ==========================================================
 
-      - name: raw_shipments
+      - name: shipments
         description: Expéditions et livraisons
 
         columns:
@@ -153,12 +217,16 @@ sources:
 
           - name: order_id
             description: Référence commande
-
+            tests:
+              - relationships:
+                  arguments:
+                    to: ref('raw', 'orders')
+                    field: order_id
       # ==========================================================
       # USERS
       # ==========================================================
 
-      - name: raw_users
+      - name: users
         description: Utilisateurs internes / administrateurs
 
         columns:

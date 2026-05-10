@@ -86,8 +86,7 @@ def ingest_raw_table_to_minio(table: str, run_id: str | None = None):
         logger.error(f"❌ Error processing {table}: {e}")
         raise  # 🔥 important pour Airflow (fail task)
 
-    finally:
-        con.close()
+    
 
 
 def ensure_bucket_exists(s3_client, bucket: str):

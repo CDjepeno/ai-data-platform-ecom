@@ -47,6 +47,8 @@ dbt-seed:
 	@echo "Chargement des seeds..."
 	cd $(DBT_DIR) && $(DBT) seed
 
+dbt-profile:
+	nano ~/.dbt/profiles.yml
 # ─────────────────────────────────────
 #  SQLFluff
 # ─────────────────────────────────────
@@ -319,6 +321,80 @@ ifndef TABLE
 endif
 	$(PYTHON) -m scripts.iceberg.snapshots $(TABLE)
 
+# ─────────────────────────────────────
+#  🔎 TRINO HELPERS
+# ─────────────────────────────────────
+
+TRINO_CONTAINER := trino
+
+# Ouvre le shell Trino
+trino:
+	docker exec -it $(TRINO_CONTAINER) trino
+
+# Execute une query
+trino-query:
+ifndef SQL
+	$(error ❌ Usage: make trino-query SQL="SHOW SCHEMAS FROM iceberg")
+endif
+	docker exec -i $(TRINO_CONTAINER) trino --execute "$(SQL)"
+
+# Liste catalogs
+trino-catalogs:
+	docker exec -i $(TRINO_CONTAINER) trino --execute "SHOW CATALOGS"
+
+# Liste schemas iceberg
+trino-schemas:
+	docker exec -i $(TRINO_CONTAINER) trino --execute "SHOW SCHEMAS FROM iceberg"
+
+# Liste tables d'un schema
+trino-tables:
+ifndef SCHEMA
+	$(error ❌ Usage: make trino-tables SCHEMA=raw)
+endif
+	docker exec -i $(TRINO_CONTAINER) trino --execute "SHOW TABLES FROM iceberg.$(SCHEMA)"
+
+# Preview table
+trino-preview:
+ifndef TABLE
+	$(error ❌ Usage: make trino-preview TABLE=raw.users)
+endif
+	docker exec -i $(TRINO_CONTAINER) trino --execute "SELECT * FROM iceberg.$(TABLE) LIMIT 10"
+
+# Count table
+trino-count:
+ifndef TABLE
+	$(error ❌ Usage: make trino-count TABLE=raw.users)
+endif
+	docker exec -i $(TRINO_CONTAINER) trino --execute "SELECT COUNT(*) FROM iceberg.$(TABLE)"
+
+# Describe table
+trino-describe:
+ifndef TABLE
+	$(error ❌ Usage: make trino-describe TABLE=raw.users)
+endif
+	docker exec -i $(TRINO_CONTAINER) trino --execute "DESCRIBE iceberg.$(TABLE)"
+
+# Drop table
+trino-drop-table:
+ifndef TABLE
+	$(error ❌ Usage: make trino-drop-table TABLE=raw.users)
+endif
+	docker exec -i $(TRINO_CONTAINER) trino --execute "DROP TABLE iceberg.$(TABLE)"
+
+# Drop schema complet
+trino-drop-schema:
+ifndef SCHEMA
+	$(error ❌ Usage: make trino-drop-schema SCHEMA=raw)
+endif
+	docker exec -i $(TRINO_CONTAINER) trino --execute "DROP SCHEMA iceberg.$(SCHEMA) CASCADE"
+
+# Voir create table
+trino-show-create:
+ifndef TABLE
+	$(error ❌ Usage: make trino-show-create TABLE=raw.users)
+endif
+	docker exec -i $(TRINO_CONTAINER) trino --execute "SHOW CREATE TABLE iceberg.$(TABLE)"
+
 
 # ─────────────────────────────────────
 #  Commandes générales
@@ -372,6 +448,7 @@ help:
 	@echo "  make dbt-docs              → Docs"
 	@echo "  make dbt-debug             → Debug config"
 	@echo "  make dbt-seed              → Seed dbt"
+	@echo "  make dbt-profile           → Edit dbt profile"
 	@echo ""
 	@echo "🗄️ DUCKDB INSPECTION"
 	@echo "  make schemas               → Liste schemas"
@@ -411,6 +488,19 @@ help:
 	@echo "  make iceberg-describe TABLE=bronze.users      → description de la table"
 	@echo "  make iceberg-drop-all      → suppression de toutes les tables"
 	@echo "  make iceberg-snapshots TABLE=bronze.users      → affiche les snapshots de la table"
+	@echo ""
+	@echo "🔦 TRINO"
+	@echo "  make trino                               → Ouvrir shell Trino"
+	@echo "  make trino-catalogs                      → Liste les catalogs"
+	@echo "  make trino-schemas                       → Liste les schemas Iceberg"
+	@echo "  make trino-tables SCHEMA=raw             → Liste les tables d’un schema"
+	@echo "  make trino-preview TABLE=raw.users       → Aperçu d’une table"
+	@echo "  make trino-count TABLE=raw.users         → Nombre de lignes"
+	@echo "  make trino-describe TABLE=raw.users      → Description d’une table"
+	@echo "  make trino-show-create TABLE=raw.users   → Affiche le CREATE TABLE"
+	@echo "  make trino-drop-table TABLE=raw.users    → Supprime une table"
+	@echo "  make trino-drop-schema SCHEMA=raw        → Supprime un schema"
+	@echo "  make trino-query SQL='SELECT * FROM iceberg.raw.users LIMIT 10'"
 	@echo ""
 	@echo "══════════════════════════════════════════"
 	@echo ""

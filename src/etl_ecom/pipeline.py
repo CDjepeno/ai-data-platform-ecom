@@ -2,6 +2,7 @@
 
 from datetime import datetime
 
+from etl_ecom.db.engine import get_duckdb_connection
 from etl_ecom.ingestion.initialize_infra import initialize_infra
 from etl_ecom.ingestion.loader_to_iceberg import load_all_tables_minio_to_iceberg
 from etl_ecom.ingestion.run_raw import  ingest_raw_to_minio
@@ -16,13 +17,15 @@ def main():
     
     run_id = datetime.now().strftime("%Y%m%d_%H%M%S")
     
+    conn = get_duckdb_connection()
+    
     initialize_infra()
     
-    validate_schema_drift()
+    validate_schema_drift(conn)
     
     ingest_raw_to_minio(run_id)
     
-    load_all_tables_minio_to_iceberg(run_id)
+    load_all_tables_minio_to_iceberg(run_id , conn)
 
     
     logger.info("🏁 Pipeline finished 🌞")

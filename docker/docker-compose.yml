@@ -67,15 +67,24 @@ services:
       - AWS_SECRET_ACCESS_KEY=${MINIO_ROOT_PASSWORD}
       - AWS_REGION=us-east-1
       - nessie.version.store.type=ROCKSDB
-      - nessie.version.store.persist.directory=/nessie-data
-    
+      - nessie.version.store.persist.directory=/nessie-data   
     volumes:
       - ../data/nessie:/nessie-data
-
     networks:
       - etl_ecom
 
-
+  trino:
+    image: trinodb/trino:435
+    container_name: trino
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./trino/catalog:/etc/trino/catalog
+    depends_on:
+      - minio
+      - nessie
+    networks:
+      - etl_ecom
 
   pipeline:
     build: 

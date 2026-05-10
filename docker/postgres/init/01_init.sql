@@ -152,11 +152,3 @@ CREATE INDEX idx_orders_customer_id ON orders (customer_id);
 CREATE INDEX idx_orders_date ON orders (order_date);
 CREATE INDEX idx_order_items_order_id ON order_items (order_id);
 CREATE INDEX idx_products_created_at ON products (created_at);
-
--- =============================
--- ETL METADATA (minimal)
--- =============================
-CREATE TABLE etl_metadata (
-    id serial PRIMARY KEY,
-    last_run timestamp
-);
