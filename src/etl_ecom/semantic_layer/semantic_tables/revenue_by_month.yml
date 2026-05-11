@@ -1,0 +1,17 @@
+name: revenue_by_month
+
+description: Monthly revenue aggregated from orders
+
+table: default_mart.revenue_by_month
+
+dimensions:
+  - year
+  - month_name
+
+metrics:
+  - revenue
+
+business_questions:
+  - What is the revenue by month?
+  - Monthly sales
+  - Revenue trend
