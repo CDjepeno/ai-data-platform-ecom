@@ -26,6 +26,7 @@ models:
         description: "Pays du store"
         tests:
           - not_null
+
   
   - name: stg_customers
     description: "Données clients nettoyées et standardisées"
@@ -47,8 +48,28 @@ models:
         tests:
           - not_null
 
-      - name: email
-        description: "Adresse email du client"
+          
+
+  - name: stg_users
+    description: "Données utilisateurs nettoyées et standardisées"
+    
+    columns:
+      - name: user_id
+        description: "Identifiant unique de l'utilisateur (clé primaire)"
         tests:
           - not_null
           - unique
+      
+
+
+  - name: stg_orders
+    description: "Données commandes nettoyées et standardisées"
+    
+    columns:
+      - name: order_id
+        description: "Identifiant unique de la commande (clé primaire)"
+        tests:
+          - not_null
+          - unique
+
+     

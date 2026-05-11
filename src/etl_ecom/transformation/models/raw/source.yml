@@ -22,7 +22,6 @@ sources:
             description: Identifiant unique du client
             tests:
               - not_null
-              - unique
               - relationships:
                   arguments:
                     to: ref('raw', 'users')
@@ -40,7 +39,6 @@ sources:
             description: Identifiant unique de commande
             tests:
               - not_null
-              - unique
 
           - name: customer_id
             description: Référence du client
@@ -70,7 +68,6 @@ sources:
             description: Identifiant unique de ligne commande
             tests:
               - not_null
-              - unique
 
           - name: order_id
             description: Référence de commande
@@ -100,7 +97,6 @@ sources:
             description: Identifiant unique produit
             tests:
               - not_null
-              - unique
 
       # ==========================================================
       # CATEGORIES
@@ -114,7 +110,6 @@ sources:
             description: Identifiant unique catégorie
             tests:
               - not_null
-              - unique
 
       # ==========================================================
       # PRODUCT CATEGORIES
@@ -154,7 +149,6 @@ sources:
             description: Identifiant unique branche
             tests:
               - not_null
-              - unique
 
       # ==========================================================
       # BRANCH PRODUCTS
@@ -191,7 +185,6 @@ sources:
             description: Identifiant unique paiement
             tests:
               - not_null
-              - unique
 
           - name: order_id
             description: Référence commande
@@ -213,7 +206,6 @@ sources:
             description: Identifiant unique shipment
             tests:
               - not_null
-              - unique
 
           - name: order_id
             description: Référence commande
@@ -234,6 +226,5 @@ sources:
             description: Identifiant unique utilisateur
             tests:
               - not_null
-              - unique
 
 

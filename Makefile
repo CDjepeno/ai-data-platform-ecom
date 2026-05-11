@@ -16,11 +16,15 @@ SEED_DAILY := scripts/seed/seed_daily_growth.sql
 #  Commandes dbt
 # ─────────────────────────────────────
 
-.PHONY: dbt-init dbt-run dbt-test dbt-build dbt-docs dbt-debug dbt-seed
+.PHONY: dbt-init dbt-run dbt-test dbt-build dbt-docs dbt-debug dbt-seed dbt-parse
 
 dbt-init:
 	@echo "Initialisation de dbt dans $(DBT_DIR)..."
 	cd $(DBT_DIR) && $(DBT) init
+
+dbt-parse:
+	@echo "Parsing du projet dbt..."
+	cd $(DBT_DIR) && $(DBT) parse
 
 dbt-run:
 	@echo "Exécution des modèles dbt..."
@@ -449,6 +453,7 @@ help:
 	@echo "  make dbt-debug             → Debug config"
 	@echo "  make dbt-seed              → Seed dbt"
 	@echo "  make dbt-profile           → Edit dbt profile"
+	@echo "  make dbt-parse             → Vérifie DAG + refs + syntaxe"
 	@echo ""
 	@echo "🗄️ DUCKDB INSPECTION"
 	@echo "  make schemas               → Liste schemas"

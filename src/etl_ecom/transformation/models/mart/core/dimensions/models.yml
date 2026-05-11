@@ -1,0 +1,28 @@
+version: 2
+
+models:
+  - name: dim_branches
+    description: "Dimension des magasins/branches de l'e-commerce"
+    columns:
+      - name: branch_id
+        tests:
+          - not_null
+          - unique
+
+  - name: dim_customers
+    description: "Dimension des clients de l'e-commerce"
+    columns:
+      - name: customer_id
+        tests:
+          - not_null
+          - unique
+          
+  - name: dim_users
+    description: "Dimension des utilisateurs de l'e-commerce"
+    columns:
+      - name: user_id
+        tests:
+          - not_null
+          - unique
+
+      

@@ -18,8 +18,6 @@ def create_iceberg_tables():
     try:
         try:
             catalog.create_namespace("raw")
-            catalog.create_namespace("silver")
-            catalog.create_namespace("mart")
             logger.info("✅ Namespace raw créé")
         except Exception:
             logger.info("ℹ️ Namespace raw existe déjà")

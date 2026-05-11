@@ -1,20 +1,23 @@
-{{ config(materialized='table') }}
+{{ config(
+    materialized='table',
+) }}
 
 WITH source_data AS (
     SELECT  *
-    FROM {{ source('raw', 'branches') }}
-
+    FROM {{ source('raw', 'orders') }}
 ),
 
 cleaned AS (
     SELECT  
+    order_id,
+    customer_id,
     branch_id,
-    name,
-    city,
-    country,
+    order_date,
+    status,
+    ingested_at,
+    total_amount,
     created_at,
     updated_at,
-    ingested_at,
     CURRENT_TIMESTAMP AS dbt_loaded_at,
     '{{ invocation_id }}' AS dbt_run_id,
     to_hex(
@@ -22,9 +25,11 @@ cleaned AS (
             to_utf8(
                 concat_ws(
                     '|',
-                    coalesce(name, ''),
-                    coalesce(city, ''),
-                    coalesce(country, '')
+                    CAST(customer_id AS VARCHAR),
+                    CAST(branch_id AS VARCHAR),
+                    coalesce(status, ''),
+                    CAST(total_amount AS VARCHAR),
+                    CAST(order_date AS VARCHAR)
                 )
             )
         )
@@ -36,7 +41,7 @@ deduplicated AS (
     SELECT 
         *,
         ROW_NUMBER() OVER (
-            PARTITION BY branch_id 
+            PARTITION BY order_id 
             ORDER BY updated_at DESC
         ) AS rn
     FROM cleaned
@@ -44,10 +49,13 @@ deduplicated AS (
 
 
 SELECT 
+    order_id,
+    customer_id,
     branch_id,
-    name,
-    city,
-    country,
+    order_date,
+    status,
+    ingested_at,
+    total_amount,
     created_at,
     updated_at,
     dbt_loaded_at,

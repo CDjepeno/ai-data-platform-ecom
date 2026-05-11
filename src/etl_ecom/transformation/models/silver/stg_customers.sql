@@ -1,4 +1,6 @@
-{{ config(materialized='table') }}
+{{ config(
+    materialized='table',
+) }}
 
 WITH source_data AS (
     SELECT  *
@@ -10,12 +12,12 @@ cleaned AS (
     SELECT  
     customer_id,
     user_id,
-    TRIM(first_name) AS firstname,
-    TRIM(last_name) AS lastname,
+    COALESCE(TRIM(first_name), 'Unknown') AS firstname,
+    COALESCE(TRIM(last_name), 'Unknown') AS lastname,
     phone,
     address,
-    city,
-    country,
+    COALESCE(TRIM(city), 'Unknown') AS city,
+    COALESCE(TRIM(country), 'Unknown') AS country,
     created_at,
     updated_at,
     ingested_at,
@@ -26,7 +28,6 @@ cleaned AS (
             to_utf8(
                 concat_ws(
                     '|',
-                    CAST(customer_id AS VARCHAR)
                     coalesce(TRIM(first_name), ''),
                     coalesce(TRIM(last_name), '')
                 )
@@ -49,8 +50,8 @@ deduplicated AS (
 
 SELECT  
     customer_id,
-    firstname,
-    lastname,
+    firstname AS first_name,
+    lastname AS last_name,
     phone,
     address,
     city,

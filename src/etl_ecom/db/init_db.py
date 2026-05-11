@@ -4,9 +4,11 @@ from pathlib import Path
 
 from etl_ecom.db.engine import get_duckdb_connection
 from etl_ecom.utils.load_sql_files import load_sql_files
+from etl_ecom.utils.logger import get_logger
 
 
-logger = logging.getLogger(__name__)
+
+logger = get_logger(__name__)
 
 
 def init_db():
@@ -17,10 +19,17 @@ def init_db():
 
         # charger SQL
     queries = load_sql_files(str(sql_path))
-    
+
     for name, query in queries.items():
-        engine.execute(query)  # ← Cette ligne est cruciale
-        logger.info(f"✅ Exécuté: {name}")
+        logger.info(f"🚀 Exécution SQL: {name}")
+        try:
+            engine.execute(query)
+
+            logger.info(f"✅ Exécuté: {name}")
+
+        except Exception as e:
+            logger.error(f"❌ Erreur sur {name}: {e}")
+            raise
     
     engine.close()
         
