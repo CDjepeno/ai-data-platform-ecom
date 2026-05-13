@@ -1,0 +1,30 @@
+[project]
+name = "ecom-api"
+version = "0.1.0"
+requires-python = ">=3.11,<3.13"
+
+
+
+dependencies = [
+    "fastapi>=0.136.1,<0.137.0",
+    "uvicorn>=0.46.0,<0.47.0",
+
+    "langgraph>=1.1.10,<2.0.0",
+    "langchain>=1.2.18,<2.0.0",
+    "openai>=2.36.0,<3.0.0",
+
+    "qdrant-client>=1.17.1,<2.0.0",
+    "sentence-transformers>=5.4.1,<6.0.0",
+
+    "trino>=0.337.0,<0.338.0",
+
+    "python-dotenv>=1.2.2,<2.0.0",
+    "pyyaml>=6.0.3,<7.0.0"
+]
+
+[tool.poetry]
+package-mode = false
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"

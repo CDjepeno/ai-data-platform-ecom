@@ -98,7 +98,7 @@ services:
 
   pipeline:
     build: 
-      context: ..
+      context: ..etl_ecom
     depends_on:
       postgres:
         condition: service_healthy   
@@ -110,6 +110,26 @@ services:
       - etl_ecom
     volumes:
       - ../src:/app/src
+
+  api:
+    build:
+      context: ./fast_api
+
+    ports:
+      - "8000:8000"
+
+    env_file:
+      - .env
+
+    volumes:
+      - ./api:/app
+
+    depends_on:
+      - qdrant
+      - trino
+
+    networks:
+      - etl_ecom
 
 volumes:
   minio_data_dev: 
