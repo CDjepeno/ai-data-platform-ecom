@@ -1,5 +1,5 @@
 -- insert_audit.sql
--- Insert audit log pour ingestion
+-- Insert audit log for ingestion runs
 
 INSERT INTO metadata.etl_metrics (
     run_id, 

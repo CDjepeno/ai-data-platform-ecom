@@ -1,0 +1,12 @@
+metrics:
+
+  - name: total_customers
+
+    description: Total number of customers
+
+    type: simple
+
+    label: Total Customers
+
+    type_params:
+      measure: customer_count

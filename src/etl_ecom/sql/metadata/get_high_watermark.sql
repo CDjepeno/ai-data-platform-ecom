@@ -1,9 +1,9 @@
 -- watermark.sql
--- Récupère le dernier watermark (valeur et ID) pour une table donnée
--- Utilise la table metadata.etl_watermark dédiée
+-- Fetches the latest watermark (value and ID) for a given table
+-- Uses the dedicated metadata.etl_watermark table
 
 WITH watermark_data AS (
-    -- Sélectionne le watermark le plus récent pour cette table
+    -- Select the most recent watermark for this table
     SELECT
         high_watermark,
         watermark_id,
@@ -13,7 +13,7 @@ WITH watermark_data AS (
         table_name = ?
 )
 
--- Retourne les informations du watermark
+-- Return watermark fields
 SELECT
     high_watermark,
     COALESCE(watermark_id, 0) AS watermark_id

@@ -1,0 +1,52 @@
+semantic_models:
+
+  - name: orders
+
+    description: Semantic model representing ecommerce orders
+
+    model: ref('fact_orders')
+
+    defaults:
+      agg_time_dimension: order_date
+
+    entities:
+
+      - name: order
+        type: primary
+        expr: order_id
+
+      - name: customer
+        type: foreign
+        expr: customer_id
+
+      - name: branch
+        type: foreign
+        expr: branch_id
+
+    dimensions:
+
+      - name: order_date
+        type: time
+        type_params:
+          time_granularity: day
+
+      - name: status
+        type: categorical
+
+    measures:
+
+      - name: revenue
+        description: Total revenue from orders
+        agg: sum
+        expr: total_amount
+
+      - name: order_count
+        description: Number of orders
+        agg: count_distinct
+        expr: order_id
+
+      - name: quantity_sold
+        description: Total quantity sold
+        agg: sum
+        expr: quantity
+    

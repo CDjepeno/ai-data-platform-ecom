@@ -50,6 +50,7 @@ deduplicated AS (
 
 SELECT  
     customer_id,
+    USER_id,
     firstname AS first_name,
     lastname AS last_name,
     phone,

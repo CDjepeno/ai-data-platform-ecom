@@ -7,44 +7,44 @@ logger = get_logger(__name__)
 
 def load_sql_files(directory: str) -> dict[str, str]:
     path = Path(directory)
-    logger.info(f"🔍 Recherche SQL dans: {path.resolve()}") 
+    logger.info(f"🔍 Searching SQL in: {path.resolve()}") 
 
     if not path.exists():
-        logger.warning(f"⚠️  Dossier SQL introuvable: {directory}")
+        logger.warning(f"⚠️  SQL folder not found: {directory}")
         return {}
 
     queries = {}
 
-    for sql_file in sorted(path.glob("**/*.sql")):  # ← changement ici
+    for sql_file in sorted(path.glob("**/*.sql")):  # recursive *.sql
         try:
             with open(sql_file, "r", encoding="utf-8") as f:
                 query = f.read().strip()
 
-            # Optionnel : clé avec chemin relatif pour éviter les collisions de noms
+            # Optional: key uses relative path to avoid name collisions
             relative_key = sql_file.relative_to(path).with_suffix('')
             queries[str(relative_key)] = query
-            logger.info(f"📄 Chargé: {sql_file.relative_to(path)}")
+            logger.info(f"📄 Loaded: {sql_file.relative_to(path)}")
 
         except Exception as e:
-            logger.error(f"❌ Erreur lors du chargement de {sql_file.name}: {e}")
+            logger.error(f"❌ Error loading {sql_file.name}: {e}")
 
     return queries
 
 
 def load_sql_file(filepath: Path) -> str:
     """
-    Charge un fichier SQL depuis un chemin donné.
+    Load a SQL file from a given path.
 
     Args:
-        filepath: Chemin complet vers le fichier .sql (ex: 'src/etl_ecom/ingestion/sql/watermark.sql')
+        filepath: Full path to the .sql file (e.g. 'src/etl_ecom/ingestion/sql/watermark.sql')
 
     Returns:
-        Contenu du fichier (string) ou chaîne vide si fichier introuvable
+        File contents (string), or empty string if the file is missing
     """
     path = filepath
 
     if not path.exists():
-        logger.warning(f"⚠️  Fichier introuvable: {path}")
+        logger.warning(f"⚠️  File not found: {path}")
         return ""
     
     with open(path, "r", encoding="utf-8") as f:

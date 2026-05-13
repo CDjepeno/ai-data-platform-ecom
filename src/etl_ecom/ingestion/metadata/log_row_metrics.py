@@ -17,16 +17,16 @@ def log_row_metrics(
     rows_unchanged: int = 0,
 ) -> None:
 
-    # 📄 charger SQL
+    # 📄 load SQL
     BASE_DIR = Path(__file__).resolve().parents[2]
     sql_path = BASE_DIR / "sql/metadata/insert_row_metrics.sql"
 
     query = load_sql_file(sql_path)
 
     if not query:
-        raise ValueError("❌ insert_row_metrics.sql introuvable")
+        raise ValueError("❌ insert_row_metrics.sql not found")
 
-    # 🚀 exécution DuckDB
+    # 🚀 run in DuckDB
     con.execute(
         query,
         [

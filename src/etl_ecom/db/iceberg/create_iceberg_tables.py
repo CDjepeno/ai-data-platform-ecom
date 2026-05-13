@@ -18,9 +18,9 @@ def create_iceberg_tables():
     try:
         try:
             catalog.create_namespace("raw")
-            logger.info("✅ Namespace raw créé")
+            logger.info("✅ Namespace raw created")
         except Exception:
-            logger.info("ℹ️ Namespace raw existe déjà")
+            logger.info("ℹ️ Namespace raw already exists")
 
         for table_name in TABLE_CONFIG.keys():
 
@@ -29,14 +29,14 @@ def create_iceberg_tables():
             try:
                 
                 catalog.load_table(full_name)
-                logger.info(f"✅ {full_name} existe déjà")
+                logger.info(f"✅ {full_name} already exists")
                 continue
 
             except Exception:
                 pass
             
             
-            logger.info(f"🆕 Création Iceberg table: {full_name}")
+            logger.info(f"🆕 Creating Iceberg table: {full_name}")
 
             arrow_table = con.execute(f"""
                 SELECT *,
@@ -72,4 +72,4 @@ def create_iceberg_tables():
     finally:
         con.close()
 
-        logger.info(f"✅ Table créée: {full_name}")
+        logger.info(f"✅ Table created: {full_name}")

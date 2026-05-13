@@ -4,7 +4,7 @@
 -- =========================================
 
 -- =========================================
--- 🔥 PARAM : jour simulé
+-- 🔥 PARAM: simulated day
 -- =========================================
 WITH sim AS (
     SELECT CURRENT_DATE AS run_date
@@ -37,7 +37,7 @@ SELECT SETVAL(
 );
 
 -- =========================================
--- 👤 USERS (nouveaux + duplications)
+-- 👤 USERS (new + duplicates)
 -- =========================================
 
 INSERT INTO users (
@@ -65,7 +65,7 @@ FROM GENERATE_SERIES(1, 50);
 
 -- =========================================
 -- 🧍 CUSTOMERS
--- évite doublons user_id
+-- avoid duplicate user_id
 -- =========================================
 
 INSERT INTO customers (
@@ -148,7 +148,7 @@ ORDER BY u.user_id DESC
 LIMIT 50;
 
 -- =========================================
--- 🛍️ PRODUCTS (nouveaux)
+-- 🛍️ PRODUCTS (new)
 -- =========================================
 
 INSERT INTO products (
@@ -198,7 +198,7 @@ FROM (
 
 -- =========================================
 -- 🔄 CDC PRICE CHANGE
--- évite explosion des prix
+-- avoid runaway prices
 -- =========================================
 
 UPDATE products
@@ -220,7 +220,7 @@ WHERE RANDOM() < 0.05;
 
 -- =========================================
 -- 🧠 ORDERS
--- clients actifs + activité réaliste
+-- active customers + realistic activity
 -- =========================================
 
 WITH active_customers AS (
@@ -278,7 +278,7 @@ FROM GENERATE_SERIES(1, 120);
 
 -- =========================================
 -- 🧾 ORDER ITEMS
--- liés au stock disponible
+-- tied to available stock
 -- =========================================
 
 INSERT INTO order_items (
@@ -415,7 +415,7 @@ WHERE RANDOM() < 0.1;
 -- 💥 BUSINESS ANOMALIES
 -- =========================================
 
--- paiement OK sur commande annulée
+-- payment OK on cancelled order
 UPDATE payments
 SET status = 'completed'
 WHERE
@@ -426,7 +426,7 @@ WHERE
         WHERE status = 'cancelled'
     );
 
--- livraison sans paiement
+-- shipment without payment
 UPDATE shipments
 SET status = 'delivered'
 WHERE
@@ -437,8 +437,8 @@ WHERE
         WHERE status != 'completed'
     );
 
--- stock décrémenté
--- évite explosion négative
+-- stock decremented
+-- avoid runaway negative values
 UPDATE branch_products
 SET stock =
     CASE
@@ -448,27 +448,27 @@ SET stock =
     END
 WHERE RANDOM() < 0.2;
 
--- rupture stock volontaire
+-- intentional stock-out
 UPDATE branch_products
 SET stock = -5
 WHERE RANDOM() < 0.02;
 
--- produits sans catégorie
+-- products without category
 DELETE FROM product_categories
 WHERE RANDOM() < 0.01;
 
--- total incohérent
+-- inconsistent total
 UPDATE orders
 SET total_amount = total_amount * (1 + RANDOM())
 WHERE RANDOM() < 0.03;
 
--- livraison avant expédition
+-- delivery before shipment
 UPDATE shipments
 SET delivery_date = shipped_date - interval '1 day'
 WHERE RANDOM() < 0.005;
 
 -- =========================================
--- ✅ CHECKS RAPIDES
+-- ✅ QUICK CHECKS
 -- =========================================
 
 -- SELECT COUNT(*) FROM users;

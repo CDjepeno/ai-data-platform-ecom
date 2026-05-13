@@ -14,13 +14,13 @@ def start_step_run(run_id: str, step_name: str) -> None:
 
         query = load_sql_file(sql_path)
         if not query:
-            logger.error(f"❌ Impossible de charger {sql_path}")
+            logger.error(f"❌ Could not load {sql_path}")
             return
 
         engine.execute(query, [run_id, step_name])
         logger.info(f"✅ Step started: {step_name}")
     except Exception as e:
-        logger.error(f"❌ Erreur start_step_run {step_name}: {e}")
+        logger.error(f"❌ start_step_run error for {step_name}: {e}")
         raise
     finally:
         engine.close()
@@ -34,7 +34,7 @@ def finish_step_run(run_id: str, step_name: str, status: str) -> None:
 
         query = load_sql_file(sql_path)
         if not query:
-            logger.error(f"❌ Impossible de charger {sql_path}")
+            logger.error(f"❌ Could not load {sql_path}")
             return
 
         result = engine.execute(query, [status, run_id, step_name])
@@ -44,7 +44,7 @@ def finish_step_run(run_id: str, step_name: str, status: str) -> None:
         else:
             logger.info(f"✅ Step finished: {step_name} ({status})")
     except Exception as e:
-        logger.error(f"❌ Erreur finish_step_run {step_name}: {e}")
+        logger.error(f"❌ finish_step_run error for {step_name}: {e}")
         raise
     finally:
         engine.close()

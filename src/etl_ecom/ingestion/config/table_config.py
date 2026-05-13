@@ -7,10 +7,10 @@ from etl_ecom.types.typing import IngestionConfig
 
 
 def load_config_table() -> IngestionConfig:
-    # 📍 dossier du fichier actuel (config/)
+    # 📍 directory of this file (config/)
     base_dir = Path(__file__).resolve().parent
     print(base_dir)
-    # 📄 chemin vers ingestion.yml
+    # 📄 path to ingestion.yml
     config_path = base_dir / "ingestion_config.yml"
 
     if not config_path.exists():

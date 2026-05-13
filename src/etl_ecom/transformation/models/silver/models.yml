@@ -1,75 +1,72 @@
-# models/silver/schema.yml
+# models/silver/models.yml
 version: 2
 
 models:
   - name: stg_branches
-    description: "Données branches nettoyées et standardisées"
-    
+    description: "Cleaned and standardized branch data"
+
     columns:
       - name: branch_id
-        description: "Identifiant unique de la branche (clé primaire)"
+        description: "Unique branch identifier (primary key)"
         tests:
           - not_null
           - unique
 
       - name: name
-        description: "Nom du store"
+        description: "Store name"
         tests:
           - not_null
 
       - name: city
-        description: "Ville du store"
+        description: "Store city"
         tests:
           - not_null
 
       - name: country
-        description: "Pays du store"
+        description: "Store country"
         tests:
           - not_null
 
-  
+
   - name: stg_customers
-    description: "Données clients nettoyées et standardisées"
-    
+    description: "Cleaned and standardized customer data"
+
     columns:
       - name: customer_id
-        description: "Identifiant unique du client (clé primaire)"
+        description: "Unique customer identifier (primary key)"
         tests:
           - not_null
           - unique
 
       - name: first_name
-        description: "Prénom du client"
+        description: "Customer first name"
         tests:
           - not_null
 
       - name: last_name
-        description: "Nom de famille du client"
+        description: "Customer last name"
         tests:
           - not_null
 
-          
 
   - name: stg_users
-    description: "Données utilisateurs nettoyées et standardisées"
-    
+    description: "Cleaned and standardized user data"
+
     columns:
       - name: user_id
-        description: "Identifiant unique de l'utilisateur (clé primaire)"
+        description: "Unique user identifier (primary key)"
         tests:
           - not_null
           - unique
-      
 
 
   - name: stg_orders
-    description: "Données commandes nettoyées et standardisées"
-    
+    description: "Cleaned and standardized order data"
+
     columns:
       - name: order_id
-        description: "Identifiant unique de la commande (clé primaire)"
+        description: "Unique order identifier (primary key)"
         tests:
           - not_null
           - unique
 
-     

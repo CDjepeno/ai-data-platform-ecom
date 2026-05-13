@@ -196,7 +196,7 @@ CROSS JOIN categories c
 WHERE random() < 0.15;
 
 -- ============================================
--- STOCK PAR BRANCH
+-- STOCK PER BRANCH
 -- ============================================
 
 INSERT INTO branch_products (
@@ -338,7 +338,7 @@ FROM orders;
 -- 💥 BUSINESS ANOMALIES
 -- ============================================
 
--- Paiement validé sur commande annulée
+-- Payment recorded on cancelled order
 UPDATE payments
 SET status = 'completed'
 WHERE
@@ -349,7 +349,7 @@ WHERE
         WHERE status = 'cancelled'
     );
 
--- Livraison sans paiement validé
+-- Shipment without confirmed payment
 UPDATE shipments
 SET status = 'delivered'
 WHERE
@@ -360,17 +360,17 @@ WHERE
         WHERE status != 'completed'
     );
 
--- Stock négatif aggravé
+-- Worsened negative stock
 UPDATE branch_products
 SET stock = stock - 50
 WHERE random() < 0.05;
 
--- Totaux incohérents
+-- Inconsistent totals
 UPDATE orders
 SET total_amount = total_amount * (random() * 3)
 WHERE random() < 0.1;
 
--- Doublons emails
+-- Duplicate emails
 INSERT INTO users (
     email,
     password_hash,
@@ -385,16 +385,16 @@ WHERE
     email IS NOT NULL
     AND random() < 0.05;
 
--- Produits sans catégorie
+-- Products without category
 DELETE FROM product_categories
 WHERE random() < 0.03;
 
--- Clients sans ville
+-- Customers without city
 UPDATE customers
 SET city = NULL
 WHERE random() < 0.03;
 
--- Orders sans items
+-- Orders without line items
 DELETE FROM order_items
 WHERE order_id IN (
     SELECT order_id
@@ -402,18 +402,18 @@ WHERE order_id IN (
     WHERE random() < 0.02
 );
 
--- Paiement supérieur au total
+-- Payment above order total
 UPDATE payments
 SET amount = amount * 5
 WHERE random() < 0.02;
 
--- Livraison avant expédition
+-- Delivery before shipment
 UPDATE shipments
 SET delivery_date = shipped_date - interval '2 days'
 WHERE random() < 0.01;
 
 -- ============================================
--- ✅ CHECKS RAPIDES
+-- ✅ QUICK CHECKS
 -- ============================================
 
 -- SELECT COUNT(*) FROM users;

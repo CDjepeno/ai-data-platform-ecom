@@ -84,7 +84,7 @@ def ingest_raw_table_to_minio(table: str, run_id: str | None = None):
 
     except Exception as e:
         logger.error(f"❌ Error processing {table}: {e}")
-        raise  # 🔥 important pour Airflow (fail task)
+        raise  # important for Airflow (fail the task)
 
     
 

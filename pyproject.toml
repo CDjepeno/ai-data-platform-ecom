@@ -6,7 +6,7 @@ authors = [
     {name = "CDjepeno",email = "djepenodev@gmail.com"}
 ]
 readme = "README.md"
-requires-python = "^3.11"
+requires-python = ">=3.11,<3.13"
 dependencies = [
     "python-dotenv (>=1.2.2,<2.0.0)",
     "psycopg2-binary (>=2.9.12,<3.0.0)",
@@ -16,11 +16,22 @@ dependencies = [
     "pyarrow (>=24.0.0,<25.0.0)",
     "pyiceberg (>=0.11.1,<0.12.0)",
     "s3fs (==2025.3.2)",
-    "dbt-trino (>=1.10.1,<2.0.0)",
     "trino (>=0.337.0,<0.338.0)",
     "duckdb (>=1.5.2,<2.0.0)",
     "keyring (>=25.7.0,<26.0.0)",
-    "keyrings-alt (>=5.0.2,<6.0.0)"
+    "keyrings-alt (>=5.0.2,<6.0.0)",
+    "fastapi (>=0.136.1,<0.137.0)",
+    "uvicorn (>=0.46.0,<0.47.0)",
+    "qdrant-client (>=1.17.1,<2.0.0)",
+    "sentence-transformers (>=5.4.1,<6.0.0)",
+    "langgraph (>=1.1.10,<2.0.0)",
+    "langchain (>=1.2.18,<2.0.0)",
+    "openai (>=2.36.0,<3.0.0)",
+    "pyyaml (>=6.0.3,<7.0.0)",
+    # DBT STACK (PINNED)
+    "dbt-core (==1.10.11)",
+    "dbt-trino (==1.10.0)",
+    "dbt-semantic-interfaces==0.9.0"
 ]
 
 [tool.poetry]

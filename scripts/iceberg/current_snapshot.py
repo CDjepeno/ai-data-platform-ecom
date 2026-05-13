@@ -15,7 +15,7 @@ table = catalog.load_table(table_name)
 snapshot = table.current_snapshot()
 
 if snapshot is None:
-    print(f"❌ Aucun snapshot trouvé pour {table_name}")
+    print(f"❌ No snapshot found for {table_name}")
     sys.exit(1)
 
 print(f"\n🧊 Current Snapshot: {table_name}\n")

@@ -1,0 +1,12 @@
+metrics:
+
+  - name: total_revenue
+
+    description: Total revenue generated from all orders
+
+    type: simple
+
+    label: Total Revenue
+
+    type_params:
+      measure: revenue

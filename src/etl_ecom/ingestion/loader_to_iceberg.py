@@ -26,7 +26,7 @@ def load_single_table_to_iceberg(table_name: str, run_id: str, conn: DuckDBPyCon
 
     try:
        
-        # 1. Lecture depuis MinIO via DuckDB
+        # 1. Read from MinIO via DuckDB
         df = conn.execute(f"""
             SELECT
                 *,
@@ -44,18 +44,18 @@ def load_single_table_to_iceberg(table_name: str, run_id: str, conn: DuckDBPyCon
             logger.warning(f"⚠️ No data for {table_name}")
             return 0
 
-        # 2. Chargement catalogue Iceberg
+        # 2. Load Iceberg catalog
         catalog = get_iceberg_catalog()
         full_table_name = f"raw.{table_name}"
 
-        # 3. Création de la table si elle n'existe pas
+        # 3. Create the table if it does not exist
         try:
             table = catalog.load_table(full_table_name)
         except NoSuchTableError:
             logger.info(f"🆕 Creating table {full_table_name}")
 
 
-            # Inférer le schéma depuis le DataFrame PyArrow
+            # Infer schema from the PyArrow DataFrame
             schema = arrow_to_iceberg_schema(df.schema)
 
             table = catalog.create_table(
@@ -67,10 +67,10 @@ def load_single_table_to_iceberg(table_name: str, run_id: str, conn: DuckDBPyCon
             f"🧊 Appending {row_count} rows into {full_table_name}"
         )
         
-        # 4. Écriture dans Iceberg
+        # 4. Write to Iceberg
         table.append(df)
 
-        # 5. Vérification
+        # 5. Verify
         latest = table.scan().to_arrow()
         total_rows = latest.num_rows
         logger.info(f"✅ {table_name} loaded: {row_count} rows (total: {len(latest)})")
@@ -95,7 +95,7 @@ def load_single_table_to_iceberg(table_name: str, run_id: str, conn: DuckDBPyCon
 
 
 def load_all_tables_minio_to_iceberg(run_id: str, conn: DuckDBPyConnection) -> int:
-    """Charge toutes les tables configurées."""
+    """Load all configured tables."""
     total = 0
     for table_name in TABLE_CONFIG.keys():
         total += load_single_table_to_iceberg(table_name, run_id, conn  )
@@ -105,18 +105,18 @@ def load_all_tables_minio_to_iceberg(run_id: str, conn: DuckDBPyConnection) -> i
 
 
 def ensure_table_exists(catalog, table_name: str, schema) -> bool:
-    """Crée la table si elle n'existe pas, retourne True si création."""
+    """Create the table if missing; return True if it was created."""
     namespace = table_name.split('.')[0] if '.' in table_name else None
 
-    # Crée le namespace si besoin
+    # Create namespace if needed
     if namespace:
         try:
             catalog.create_namespace(namespace)
-            logger.info(f"✅ Namespace '{namespace}' créé")
+            logger.info(f"✅ Namespace '{namespace}' created")
         except Exception:
-            pass  # Déjà existant
+            pass  # Already exists
 
-    # Crée la table si besoin
+    # Create table if needed
     try:
         catalog.load_table(table_name)
         return False
@@ -126,7 +126,7 @@ def ensure_table_exists(catalog, table_name: str, schema) -> bool:
             schema=schema,
             location=f"s3://ecom-etl/warehouse/{table_name}"
         )
-        logger.info(f"✅ Table '{table_name}' crée")
+        logger.info(f"✅ Table '{table_name}' created")
         return True
 
 

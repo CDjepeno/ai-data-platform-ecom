@@ -10,8 +10,8 @@ logger = get_logger(__name__)
 
 def build_query(table: str, warehouse_engine: DuckDBPyConnection) -> str:
     """
-    Construit la requête SQL pour extraire les données d'une table.
-    Gère le mode incrémental avec watermark.
+    Build the SQL query to extract data from a table.
+    Supports incremental mode with a watermark.
     """
     table_config = TABLE_CONFIG.get(table, {})
     
@@ -19,16 +19,16 @@ def build_query(table: str, warehouse_engine: DuckDBPyConnection) -> str:
     
     incremental_cfg = table_config.get("incremental", {})
 
-    # Mode incrémental : ne récupérer que les nouvelles données
+    # Incremental mode: fetch only new rows
     if incremental_cfg.get("enabled"):
         watermark_column = incremental_cfg.get("watermark_column")
         watermark_id_column = incremental_cfg.get("watermark_id", "id")
 
         if not watermark_column:
-            logger.warning(f"⚠️  Table {table}: incremental activé mais watermark_column manquant")
+            logger.warning(f"⚠️  Table {table}: incremental enabled but watermark_column is missing")
             return query + ";"
 
-        # Récupérer le dernier watermark connu
+        # Fetch the latest known watermark
         watermark_rows = get_high_watermark_rows(table, warehouse_engine)
 
         if watermark_rows:
@@ -36,7 +36,7 @@ def build_query(table: str, warehouse_engine: DuckDBPyConnection) -> str:
             watermark_id = watermark_rows["watermark_id"]
 
 
-            # Construction du filtre avec les bonnes colonnes
+            # Build the filter with the correct columns
             query += f"""
                 WHERE
                     {watermark_column} > TIMESTAMP '{high_watermark}'
@@ -47,6 +47,6 @@ def build_query(table: str, warehouse_engine: DuckDBPyConnection) -> str:
                 ORDER BY {watermark_column}, {watermark_id_column}
                 """
         else:
-            logger.info(f"  📦 Premier chargement pour {table} (pas de watermark existant)")
+            logger.info(f"  📦 Initial load for {table} (no existing watermark)")
 
     return query

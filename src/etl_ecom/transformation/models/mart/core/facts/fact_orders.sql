@@ -39,7 +39,7 @@ SELECT
     COALESCE(c.customer_sk, -1) AS customer_sk,
     COALESCE(d.date_sk, -1) AS date_sk,
 
-    -- Mesures métier
+    -- Business measures
     o.total_amount,
     o.status,
     o.order_date,

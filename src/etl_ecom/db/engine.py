@@ -1,4 +1,5 @@
 from sqlalchemy import create_engine
+import trino
 
 from etl_ecom.db.db_config import Config
 
@@ -43,7 +44,6 @@ def get_duckdb_connection() -> duckdb.DuckDBPyConnection:
             SET s3_use_ssl = false;
         """)
 
-        logger.info("✅ DuckDB configuré pour MinIO")
 
         # =========================
         # POSTGRES
@@ -67,10 +67,10 @@ def get_duckdb_connection() -> duckdb.DuckDBPyConnection:
                 (TYPE postgres);
             """)
 
-            logger.info("✅ PostgreSQL attaché à DuckDB")
+            logger.info("✅ PostgreSQL attached to DuckDB")
         except Exception as e:
             if "already exists" in str(e):
-                logger.info("ℹ️ PostgreSQL déjà attaché")
+                logger.info("ℹ️ PostgreSQL already attached")
 
             else:
                 raise
@@ -78,7 +78,7 @@ def get_duckdb_connection() -> duckdb.DuckDBPyConnection:
         return con
 
     except Exception as e:
-        logger.error(f"❌ Erreur connexion DuckDB : {e}")
+        logger.error(f"❌ DuckDB connection error: {e}")
         raise
 
 
@@ -95,7 +95,28 @@ def configure_duckdb_s3(conn: duckdb.DuckDBPyConnection) -> None:
             SET s3_url_style = 'path';
             SET s3_use_ssl = false;
         """)
-        logger.info("✅ DuckDB configuré pour MinIO")
     except Exception as e:
-        logger.error(f"❌ Erreur configuration MinIO pour DuckDB : {e}")
+        logger.error(f"❌ MinIO configuration error for DuckDB: {e}")
+        raise
+
+def get_trino_connection():
+
+    try:
+
+        conn = trino.dbapi.connect(
+            host=Config.TRINO_HOST,
+            port=Config.TRINO_PORT,
+            user=Config.TRINO_USER,
+            catalog=Config.TRINO_CATALOG,
+            schema=Config.TRINO_SCHEMA,
+        )
+
+        logger.info("✅ Trino connection established")
+
+        return conn
+
+    except Exception as e:
+
+        logger.error(f"❌ Trino connection error: {e}")
+
         raise

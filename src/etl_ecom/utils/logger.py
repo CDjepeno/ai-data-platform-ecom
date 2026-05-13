@@ -2,17 +2,17 @@ import logging
 
 def get_logger(name: str) -> logging.Logger:
     """
-    Retourne un logger configuré pour l'application.
+    Return a logger configured for the application.
 
     Parameters
     ----------
     name : str
-        Nom du module appelant
+        Name of the calling module
 
     Returns
     -------
     logging.Logger
-        Instance du logger
+        Logger instance
     """
 
     logger = logging.getLogger(name)

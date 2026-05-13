@@ -1,8 +1,10 @@
 
 
+import asyncio
 from datetime import datetime
 
 from etl_ecom.db.engine import get_duckdb_connection
+from fast_api.qdrant.indexer.sementic_indexing import run_semantic_indexing
 from etl_ecom.ingestion.initialize_infra import initialize_infra
 from etl_ecom.ingestion.loader_to_iceberg import load_all_tables_minio_to_iceberg
 from etl_ecom.ingestion.run_raw import  ingest_raw_to_minio
@@ -13,7 +15,7 @@ from etl_ecom.utils.logger import get_logger
 logger = get_logger(__name__)
 
 
-def main():
+async def main():
 
     logger.info("🚀 Starting Pipeline")
     
@@ -30,10 +32,12 @@ def main():
     load_all_tables_minio_to_iceberg(run_id , conn)
     
     run_dbt_build()
+    
+    await run_semantic_indexing()
 
     
     logger.info("🏁 Pipeline finished 🌞")
     
     
 if __name__ == "__main__":
-    main()
+    asyncio.run(main()) 

@@ -17,7 +17,7 @@ def update_high_watermark(
 ) -> None:
 
     try:
-        logger.info(f"🔥 update watermark appelé pour {table}")
+        logger.info(f"🔥 update_high_watermark called for {table}")
 
         config = TABLE_CONFIG.get(table)
 
@@ -41,7 +41,7 @@ def update_high_watermark(
         # 🔨 rebuild source query
         query = build_query(table, warehouse_engine)
 
-        # 📊 récupérer dernière watermark + id
+        # 📊 fetch latest watermark + id
         watermark_query = f"""
             SELECT
                 {column} AS watermark_value,
@@ -69,7 +69,7 @@ def update_high_watermark(
 
         if not sql_query:
             raise ValueError(
-                "❌ Impossible de charger upsert_watermark.sql"
+                "❌ Could not load upsert_watermark.sql"
             )
 
         # 🚀 upsert watermark
@@ -84,7 +84,7 @@ def update_high_watermark(
         )
 
     except Exception as e:
-        logger.error(f"❌ Erreur update_high_watermark pour {table}")
+        logger.error(f"❌ update_high_watermark error for {table}")
         logger.error(f"👉 Message: {e}")
         logger.error(traceback.format_exc())
         raise

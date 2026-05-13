@@ -3,8 +3,8 @@ version: 2
 sources:
   - name: raw
     description: >
-      Couche bronze contenant les données brutes ingestées
-      depuis les systèmes sources ecommerce.
+      Bronze layer containing raw ingested data
+      from ecommerce source systems.
 
     schema: raw
 
@@ -15,86 +15,82 @@ sources:
       # ==========================================================
 
       - name: customers
-        description: Données brutes des clients ecommerce
+        description: Raw ecommerce customer data
 
         columns:
           - name: customer_id
-            description: Identifiant unique du client
+            description: Unique customer identifier
             tests:
               - not_null
-              - relationships:
-                  arguments:
-                    to: ref('raw', 'users')
-                    field: user_id
+
+          - name: user_id
+            description: Reference to the user
+
 
       # ==========================================================
       # ORDERS
       # ==========================================================
 
       - name: orders
-        description: Données brutes des commandes
+        description: Raw order data
 
         columns:
           - name: order_id
-            description: Identifiant unique de commande
+            description: Unique order identifier
             tests:
               - not_null
 
           - name: customer_id
-            description: Référence du client
+            description: Reference to the customer
             tests:
               - relationships:
-                  arguments:
-                    to: ref('raw', 'customers')
-                    field: customer_id
+                  to: source('raw', 'customers')
+                  field: customer_id
 
           - name: branch_id
-            description: Référence de la branche/store
+            description: Reference to the branch/store
             tests:
               - relationships:
-                  arguments:
-                    to: source('raw', 'branches')
-                    field: branch_id
+                  to: source('raw', 'branches')
+                  field: branch_id
 
       # ==========================================================
       # ORDER ITEMS
       # ==========================================================
 
       - name: order_items
-        description: Lignes produits des commandes
+        description: Order line items
 
         columns:
           - name: order_item_id
-            description: Identifiant unique de ligne commande
+            description: Unique order line identifier
             tests:
               - not_null
 
           - name: order_id
-            description: Référence de commande
+            description: Reference to the order
             tests:
               - relationships:
-                  arguments:
-                    to: ref('raw', 'orders')
-                    field: order_id
+                  to: source('raw', 'orders')
+                  field: order_id
 
           - name: product_id
-            description: Référence produit
+            description: Reference to the product
             tests:
               - relationships:
-                  arguments:
-                    to: ref('raw', 'products')
-                    field: product_id
+                  to: source('raw', 'products')
+                  field: product_id
 
       # ==========================================================
       # PRODUCTS
       # ==========================================================
 
       - name: products
-        description: Catalogue brut des produits
+        description: Raw product catalog
 
         columns:
           - name: product_id
-            description: Identifiant unique produit
+            description: Unique product identifier
             tests:
               - not_null
 
@@ -103,11 +99,11 @@ sources:
       # ==========================================================
 
       - name: categories
-        description: Catégories produits
+        description: Product categories
 
         columns:
           - name: category_id
-            description: Identifiant unique catégorie
+            description: Unique category identifier
             tests:
               - not_null
 
@@ -116,25 +112,23 @@ sources:
       # ==========================================================
 
       - name: product_categories
-        description: Table de liaison produits-catégories
+        description: Product–category bridge table
 
         columns:
-        - name: product_id
-          description: Référence produit
-          tests:
-            - not_null
-            - relationships:
-                arguments:
-                  to: ref('raw', 'products')
+          - name: product_id
+            description: Reference to the product
+            tests:
+              - not_null
+              - relationships:
+                  to: source('raw', 'products')
                   field: product_id
 
-        - name: category_id
-          description: Référence catégorie
-          tests:
-            - not_null
-            - relationships:
-                arguments:
-                  to: ref('raw', 'categories')
+          - name: category_id
+            description: Reference to the category
+            tests:
+              - not_null
+              - relationships:
+                  to: source('raw', 'categories')
                   field: category_id
 
       # ==========================================================
@@ -142,11 +136,11 @@ sources:
       # ==========================================================
 
       - name: branches
-        description: Informations des branches/stores
+        description: Branch/store information
 
         columns:
           - name: branch_id
-            description: Identifiant unique branche
+            description: Unique branch identifier
             tests:
               - not_null
 
@@ -155,43 +149,41 @@ sources:
       # ==========================================================
 
       - name: branch_products
-        description: Produits disponibles par branche
+        description: Products available per branch
 
         columns:
           - name: branch_id
-            description: Référence branche
+            description: Reference to the branch
             tests:
               - relationships:
-                  arguments:
-                    to: ref('raw', 'branches')
-                    field: branch_id
+                  to: source('raw', 'branches')
+                  field: branch_id
+
           - name: product_id
-            description: Référence produit
+            description: Reference to the product
             tests:
               - relationships:
-                  arguments:
-                    to: ref('raw', 'products')
-                    field: product_id
+                  to: source('raw', 'products')
+                  field: product_id
 
       # ==========================================================
       # PAYMENTS
       # ==========================================================
 
       - name: payments
-        description: Paiements des commandes
+        description: Order payments
 
         columns:
           - name: payment_id
-            description: Identifiant unique paiement
+            description: Unique payment identifier
             tests:
               - not_null
 
           - name: order_id
-            description: Référence commande
+            description: Reference to the order
             tests:
-            - relationships:
-                arguments:
-                  to: ref('raw', 'orders')
+              - relationships:
+                  to: source('raw', 'orders')
                   field: order_id
 
       # ==========================================================
@@ -199,31 +191,30 @@ sources:
       # ==========================================================
 
       - name: shipments
-        description: Expéditions et livraisons
+        description: Shipments and deliveries
 
         columns:
           - name: shipment_id
-            description: Identifiant unique shipment
+            description: Unique shipment identifier
             tests:
               - not_null
 
           - name: order_id
-            description: Référence commande
+            description: Reference to the order
             tests:
               - relationships:
-                  arguments:
-                    to: ref('raw', 'orders')
-                    field: order_id
+                  to: source('raw', 'orders')
+                  field: order_id
       # ==========================================================
       # USERS
       # ==========================================================
 
       - name: users
-        description: Utilisateurs internes / administrateurs
+        description: Internal users / administrators
 
         columns:
           - name: user_id
-            description: Identifiant unique utilisateur
+            description: Unique user identifier
             tests:
               - not_null
 

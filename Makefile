@@ -13,42 +13,42 @@ DB_INSPECT := scripts/db_inspect.py
 SEED_DAILY := scripts/seed/seed_daily_growth.sql
 
 # ─────────────────────────────────────
-#  Commandes dbt
+#  dbt commands
 # ─────────────────────────────────────
 
 .PHONY: dbt-init dbt-run dbt-test dbt-build dbt-docs dbt-debug dbt-seed dbt-parse
 
 dbt-init:
-	@echo "Initialisation de dbt dans $(DBT_DIR)..."
+	@echo "Initializing dbt in $(DBT_DIR)..."
 	cd $(DBT_DIR) && $(DBT) init
 
 dbt-parse:
-	@echo "Parsing du projet dbt..."
+	@echo "Parsing dbt project..."
 	cd $(DBT_DIR) && $(DBT) parse
 
 dbt-run:
-	@echo "Exécution des modèles dbt..."
+	@echo "Running dbt models..."
 	cd $(DBT_DIR) && $(DBT) run
 
 dbt-test:
-	@echo "Lancement des tests dbt..."
+	@echo "Running dbt tests..."
 	cd $(DBT_DIR) && $(DBT) test
 
 dbt-build:
-	@echo "Build complet (run + test)..."
+	@echo "Full build (run + test)..."
 	cd $(DBT_DIR) && $(DBT) build
 
 dbt-docs:
-	@echo "Génération et ouverture de la documentation..."
+	@echo "Generating and opening documentation..."
 	cd $(DBT_DIR) && $(DBT) docs generate
 	cd $(DBT_DIR) && $(DBT) docs serve
 
 dbt-debug:
-	@echo "Vérification de la configuration dbt..."
+	@echo "Verifying dbt configuration..."
 	cd $(DBT_DIR) && $(DBT) debug
 
 dbt-seed:
-	@echo "Chargement des seeds..."
+	@echo "Loading dbt seeds..."
 	cd $(DBT_DIR) && $(DBT) seed
 
 dbt-profile:
@@ -60,14 +60,14 @@ dbt-profile:
 SQL_INGESTION_DIR := src/etl_ecom/sql/bronze
 SQL_DBT_DIR := src/etl_ecom/transformation
 
-# 🔍 Lint SQL ingestion (Jinja simple)
+# 🔍 Lint SQL ingestion (basic Jinja)
 lint-sql:
 	@echo "🔍 Lint SQL ingestion..."
 	poetry run sqlfluff lint $(SQL_INGESTION_DIR)
 
 # 🔍 Lint dbt models
 lint-dbt:
-	@echo "🔍 Lint SQL dbt..."
+	@echo "🔍 Lint dbt SQL..."
 	cd $(SQL_DBT_DIR) && poetry run sqlfluff lint models
 
 # 🛠️ Fix SQL ingestion
@@ -77,25 +77,25 @@ fix-sql:
 
 # 🛠️ Fix dbt models
 fix-dbt:
-	@echo "🛠️ Auto-fix SQL dbt..."
+	@echo "🛠️ Auto-fix dbt SQL..."
 	cd $(SQL_DBT_DIR) && poetry run sqlfluff fix models
 
 # ─────────────────────────────────────
-#  Simulation DATA 🔥
+#  DATA simulation 🔥
 # ─────────────────────────────────────
 
 seed-daily:
-	@echo "🌱 Simulation quotidienne..."
+	@echo "🌱 Daily simulation..."
 	psql "postgresql://postgres:Dulonx95*@localhost:5434/ecom_db" -f $(SEED_DAILY)
 
-# 🔥 Simulation N jours
+# 🔥 Simulate N days
 simulate-days:
 ifndef DAYS
 	$(error ❌ Usage: make simulate-days DAYS=10)
 endif
-	@echo "📆 Simulation de $(DAYS) jours..."
+	@echo "📆 Simulating $(DAYS) days..."
 	for i in $$(seq 1 $(DAYS)); do \
-		echo "➡️  Jour $$i"; \
+		echo "➡️  Day $$i"; \
 		psql $(DB_URL) -f $(SEED_DAILY); \
 		make run; \
 	done
@@ -107,42 +107,42 @@ endif
 MINIO_ALIAS ?= myminio
 MINIO_BUCKET ?= ecom-etl
 
-# 📦 Liste des buckets
+# 📦 List buckets
 minio-buckets:
-	@echo "📦 Buckets disponibles:"
+	@echo "📦 Available buckets:"
 	mc ls $(MINIO_ALIAS)
 
-# 📂 Contenu du bucket
+# 📂 Bucket contents
 minio-ls:
-	@echo "📂 Contenu de $(MINIO_BUCKET):"
+	@echo "📂 Contents of $(MINIO_BUCKET):"
 	mc ls $(MINIO_ALIAS)/$(MINIO_BUCKET)
 
-# 🌲 Vue arborescente complète
+# 🌲 Full tree view
 minio-tree:
-	@echo "🌲 Structure complète:"
+	@echo "🌲 Full structure:"
 	mc tree $(MINIO_ALIAS)/$(MINIO_BUCKET)
 
-# 🔍 Recherche globale
+# 🔍 Global search
 minio-find:
-	@echo "🔍 Recherche dans $(MINIO_BUCKET):"
+	@echo "🔍 Searching $(MINIO_BUCKET):"
 	mc find $(MINIO_ALIAS)/$(MINIO_BUCKET)
 
-# 📄 Lire un fichier
+# 📄 Read a file
 minio-cat:
 ifndef FILE
 	$(error ❌ Usage: make minio-cat FILE=path/to/file)
 endif
-	@echo "📄 Lecture $(FILE):"
+	@echo "📄 Reading $(FILE):"
 	mc cat $(MINIO_ALIAS)/$(MINIO_BUCKET)/$(FILE)
 
-# ⬇️ Télécharger un fichier
+# ⬇️ Download a file
 minio-get:
 ifndef FILE
 	$(error ❌ Usage: make minio-get FILE=path/to/file)
 endif
 	mc cp $(MINIO_ALIAS)/$(MINIO_BUCKET)/$(FILE) .
 
-# ⬆️ Upload un fichier
+# ⬆️ Upload a file
 minio-put:
 ifndef FILE
 	$(error ❌ Usage: make minio-put FILE=local_file DEST=path/in/bucket)
@@ -152,32 +152,32 @@ ifndef DEST
 endif
 	mc cp $(FILE) $(MINIO_ALIAS)/$(MINIO_BUCKET)/$(DEST)
 
-# 🔁 Sync dossier local → MinIO
+# 🔁 Sync local folder → MinIO
 minio-sync:
 ifndef DIR
 	$(error ❌ Usage: make minio-sync DIR=local_folder DEST=prefix)
 endif
 	mc mirror $(DIR) $(MINIO_ALIAS)/$(MINIO_BUCKET)/$(DEST)
 
-# 🧨 Supprimer fichier
+# 🧨 Delete file
 minio-rm:
 ifndef FILE
 	$(error ❌ Usage: make minio-rm FILE=path/to/file)
 endif
 	mc rm $(MINIO_ALIAS)/$(MINIO_BUCKET)/$(FILE)
 
-# 🧹 Nettoyer un prefix (danger)
+# 🧹 Clean a prefix (dangerous)
 minio-clean-prefix:
 ifndef PREFIX
 	$(error ❌ Usage: make minio-clean-prefix PREFIX=raw/)
 endif
 	mc rm --recursive --force $(MINIO_ALIAS)/$(MINIO_BUCKET)/$(PREFIX)
 
-# 📊 Taille du bucket
+# 📊 Bucket size
 minio-du:
 	mc du $(MINIO_ALIAS)/$(MINIO_BUCKET)
 
-# 🧠 Voir metadata d’un fichier
+# 🧠 View file metadata
 minio-stat:
 ifndef FILE
 	$(error ❌ Usage: make minio-stat FILE=path/to/file)
@@ -244,21 +244,21 @@ db-tree:
 	$(PYTHON) $(DB_INSPECT) "$(DBT_DUCKDB_PATH_DEV)" tree
 
 reset-db:
-	@echo "🧨 Reset de la base DuckDB..."
+	@echo "🧨 Resetting DuckDB database..."
 	rm -f $(DBT_DUCKDB_PATH_DEV)
-	@echo "✅ Base supprimée"
+	@echo "✅ Database removed"
 
 reset-db-safe:
-	@read -p "⚠️  Supprimer la DB ? (y/n): " confirm && [ "$$confirm" = "y" ] || exit 1
+	@read -p "⚠️  Delete the database? (y/n): " confirm && [ "$$confirm" = "y" ] || exit 1
 	rm -f $(DBT_DUCKDB_PATH_DEV)
-	@echo "✅ Base supprimée"
+	@echo "✅ Database removed"
 
 # ─────────────────────────────────────
 #  Pipeline
 # ─────────────────────────────────────
 
 run:
-	@echo "🚀 Lancement de l'application ETL..."
+	@echo "🚀 Launching ETL application..."
 	poetry run python -m src.etl_ecom.pipeline
 
 # 🔥 FULL DAILY FLOW
@@ -331,26 +331,26 @@ endif
 
 TRINO_CONTAINER := trino
 
-# Ouvre le shell Trino
+# Open Trino shell
 trino:
 	docker exec -it $(TRINO_CONTAINER) trino
 
-# Execute une query
+# Run a Trino query
 trino-query:
 ifndef SQL
 	$(error ❌ Usage: make trino-query SQL="SHOW SCHEMAS FROM iceberg")
 endif
 	docker exec -i $(TRINO_CONTAINER) trino --execute "$(SQL)"
 
-# Liste catalogs
+# List catalogs
 trino-catalogs:
 	docker exec -i $(TRINO_CONTAINER) trino --execute "SHOW CATALOGS"
 
-# Liste schemas iceberg
+# List Iceberg schemas
 trino-schemas:
 	docker exec -i $(TRINO_CONTAINER) trino --execute "SHOW SCHEMAS FROM iceberg"
 
-# Liste tables d'un schema
+# List tables in a schema
 trino-tables:
 ifndef SCHEMA
 	$(error ❌ Usage: make trino-tables SCHEMA=raw)
@@ -385,14 +385,14 @@ ifndef TABLE
 endif
 	docker exec -i $(TRINO_CONTAINER) trino --execute "DROP TABLE iceberg.$(TABLE)"
 
-# Drop schema complet
+# Drop entire schema
 trino-drop-schema:
 ifndef SCHEMA
 	$(error ❌ Usage: make trino-drop-schema SCHEMA=raw)
 endif
 	docker exec -i $(TRINO_CONTAINER) trino --execute "DROP SCHEMA iceberg.$(SCHEMA) CASCADE"
 
-# Voir create table
+# Show CREATE TABLE
 trino-show-create:
 ifndef TABLE
 	$(error ❌ Usage: make trino-show-create TABLE=raw.users)
@@ -401,23 +401,28 @@ endif
 
 
 # ─────────────────────────────────────
-#  Commandes générales
+#  fastAPI
 # ─────────────────────────────────────
+run-api:
+	poetry run uvicorn src.fast_api.main:app --reload
 
+# ─────────────────────────────────────
+#  General commands
+# ─────────────────────────────────────
 install:
-	@echo "Installation des dépendances Poetry..."
+	@echo "Installing Poetry dependencies..."
 	poetry install
 
 lint:
-	@echo "Linting Python avec ruff..."
+	@echo "Linting Python with ruff..."
 	poetry run ruff check src/
 
 test:
-	@echo "Lancement des tests..."
+	@echo "Running tests..."
 	poetry run pytest
 
 # ─────────────────────────────────────
-#  Aide
+#  Help
 # ─────────────────────────────────────
 
 help:
@@ -427,85 +432,88 @@ help:
 	@echo "══════════════════════════════════════════"
 	@echo ""
 	@echo "📦 INSTALLATION"
-	@echo "  make install               → Installer les dépendances"
+	@echo "  make install               → Install Poetry dependencies"
 	@echo ""
-	@echo "🧪 QUALITÉ CODE"
-	@echo "  make lint                  → Lint Python (ruff)"
-	@echo "  make lint-sql              → Lint SQL global"
-	@echo "  make lint-dbt              → Lint SQL dbt"
-	@echo "  make fix-sql               → Auto-fix SQL"
-	@echo "  make fix-dbt               → Auto-fix SQL dbt"
+	@echo "🧪 CODE QUALITY"
+	@echo "  make lint                  → Lint Python with Ruff"
+	@echo "  make lint-sql              → Lint ingestion SQL"
+	@echo "  make lint-dbt              → Lint dbt project SQL"
+	@echo "  make fix-sql               → Auto-fix ingestion SQL"
+	@echo "  make fix-dbt               → Auto-fix dbt SQL"
 	@echo ""
 	@echo "🌱 DATA SIMULATION"
-	@echo "  make seed-daily            → Générer data (1 jour)"
-	@echo "  make simulate-days DAYS=10 → Simuler plusieurs jours"
+	@echo "  make seed-daily            → Run daily Postgres seed script"
+	@echo "  make simulate-days DAYS=N  → Run seed + ETL for N days"
 	@echo ""
 	@echo "🚀 PIPELINE"
-	@echo "  make run                   → Lancer ETL"
-	@echo "  make daily-run             → seed + ETL"
-	@echo "  make full-run              → seed + ETL + dbt"
+	@echo "  make run                   → Run the ETL pipeline"
+	@echo "  make daily-run             → Daily seed, then ETL"
+	@echo "  make full-run              → Daily seed, ETL, then dbt build"
 	@echo ""
 	@echo "🧱 DBT"
-	@echo "  make dbt-run               → Run modèles"
-	@echo "  make dbt-test              → Tests"
-	@echo "  make dbt-build             → Run + test"
-	@echo "  make dbt-docs              → Docs"
-	@echo "  make dbt-debug             → Debug config"
-	@echo "  make dbt-seed              → Seed dbt"
-	@echo "  make dbt-profile           → Edit dbt profile"
-	@echo "  make dbt-parse             → Vérifie DAG + refs + syntaxe"
+	@echo "  make dbt-run               → Run dbt models"
+	@echo "  make dbt-test              → Run dbt tests"
+	@echo "  make dbt-build             → dbt run and test"
+	@echo "  make dbt-docs              → Generate and serve dbt docs"
+	@echo "  make dbt-debug             → Check dbt configuration"
+	@echo "  make dbt-seed              → Load dbt seed data"
+	@echo "  make dbt-profile           → Open dbt profiles.yml in nano"
+	@echo "  make dbt-parse             → Validate dbt DAG, refs, and SQL"
 	@echo ""
 	@echo "🗄️ DUCKDB INSPECTION"
-	@echo "  make schemas               → Liste schemas"
-	@echo "  make check-tables          → Liste tables"
-	@echo "  make tables-schema SCHEMA=metadata"
-	@echo "  make describe-table TABLE=metadata.etl_watermark"
-	@echo "  make count-rows TABLE=metadata.etl_watermark"
-	@echo "  make preview TABLE=metadata.etl_watermark"
-	@echo "  make last TABLE=metadata.etl_watermark"
-	@echo "  make count-all TABLE=metadata.etl_watermark"
-	@echo "  make query SQL='SELECT * FROM table'"
-	@echo "  make db-tree               → Vue globale DB"
-	@echo "  make show-all-tables       → Vue globale tables"
+	@echo "  make schemas               → List all schemas"
+	@echo "  make check-tables          → List tables (default schema)"
+	@echo "  make tables-schema SCHEMA=metadata → List tables in a schema"
+	@echo "  make describe-table TABLE=metadata.etl_watermark → Describe columns"
+	@echo "  make count-rows TABLE=metadata.etl_watermark → Count rows"
+	@echo "  make preview TABLE=metadata.etl_watermark → Preview last rows"
+	@echo "  make last-watermark        → Latest rows from etl_watermark"
+	@echo "  make last-metrics          → Latest rows from etl_metrics"
+	@echo "  make count-all TABLE=metadata.etl_watermark → Count with SQL alias"
+	@echo "  make query SQL='...'       → Run arbitrary SQL"
+	@echo "  make db-tree               → Print schema/table tree"
+	@echo "  make show-all-tables       → SHOW ALL TABLES via DuckDB"
 	@echo ""
 	@echo "🧨 MAINTENANCE"
-	@echo "  make reset-db              → Reset DuckDB"
-	@echo "  make reset-db-safe         → Reset avec confirmation"
+	@echo "  make reset-db              → Delete local DuckDB file"
+	@echo "  make reset-db-safe         → Same, with confirmation prompt"
 	@echo ""
 	@echo "🪣 MINIO"
-	@echo "  make minio-buckets         → Liste buckets"
-	@echo "  make minio-ls              → Contenu bucket"
-	@echo "  make minio-tree            → Vue complète"
-	@echo "  make minio-find            → Recherche fichiers"
-	@echo "  make minio-cat FILE=...    → Lire fichier"
-	@echo "  make minio-put FILE=... DEST=..."
-	@echo "  make minio-sync DIR=... DEST=..."
-	@echo "  make minio-clean-prefix PREFIX=..."
+	@echo "  make minio-buckets         → List buckets on the alias"
+	@echo "  make minio-ls              → List objects in the bucket"
+	@echo "  make minio-tree            → Recursive tree of the bucket"
+	@echo "  make minio-find            → Find objects by pattern"
+	@echo "  make minio-cat FILE=...    → Print object contents"
+	@echo "  make minio-put FILE=... DEST=... → Upload a file"
+	@echo "  make minio-sync DIR=... DEST=... → Mirror a folder to MinIO"
+	@echo "  make minio-clean-prefix PREFIX=... → Delete prefix (destructive)"
 	@echo ""
 	@echo "🧊 ICEBERG"
-	@echo "  make iceberg-list-tables                 → Liste les tables Iceberg"
-	@echo "  make iceberg-schema TABLE=bronze.users  → Affiche le schéma"
-	@echo "  make iceberg-preview TABLE=bronze.users  → Aperçu des données"
-	@echo "  make iceberg-count TABLE=bronze.users  → Compte les lignes"
-	@echo "  make iceberg-history TABLE=bronze.users → Historique des snapshots"
-	@echo "  make iceberg-current-snapshot TABLE=bronze.users → Snapshot actif"
-	@echo "  make iceberg-drop-table TABLE=bronze.users      → suppression de la table"
-	@echo "  make iceberg-describe TABLE=bronze.users      → description de la table"
-	@echo "  make iceberg-drop-all      → suppression de toutes les tables"
-	@echo "  make iceberg-snapshots TABLE=bronze.users      → affiche les snapshots de la table"
+	@echo "  make iceberg-list-tables                 → List Iceberg tables"
+	@echo "  make iceberg-schema TABLE=bronze.users   → Show table schema"
+	@echo "  make iceberg-preview TABLE=bronze.users  → Preview rows"
+	@echo "  make iceberg-count TABLE=bronze.users    → Row count"
+	@echo "  make iceberg-history TABLE=bronze.users  → Snapshot history"
+	@echo "  make iceberg-current-snapshot TABLE=...  → Current snapshot id"
+	@echo "  make iceberg-drop-table TABLE=...      → Drop one table"
+	@echo "  make iceberg-describe TABLE=...        → Describe Iceberg table"
+	@echo "  make iceberg-drop-all                    → Drop all Iceberg tables"
+	@echo "  make iceberg-snapshots TABLE=...         → List table snapshots"
 	@echo ""
 	@echo "🔦 TRINO"
-	@echo "  make trino                               → Ouvrir shell Trino"
-	@echo "  make trino-catalogs                      → Liste les catalogs"
-	@echo "  make trino-schemas                       → Liste les schemas Iceberg"
-	@echo "  make trino-tables SCHEMA=raw             → Liste les tables d’un schema"
-	@echo "  make trino-preview TABLE=raw.users       → Aperçu d’une table"
-	@echo "  make trino-count TABLE=raw.users         → Nombre de lignes"
-	@echo "  make trino-describe TABLE=raw.users      → Description d’une table"
-	@echo "  make trino-show-create TABLE=raw.users   → Affiche le CREATE TABLE"
-	@echo "  make trino-drop-table TABLE=raw.users    → Supprime une table"
-	@echo "  make trino-drop-schema SCHEMA=raw        → Supprime un schema"
-	@echo "  make trino-query SQL='SELECT * FROM iceberg.raw.users LIMIT 10'"
+	@echo "  make trino                               → Interactive Trino shell"
+	@echo "  make trino-catalogs                      → SHOW CATALOGS"
+	@echo "  make trino-schemas                       → SHOW SCHEMAS FROM iceberg"
+	@echo "  make trino-tables SCHEMA=raw             → SHOW TABLES for a schema"
+	@echo "  make trino-preview TABLE=raw.users       → SELECT * LIMIT 10"
+	@echo "  make trino-count TABLE=raw.users         → SELECT COUNT(*)"
+	@echo "  make trino-describe TABLE=raw.users      → DESCRIBE table"
+	@echo "  make trino-show-create TABLE=raw.users   → SHOW CREATE TABLE"
+	@echo "  make trino-drop-table TABLE=raw.users    → DROP TABLE"
+	@echo "  make trino-drop-schema SCHEMA=raw        → DROP SCHEMA CASCADE"
+	@echo "  make trino-query SQL='...'               → Run one SQL statement"
 	@echo ""
+	@echo "⏩ fastAPI"
+	@echo "  make run-api                             → Dev server with reload"
 	@echo "══════════════════════════════════════════"
 	@echo ""

@@ -1,4 +1,3 @@
-import logging
 from pathlib import Path
 
 
@@ -17,18 +16,18 @@ def init_db():
     BASE_DIR = Path(__file__).resolve().parents[1]
     sql_path = BASE_DIR / "sql/metadata/ddl"
 
-        # charger SQL
+    # load SQL metadata DDL files
     queries = load_sql_files(str(sql_path))
 
     for name, query in queries.items():
-        logger.info(f"🚀 Exécution SQL: {name}")
+        logger.info(f"🚀 Running SQL: {name}")
         try:
             engine.execute(query)
 
-            logger.info(f"✅ Exécuté: {name}")
+            logger.info(f"✅ Completed: {name}")
 
         except Exception as e:
-            logger.error(f"❌ Erreur sur {name}: {e}")
+            logger.error(f"❌ Error on {name}: {e}")
             raise
     
     engine.close()

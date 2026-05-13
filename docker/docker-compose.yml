@@ -69,7 +69,7 @@ services:
       - nessie.version.store.type=ROCKSDB
       - nessie.version.store.persist.directory=/nessie-data   
     volumes:
-      - ../data/nessie:/nessie-data
+      - nessie_data:/nessie-data
     networks:
       - etl_ecom
 
@@ -85,6 +85,16 @@ services:
       - nessie
     networks:
       - etl_ecom
+  
+  qdrant:
+    image: qdrant/qdrant
+    container_name: qdrant
+
+    ports:
+      - "6334:6333"
+
+    volumes:
+      - qdrant_data:/qdrant/storage
 
   pipeline:
     build: 
@@ -98,11 +108,14 @@ services:
       - "host.docker.internal:host-gateway"
     networks:
       - etl_ecom
-    
+    volumes:
+      - ../src:/app/src
 
 volumes:
   minio_data_dev: 
   postgres_data_dev:
+  qdrant_data:
+  nessie_data:
 
 networks:
   etl_ecom:
