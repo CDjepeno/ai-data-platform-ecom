@@ -1,16 +1,30 @@
 # ─────────────────────────────────────
 #  Variables
 # ─────────────────────────────────────
+
 include docker/.env
 export
 
-DBT_DIR := src/etl_ecom/transformation
-DBT := poetry run dbt
-PYTHON := poetry run python 
-DB_INSPECT := scripts/db_inspect.py
+ETL_DIR := src/etl_ecom
 
-# 🔥 NEW
-SEED_DAILY := scripts/seed/seed_daily_growth.sql
+DBT_DIR := $(ETL_DIR)/etl_ecom/transformation
+
+POETRY := poetry -C $(ETL_DIR)
+
+PYTHON := $(POETRY) run python
+DBT := $(POETRY) run dbt
+
+SEED_DAILY := $(ETL_DIR)/etl_ecom/scripts/seed/seed_daily_growth.sql
+
+DB_INSPECT_MODULE := etl_ecom.scripts.db_inspect
+
+SQL_INGESTION_DIR := $(ETL_DIR)/etl_ecom/sql/bronze
+SQL_DBT_DIR := $(ETL_DIR)/etl_ecom/transformation
+
+TRINO_CONTAINER := trino
+
+MINIO_ALIAS ?= myminio
+MINIO_BUCKET ?= ecom-etl
 
 # ─────────────────────────────────────
 #  dbt commands
@@ -53,81 +67,66 @@ dbt-seed:
 
 dbt-profile:
 	nano ~/.dbt/profiles.yml
+
 # ─────────────────────────────────────
 #  SQLFluff
 # ─────────────────────────────────────
 
-SQL_INGESTION_DIR := src/etl_ecom/sql/bronze
-SQL_DBT_DIR := src/etl_ecom/transformation
-
-# 🔍 Lint SQL ingestion (basic Jinja)
 lint-sql:
 	@echo "🔍 Lint SQL ingestion..."
-	poetry run sqlfluff lint $(SQL_INGESTION_DIR)
+	$(POETRY) run sqlfluff lint $(SQL_INGESTION_DIR)
 
-# 🔍 Lint dbt models
 lint-dbt:
 	@echo "🔍 Lint dbt SQL..."
-	cd $(SQL_DBT_DIR) && poetry run sqlfluff lint models
+	cd $(SQL_DBT_DIR) && $(POETRY) run sqlfluff lint models
 
-# 🛠️ Fix SQL ingestion
 fix-sql:
 	@echo "🛠️ Auto-fix SQL ingestion..."
-	poetry run sqlfluff fix $(SQL_INGESTION_DIR)
+	$(POETRY) run sqlfluff fix $(SQL_INGESTION_DIR)
 
-# 🛠️ Fix dbt models
 fix-dbt:
 	@echo "🛠️ Auto-fix dbt SQL..."
-	cd $(SQL_DBT_DIR) && poetry run sqlfluff fix models
+	cd $(SQL_DBT_DIR) && $(POETRY) run sqlfluff fix models
 
 # ─────────────────────────────────────
-#  DATA simulation 🔥
+#  DATA simulation
 # ─────────────────────────────────────
 
 seed-daily:
 	@echo "🌱 Daily simulation..."
 	psql "postgresql://postgres:Dulonx95*@localhost:5434/ecom_db" -f $(SEED_DAILY)
 
-# 🔥 Simulate N days
 simulate-days:
 ifndef DAYS
 	$(error ❌ Usage: make simulate-days DAYS=10)
 endif
 	@echo "📆 Simulating $(DAYS) days..."
 	for i in $$(seq 1 $(DAYS)); do \
-		echo "➡️  Day $$i"; \
+		echo "➡️ Day $$i"; \
 		psql $(DB_URL) -f $(SEED_DAILY); \
 		make run; \
 	done
 
 # ─────────────────────────────────────
-#  🪣 MinIO HELPERS
+#  MinIO HELPERS
 # ─────────────────────────────────────
 
-MINIO_ALIAS ?= myminio
-MINIO_BUCKET ?= ecom-etl
-
-# 📦 List buckets
 minio-buckets:
 	@echo "📦 Available buckets:"
 	mc ls $(MINIO_ALIAS)
 
-# 📂 Bucket contents
 minio-ls:
 	@echo "📂 Contents of $(MINIO_BUCKET):"
 	mc ls $(MINIO_ALIAS)/$(MINIO_BUCKET)
 
-# 🌲 Full tree view
 minio-tree:
 	@echo "🌲 Full structure:"
 	mc tree $(MINIO_ALIAS)/$(MINIO_BUCKET)
 
-# 🔍 Global search
 minio-find:
 	@echo "🔍 Searching $(MINIO_BUCKET):"
 	mc find $(MINIO_ALIAS)/$(MINIO_BUCKET)
 
-# 📄 Read a file
 minio-cat:
 ifndef FILE
 	$(error ❌ Usage: make minio-cat FILE=path/to/file)
@@ -135,14 +134,12 @@ endif
 	@echo "📄 Reading $(FILE):"
 	mc cat $(MINIO_ALIAS)/$(MINIO_BUCKET)/$(FILE)
 
-# ⬇️ Download a file
 minio-get:
 ifndef FILE
 	$(error ❌ Usage: make minio-get FILE=path/to/file)
 endif
 	mc cp $(MINIO_ALIAS)/$(MINIO_BUCKET)/$(FILE) .
 
-# ⬆️ Upload a file
 minio-put:
 ifndef FILE
 	$(error ❌ Usage: make minio-put FILE=local_file DEST=path/in/bucket)
@@ -152,32 +149,27 @@ ifndef DEST
 endif
 	mc cp $(FILE) $(MINIO_ALIAS)/$(MINIO_BUCKET)/$(DEST)
 
-# 🔁 Sync local folder → MinIO
 minio-sync:
 ifndef DIR
 	$(error ❌ Usage: make minio-sync DIR=local_folder DEST=prefix)
 endif
 	mc mirror $(DIR) $(MINIO_ALIAS)/$(MINIO_BUCKET)/$(DEST)
 
-# 🧨 Delete file
 minio-rm:
 ifndef FILE
 	$(error ❌ Usage: make minio-rm FILE=path/to/file)
 endif
 	mc rm $(MINIO_ALIAS)/$(MINIO_BUCKET)/$(FILE)
 
-# 🧹 Clean a prefix (dangerous)
 minio-clean-prefix:
 ifndef PREFIX
 	$(error ❌ Usage: make minio-clean-prefix PREFIX=raw/)
 endif
 	mc rm --recursive --force $(MINIO_ALIAS)/$(MINIO_BUCKET)/$(PREFIX)
 
-# 📊 Bucket size
 minio-du:
 	mc du $(MINIO_ALIAS)/$(MINIO_BUCKET)
 
-# 🧠 View file metadata
 minio-stat:
 ifndef FILE
 	$(error ❌ Usage: make minio-stat FILE=path/to/file)
@@ -189,59 +181,58 @@ endif
 # ─────────────────────────────────────
 
 schemas:
-	$(PYTHON) $(DB_INSPECT) "$(DBT_DUCKDB_PATH_DEV)" schemas
+	$(PYTHON) -m $(DB_INSPECT_MODULE) "$(DBT_DUCKDB_PATH_DEV)" schemas
 
 check-tables:
-	$(PYTHON) $(DB_INSPECT) "$(DBT_DUCKDB_PATH_DEV)" tables
+	$(PYTHON) -m $(DB_INSPECT_MODULE) "$(DBT_DUCKDB_PATH_DEV)" tables
 
 tables-schema:
 ifndef SCHEMA
 	$(error ❌ Usage: make tables-schema SCHEMA=metadata)
 endif
-	$(PYTHON) $(DB_INSPECT) "$(DBT_DUCKDB_PATH_DEV)" tables_schema "$(SCHEMA)"
+	$(PYTHON) -m $(DB_INSPECT_MODULE) "$(DBT_DUCKDB_PATH_DEV)" tables_schema "$(SCHEMA)"
 
 describe-table:
 ifndef TABLE
 	$(error ❌ Usage: make describe-table TABLE=metadata.etl_watermark)
 endif
-	$(PYTHON) $(DB_INSPECT) "$(DBT_DUCKDB_PATH_DEV)" describe "$(TABLE)"
+	$(PYTHON) -m $(DB_INSPECT_MODULE) "$(DBT_DUCKDB_PATH_DEV)" describe "$(TABLE)"
 
 count-rows:
 ifndef TABLE
 	$(error ❌ Usage: make count-rows TABLE=metadata.etl_watermark)
 endif
-	$(PYTHON) $(DB_INSPECT) "$(DBT_DUCKDB_PATH_DEV)" count "$(TABLE)"
+	$(PYTHON) -m $(DB_INSPECT_MODULE) "$(DBT_DUCKDB_PATH_DEV)" count "$(TABLE)"
 
 show-all-tables:
-	$(PYTHON) $(DB_INSPECT) "$(DBT_DUCKDB_PATH_DEV)" query "SHOW ALL TABLES"
+	$(PYTHON) -m $(DB_INSPECT_MODULE) "$(DBT_DUCKDB_PATH_DEV)" query "SHOW ALL TABLES"
 
 query:
 ifndef SQL
-	$(error ❌ Usage: make query SQL="SELECT * FROM metadata.etl_watermark")
+	$(error ❌ Usage: make query SQL='SELECT * FROM metadata.etl_watermark')
 endif
-	$(PYTHON) $(DB_INSPECT) "$(DBT_DUCKDB_PATH_DEV)" query "$(SQL)"
+	$(PYTHON) -m $(DB_INSPECT_MODULE) "$(DBT_DUCKDB_PATH_DEV)" query "$(SQL)"
 
 preview:
 ifndef TABLE
 	$(error ❌ Usage: make preview TABLE=metadata.etl_watermark)
 endif
-	$(PYTHON) $(DB_INSPECT) "$(DBT_DUCKDB_PATH_DEV)" query "SELECT * FROM $(TABLE) ORDER BY 1 DESC LIMIT 10"
+	$(PYTHON) -m $(DB_INSPECT_MODULE) "$(DBT_DUCKDB_PATH_DEV)" query "SELECT * FROM $(TABLE) ORDER BY 1 DESC LIMIT 10"
 
 last-watermark:
-	$(PYTHON) $(DB_INSPECT) "$(DBT_DUCKDB_PATH_DEV)" query "SELECT * FROM metadata.etl_watermark ORDER BY high_watermark DESC LIMIT 10"
+	$(PYTHON) -m $(DB_INSPECT_MODULE) "$(DBT_DUCKDB_PATH_DEV)" query "SELECT * FROM metadata.etl_watermark ORDER BY high_watermark DESC LIMIT 10"
 
 last-metrics:
-	$(PYTHON) $(DB_INSPECT) "$(DBT_DUCKDB_PATH_DEV)" query "SELECT * FROM metadata.etl_metrics ORDER BY processed_at DESC LIMIT 10"
-
+	$(PYTHON) -m $(DB_INSPECT_MODULE) "$(DBT_DUCKDB_PATH_DEV)" query "SELECT * FROM metadata.etl_metrics ORDER BY processed_at DESC LIMIT 10"
 
 count-all:
 ifndef TABLE
 	$(error ❌ Usage: make count-all TABLE=metadata.etl_watermark)
 endif
-	$(PYTHON) $(DB_INSPECT) "$(DBT_DUCKDB_PATH_DEV)" query "SELECT COUNT(*) AS total FROM $(TABLE)"
+	$(PYTHON) -m $(DB_INSPECT_MODULE) "$(DBT_DUCKDB_PATH_DEV)" query "SELECT COUNT(*) AS total FROM $(TABLE)"
 
 db-tree:
-	$(PYTHON) $(DB_INSPECT) "$(DBT_DUCKDB_PATH_DEV)" tree
+	$(PYTHON) -m $(DB_INSPECT_MODULE) "$(DBT_DUCKDB_PATH_DEV)" tree
 
 reset-db:
 	@echo "🧨 Resetting DuckDB database..."
@@ -249,7 +240,7 @@ reset-db:
 	@echo "✅ Database removed"
 
 reset-db-safe:
-	@read -p "⚠️  Delete the database? (y/n): " confirm && [ "$$confirm" = "y" ] || exit 1
+	@read -p "⚠️ Delete the database? (y/n): " confirm && [ "$$confirm" = "y" ] || exit 1
 	rm -f $(DBT_DUCKDB_PATH_DEV)
 	@echo "✅ Database removed"
 
@@ -258,168 +249,155 @@ reset-db-safe:
 # ─────────────────────────────────────
 
 run:
-	@echo "🚀 Launching ETL application..."
-	poetry run python -m src.etl_ecom.pipeline
+	@echo "🚀 Launching ETL pipeline..."
+	$(PYTHON) -m etl_ecom.pipeline
 
-# 🔥 FULL DAILY FLOW
 daily-run: seed-daily run
 
-# 🔥 FULL DATA STACK
 full-run: seed-daily run dbt-build
 
 # ─────────────────────────────────────
-#  🧊 ICEBERG HELPERS
+#  ICEBERG HELPERS
 # ─────────────────────────────────────
 
 iceberg-list-tables:
-	$(PYTHON) -m scripts.iceberg.list_tables
+	$(PYTHON) -m etl_ecom.scripts.iceberg.list_tables
 
 iceberg-schema:
 ifndef TABLE
 	$(error ❌ Usage: make iceberg-schema TABLE=bronze.users)
 endif
-	$(PYTHON) -m scripts.iceberg.schema $(TABLE)
+	$(PYTHON) -m etl_ecom.scripts.iceberg.schema $(TABLE)
 
 iceberg-count:
 ifndef TABLE
 	$(error ❌ Usage: make iceberg-count TABLE=bronze.users)
 endif
-	$(PYTHON) -m scripts.iceberg.count $(TABLE)
+	$(PYTHON) -m etl_ecom.scripts.iceberg.count $(TABLE)
 
 iceberg-history:
 ifndef TABLE
 	$(error ❌ Usage: make iceberg-history TABLE=bronze.users)
 endif
-	$(PYTHON) -m scripts.iceberg.history $(TABLE)
+	$(PYTHON) -m etl_ecom.scripts.iceberg.history $(TABLE)
 
 iceberg-current-snapshot:
 ifndef TABLE
 	$(error ❌ Usage: make iceberg-current-snapshot TABLE=bronze.users)
 endif
-	$(PYTHON) -m scripts.iceberg.current_snapshot $(TABLE)
+	$(PYTHON) -m etl_ecom.scripts.iceberg.current_snapshot $(TABLE)
 
 iceberg-drop-table:
 ifndef TABLE
 	$(error ❌ Usage: make iceberg-drop-table TABLE=bronze.users)
 endif
-	$(PYTHON) -m scripts.iceberg.drop_table $(TABLE)
+	$(PYTHON) -m etl_ecom.scripts.iceberg.drop_table $(TABLE)
 
 iceberg-drop-all:
-	$(PYTHON) -m scripts.iceberg.drop_all_tables
+	$(PYTHON) -m etl_ecom.scripts.iceberg.drop_all_tables
 
 iceberg-preview:
 ifndef TABLE
 	$(error ❌ Usage: make iceberg-preview TABLE=bronze.users)
 endif
-	$(PYTHON) -m scripts.iceberg.preview $(TABLE)
+	$(PYTHON) -m etl_ecom.scripts.iceberg.preview $(TABLE)
 
 iceberg-describe:
 ifndef TABLE
 	$(error ❌ Usage: make iceberg-describe TABLE=bronze.users)
 endif
-	$(PYTHON) -m scripts.iceberg.describe $(TABLE)
+	$(PYTHON) -m etl_ecom.scripts.iceberg.describe $(TABLE)
 
 iceberg-snapshots:
 ifndef TABLE
 	$(error ❌ Usage: make iceberg-snapshots TABLE=bronze.users)
 endif
-	$(PYTHON) -m scripts.iceberg.snapshots $(TABLE)
+	$(PYTHON) -m etl_ecom.scripts.iceberg.snapshots $(TABLE)
 
 # ─────────────────────────────────────
-#  🔎 TRINO HELPERS
+#  TRINO HELPERS
 # ─────────────────────────────────────
 
-TRINO_CONTAINER := trino
-
-# Open Trino shell
 trino:
 	docker exec -it $(TRINO_CONTAINER) trino
 
-# Run a Trino query
 trino-query:
 ifndef SQL
 	$(error ❌ Usage: make trino-query SQL="SHOW SCHEMAS FROM iceberg")
 endif
 	docker exec -i $(TRINO_CONTAINER) trino --execute "$(SQL)"
 
-# List catalogs
 trino-catalogs:
 	docker exec -i $(TRINO_CONTAINER) trino --execute "SHOW CATALOGS"
 
-# List Iceberg schemas
 trino-schemas:
 	docker exec -i $(TRINO_CONTAINER) trino --execute "SHOW SCHEMAS FROM iceberg"
 
-# List tables in a schema
 trino-tables:
 ifndef SCHEMA
 	$(error ❌ Usage: make trino-tables SCHEMA=raw)
 endif
 	docker exec -i $(TRINO_CONTAINER) trino --execute "SHOW TABLES FROM iceberg.$(SCHEMA)"
 
-# Preview table
 trino-preview:
 ifndef TABLE
 	$(error ❌ Usage: make trino-preview TABLE=raw.users)
 endif
 	docker exec -i $(TRINO_CONTAINER) trino --execute "SELECT * FROM iceberg.$(TABLE) LIMIT 10"
 
-# Count table
 trino-count:
 ifndef TABLE
 	$(error ❌ Usage: make trino-count TABLE=raw.users)
 endif
 	docker exec -i $(TRINO_CONTAINER) trino --execute "SELECT COUNT(*) FROM iceberg.$(TABLE)"
 
-# Describe table
 trino-describe:
 ifndef TABLE
 	$(error ❌ Usage: make trino-describe TABLE=raw.users)
 endif
 	docker exec -i $(TRINO_CONTAINER) trino --execute "DESCRIBE iceberg.$(TABLE)"
 
-# Drop table
 trino-drop-table:
 ifndef TABLE
 	$(error ❌ Usage: make trino-drop-table TABLE=raw.users)
 endif
 	docker exec -i $(TRINO_CONTAINER) trino --execute "DROP TABLE iceberg.$(TABLE)"
 
-# Drop entire schema
 trino-drop-schema:
 ifndef SCHEMA
 	$(error ❌ Usage: make trino-drop-schema SCHEMA=raw)
 endif
 	docker exec -i $(TRINO_CONTAINER) trino --execute "DROP SCHEMA iceberg.$(SCHEMA) CASCADE"
 
-# Show CREATE TABLE
 trino-show-create:
 ifndef TABLE
 	$(error ❌ Usage: make trino-show-create TABLE=raw.users)
 endif
 	docker exec -i $(TRINO_CONTAINER) trino --execute "SHOW CREATE TABLE iceberg.$(TABLE)"
 
-
 # ─────────────────────────────────────
 #  fastAPI
 # ─────────────────────────────────────
+
 run-api:
 	poetry run uvicorn src.fast_api.main:app --reload
 
 # ─────────────────────────────────────
 #  General commands
 # ─────────────────────────────────────
+
 install:
 	@echo "Installing Poetry dependencies..."
-	poetry install
+	$(POETRY) install
 
 lint:
 	@echo "Linting Python with ruff..."
-	poetry run ruff check src/
+	$(POETRY) run ruff check $(ETL_DIR)
 
 test:
 	@echo "Running tests..."
-	poetry run pytest
+	$(POETRY) run pytest
+
 
 # ─────────────────────────────────────
 #  Help

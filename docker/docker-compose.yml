@@ -95,10 +95,13 @@ services:
 
     volumes:
       - qdrant_data:/qdrant/storage
+    networks:
+      - etl_ecom
 
   pipeline:
     build: 
-      context: ..etl_ecom
+      context: ../src/etl_ecom
+      dockerfile: Dockerfile
     depends_on:
       postgres:
         condition: service_healthy   
@@ -109,27 +112,72 @@ services:
     networks:
       - etl_ecom
     volumes:
-      - ../src:/app/src
+      - ../src/etl_ecom:/app
+      - ../src/semantic_layer:/app/semantic_layer
 
   api:
     build:
-      context: ./fast_api
+      context: ../src/fast_api
 
     ports:
       - "8000:8000"
+
+    working_dir: /app
 
     env_file:
       - .env
 
     volumes:
-      - ./api:/app
+    - ../src/fast_api:/app/fast_api
 
     depends_on:
-      - qdrant
-      - trino
+      - semantic_layer
 
     networks:
       - etl_ecom
+    
+  semantic_layer:
+    build:
+      context: ../src/semantic_layer
+
+    working_dir: /app
+
+    ports:
+    - "8001:8001"
+
+    env_file:
+      - .env
+
+    volumes:
+      - ../src/semantic_layer:/app
+      - ../src/etl_ecom:/app/etl_ecom
+      - ../src/semantic_layer/.dbt:/app/.dbt
+
+    depends_on:
+      - trino
+      - qdrant
+
+    networks:
+      - etl_ecom
+
+  # frontend:
+  #   build:
+  #     context: ../src/next_js
+
+  #   container_name: next_frontend
+
+  #   ports:
+  #     - "3000:3000"
+
+  #   volumes:
+  #     - ../src/next_js:/app
+  #     - /app/node_modules
+
+  #   depends_on:
+  #     - api
+
+  #   networks:
+  #     - etl_ecom
 
 volumes:
   minio_data_dev: 

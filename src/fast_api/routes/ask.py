@@ -1,23 +1,35 @@
 from fastapi import APIRouter
+from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
-
-from lang_graph.graphs.analytics_graph import (
-    analytics_graph,
-)
-
+import httpx
 
 router = APIRouter()
+
 
 class AskRequest(BaseModel):
     question: str
 
+
 @router.post("/ask")
 async def ask_question(payload: AskRequest):
-    
-    result = await analytics_graph.ainvoke(
-        {
-            "question": payload.question
-        }
-    )
 
-    return result["response"]
+    async def generate():
+
+        async with httpx.AsyncClient(timeout=None) as client:
+
+            async with client.stream(
+                "POST",
+                "http://semantic_layer:8001/ask",
+                json={
+                    "question": payload.question
+                }
+            ) as response:
+
+                async for chunk in response.aiter_text():
+
+                    yield chunk
+
+    return StreamingResponse(
+        generate(),
+        media_type="text/event-stream"
+    )

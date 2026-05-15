@@ -16,18 +16,21 @@ ENV PYTHONUNBUFFERED=1
 ENV POETRY_VIRTUALENVS_CREATE=false
 ENV POETRY_NO_INTERACTION=1
 
+# IMPORTANT
+ENV PYTHONPATH=/app:/app/semantic_layer
+
 # Install poetry
 RUN pip install --upgrade pip \
     && pip install poetry
 
-# Copy dependency files first
-COPY pyproject.toml poetry.lock ./
+# Copy dependency files
+COPY pyproject.toml poetry.lock /app/
 
 # Install dependencies
 RUN poetry install --no-root
 
-# Copy ONLY needed folders
-COPY src/ ./src/
+# Copy source code
+COPY . .
 
-
-CMD ["python", "-m", "etl_ecommerce"]
+# Start pipeline
+CMD ["python", "-m", "etl_ecom.pipeline"]
