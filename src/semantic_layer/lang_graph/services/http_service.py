@@ -1,7 +1,6 @@
-from typing import AsyncIterator, Mapping, TypedDict
+from typing import AsyncIterator, Mapping, TypedDict, Any
 
 import httpx
-from sympy import primitive
 
 from utils.logger import get_logger
 
@@ -16,33 +15,60 @@ class HttpResponse(TypedDict):
 class HttpxClient:
 
     def __init__(self):
+
+        limits = httpx.Limits(
+            max_connections=100,
+            max_keepalive_connections=20,
+            keepalive_expiry=30.0,
+        )
+
+        timeout = httpx.Timeout(
+            connect=10.0,
+            read=300.0,
+            write=30.0,
+            pool=30.0,
+        )
+
         self.client = httpx.AsyncClient(
-            timeout=httpx.Timeout(
-                connect=20.0,
-                read=60.0,
-                write=20.0,
-                pool=10.0,
-            )
+            timeout=timeout,
+            limits=limits,
+            http2=True,
         )
 
     async def get(
-        self, url: str, headers: dict[str, str], params: dict[str, primitive]
+        self,
+        url: str,
+        headers: dict[str, str],
+        params: dict[str, Any],
     ) -> dict[str, object]:
-        response = await self.client.get(url, headers=headers, params=params)
+
+        response = await self.client.get(
+            url,
+            headers=headers,
+            params=params,
+        )
+
         response.raise_for_status()
+
         return response.json()
 
     async def post(
         self,
         url: str,
         headers: Mapping[str, str],
-        body: str,
+        json_body: dict[str, object],
     ) -> HttpResponse:
 
-        response = await self.client.post(url, headers=headers, content=body)
+        response = await self.client.post(
+            url,
+            headers=headers,
+            json=json_body,
+        )
+
         logger.info(f"📡 Status code: {response.status_code}")
 
-        logger.info(f"📦 Response body: {response.text}")
+        response.raise_for_status()
+
         return {
             "status_code": response.status_code,
             "text": response.text,
@@ -62,5 +88,15 @@ class HttpxClient:
             json=json_body,
         ) as response:
 
-            async for line in response.aiter_lines():
-                yield line
+            logger.info(f"📡 Streaming started: {response.status_code}")
+
+            response.raise_for_status()
+
+            async for chunk in response.aiter_text():
+
+                if chunk:
+                    yield chunk
+
+    async def close(self):
+
+        await self.client.aclose()

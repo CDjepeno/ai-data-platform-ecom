@@ -1,8 +1,7 @@
 import json
-from typing import AsyncIterator, Optional, TypeAlias, cast
+from typing import AsyncIterator, Optional
 
 from lang_graph.services.http_service import HttpxClient
-from lang_graph.typing.llm.request_type import DeepSeekRequest
 from lang_graph.typing.llm.response_type import DeepSeekResponse
 from utils.logger import get_logger
 
@@ -29,7 +28,7 @@ class LlmService:
     async def generate(self, prompt: str, use_coder: bool = False) -> str:
         model_to_use = self._coder_model if use_coder else self._model
 
-        payload: DeepSeekRequest = {
+        payload = {
             "model": model_to_use,
             "messages": [{"role": "user", "content": prompt}],
         }
@@ -39,13 +38,9 @@ class LlmService:
             "Content-Type": "application/json",
         }
 
-        logger.info(f"🌐 Calling LLM API: {self._base_url}")
-
-        logger.info(f"🧠 Payload: {payload}")
-
         response = await self._http_client.post(
             f"{self._base_url}/chat/completions",
-            body=json.dumps(payload),
+            json_body=payload,
             headers=headers,
         )
 
@@ -53,8 +48,7 @@ class LlmService:
             return "LLM error: HTTP failure"
 
         if self._debug:
-            print(f"DEBUG MODEL USED: {model_to_use}")
-            print("DEBUG RAW RESPONSE:", response["text"])
+            pass
 
         data: DeepSeekResponse = json.loads(response["text"])
 
@@ -63,74 +57,49 @@ class LlmService:
 
         return data["choices"][0]["message"]["content"]
 
-    JSONPrimitive: TypeAlias = str | int | float | bool | None
-    JSONValue: TypeAlias = JSONPrimitive | dict[str, "JSONValue"] | list["JSONValue"]
-    JSONObject: TypeAlias = dict[str, JSONValue]
 
-    async def stream(
-        self,
-        prompt: str,
-        use_coder: bool = False,
-    ) -> AsyncIterator[str]:
 
+    async def stream(self, prompt: str, use_coder: bool = False) -> AsyncIterator[str]:
         model_to_use = self._coder_model if use_coder else self._model
-
-        payload: dict[str, object] = {
+        payload = {
             "model": model_to_use,
             "messages": [{"role": "user", "content": prompt}],
             "stream": True,
         }
-
-        headers: dict[str, str] = {
+        headers = {
             "Authorization": f"Bearer {self._api_key}",
             "Content-Type": "application/json",
         }
 
-        async for line in self._http_client.stream(
+        buffer = ""
+        async for chunk in self._http_client.stream(
             f"{self._base_url}/chat/completions",
             headers=headers,
             json_body=payload,
         ):
-
-            if not line:
-                continue
-
-            if not line.startswith("data: "):
-                continue
-
-            raw = line[len("data: ") :]
-
-            if raw == "[DONE]":
-                break
-
-            chunk_raw = json.loads(raw)
-            if not isinstance(chunk_raw, dict):
-                continue
-
-            chunk: dict[str, object] = cast(dict[str, object], chunk_raw)
-
-            choices_raw = chunk.get("choices")
-
-            if not isinstance(choices_raw, list) or not choices_raw:
-                continue
-
-            choices = cast(list[object], choices_raw)
-
-            first_choice_raw = choices[0]
-
-            if not isinstance(first_choice_raw, dict):
-                continue
-
-            first_choice = cast(dict[str, object], first_choice_raw)
-
-            delta_raw = first_choice.get("delta")
-
-            if not isinstance(delta_raw, dict):
-                continue
-
-            delta = cast(dict[str, object], delta_raw)
-
-            content = delta.get("content")
-
-            if isinstance(content, str):
-                yield content
+            buffer += chunk
+            # Découpage par lignes complètes
+            while "\n" in buffer:
+                line, buffer = buffer.split("\n", 1)
+                line = line.strip()
+                if not line:
+                    continue
+                if line.startswith(":"):
+                    continue
+                if not line.startswith("data: "):
+                    continue
+                raw = line[len("data: "):].strip()
+                if not raw or raw == "[DONE]":
+                    if raw == "[DONE]":
+                        return
+                    continue
+                try:
+                    data = json.loads(raw)
+                except json.JSONDecodeError:
+                    # Passe en debug pour éviter les warnings intempestifs
+                    logger.debug(f"Failed to parse JSON chunk: {raw}")
+                    continue
+                delta = data.get("choices", [{}])[0].get("delta", {})
+                content = delta.get("content")
+                if content:
+                    yield content
