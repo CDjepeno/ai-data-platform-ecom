@@ -23,14 +23,8 @@ async def ask_question(payload: AskRequest):
             timeout=None,  # important pour éviter les timeouts longs
         ) as response:
             response.raise_for_status()
-            # Lecture ligne par ligne pour éviter le buffering
-            buffer = ""
             async for chunk in response.aiter_bytes():
-                buffer += chunk.decode("utf-8")
-                while "\n" in buffer:
-                    line, buffer = buffer.split("\n", 1)
-                    if line.strip():
-                        yield line + "\n"
+                yield chunk
     return StreamingResponse(
         generate(),
         media_type="text/event-stream",

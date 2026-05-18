@@ -1,123 +1,126 @@
 "use client";
 
-import {
-  useEffect,
-  useRef,
-  useState,
-} from "react";
+import { ChatMessageBubble } from "@/app/chat/chat-message";
+import { useChatHook } from "@/app/hooks/use-chat-hook";
+import { useEffect, useRef, useState } from "react";
 
-import { useChatHook } from "@/features/chat/hooks/use-chat-hook";
-
-import {
-  ChatMessage,
-} from "./chat/chat.types";
-
-export default function AIChatDashboard() {
+export default function HomePage() {
 
   const {
     messages,
+    steps,
     loading,
     handleSendMessage,
   } = useChatHook();
 
-  const [input, setInput] = useState<string>("");
+  const [input, setInput] =
+    useState("");
 
-  const messagesEndRef =
-    useRef<HTMLDivElement | null>(null);
+  const bottomRef =
+    useRef<HTMLDivElement>(null);
 
   useEffect(() => {
 
-    messagesEndRef.current?.scrollIntoView({
+    bottomRef.current?.scrollIntoView({
       behavior: "smooth",
     });
 
-  }, [messages]);
-
-  const conversations = [
-    {
-      id: 1,
-      title: "Analyse ventes Q1",
-      time: "2m ago",
-    },
-    {
-      id: 2,
-      title: "Pipeline dbt marketing",
-      time: "1h ago",
-    },
-    {
-      id: 3,
-      title: "SQL optimisation",
-      time: "Yesterday",
-    },
-  ];
+  }, [messages, steps]);
 
   const handleSubmit = async () => {
 
-    if (!input.trim()) return;
+    if (!input.trim()) {
+      return;
+    }
 
-    const currentInput = input;
+    await handleSendMessage(
+      input
+    );
 
     setInput("");
-
-    await handleSendMessage(currentInput);
   };
 
   return (
-    <div className="flex h-screen overflow-hidden bg-zinc-950 text-zinc-100">
 
-      {/* SIDEBAR */}
-      <aside className="flex w-[300px] flex-col border-r border-white/10 bg-black/30 backdrop-blur-xl">
+    <div
+      className="
+        flex
+        h-screen
+        overflow-hidden
+        bg-black
+        text-white
+      "
+    >
 
-        <div className="border-b border-white/10 p-4">
+      {/* Sidebar */}
 
-          <button className="w-full rounded-2xl bg-white py-3 font-medium text-black transition hover:opacity-90">
+      <aside
+        className="
+          hidden
+          w-72
+          shrink-0
+          border-r
+          border-white/10
+          bg-zinc-950
+          lg:flex
+          lg:flex-col
+        "
+      >
+
+        <div className="p-4">
+
+          <button
+            type="button"
+            className="
+              w-full
+              rounded-2xl
+              bg-white
+              px-4
+              py-4
+              text-black
+            "
+          >
             + Nouveau chat
           </button>
 
         </div>
 
-        <div className="flex-1 space-y-2 overflow-y-auto px-3 py-4">
+        <div
+          className="
+            flex-1
+            overflow-y-auto
+            px-3
+          "
+        >
 
-          {conversations.map((chat) => (
+          <div className="space-y-3">
 
-            <button
-              key={chat.id}
-              className="w-full rounded-2xl border border-white/5 bg-white/[0.03] p-4 text-left transition hover:bg-white/[0.06]"
-            >
+            {[
+              "Analyse ventes Q1",
+              "Pipeline dbt marketing",
+              "SQL optimisation",
+            ].map((item, index) => (
 
-              <div className="flex items-start justify-between gap-3">
+              <div
+                key={index}
+                className="
+                  rounded-3xl
+                  border
+                  border-white/10
+                  bg-white/[0.02]
+                  p-4
+                  transition
+                  hover:bg-white/[0.04]
+                "
+              >
 
-                <div>
-
-                  <p className="line-clamp-1 text-sm font-medium">
-                    {chat.title}
-                  </p>
-
-                  <p className="mt-1 text-xs text-zinc-500">
-                    {chat.time}
-                  </p>
-
-                </div>
+                <p className="text-sm">
+                  {item}
+                </p>
 
               </div>
 
-            </button>
-
-          ))}
-
-        </div>
-
-        <div className="border-t border-white/10 p-4">
-
-          <div className="rounded-2xl border border-white/5 bg-white/[0.03] p-4">
-
-            <p className="text-sm font-medium">
-              LLM Connected
-            </p>
-
-            <p className="mt-1 text-xs text-zinc-500">
-              FastAPI + LangGraph + dbt
-            </p>
+            ))}
 
           </div>
 
@@ -125,161 +128,220 @@ export default function AIChatDashboard() {
 
       </aside>
 
-      {/* MAIN CHAT */}
-      <main className="relative flex flex-1 flex-col">
+      {/* Main */}
 
-        {/* HEADER */}
-        <header className="flex h-16 items-center justify-between border-b border-white/10 bg-zinc-950/70 px-6 backdrop-blur-xl">
+      <main
+        className="
+          flex
+          min-h-0
+          min-w-0
+          flex-1
+          flex-col
+        "
+      >
 
-          <div>
+        {/* Header */}
 
-            <h1 className="text-lg font-semibold">
-              AI Data Assistant
-            </h1>
+        <header
+          className="
+            shrink-0
+            border-b
+            border-white/10
+            px-6
+            py-5
+          "
+        >
 
-            <p className="text-xs text-zinc-500">
-              Analyse • SQL • dbt • LangGraph
-            </p>
-
-          </div>
-
-          <div className="flex items-center gap-2">
-
-            <div className="h-2 w-2 animate-pulse rounded-full bg-green-500" />
-
-            <span className="text-sm text-zinc-400">
-              Online
-            </span>
-
-          </div>
+          <h1
+            className="
+              text-3xl
+              font-semibold
+            "
+          >
+            AI Data Assistant
+          </h1>
 
         </header>
 
-        {/* MESSAGES */}
-        <div className="flex-1 overflow-y-auto px-6 py-8">
+        {/* Messages */}
 
-          <div className="mx-auto max-w-4xl space-y-8">
+        <section
+          className="
+            min-h-0
+            flex-1
+            overflow-y-auto
+            px-6
+            py-8
+          "
+        >
 
-            {messages.map(
-              (message: ChatMessage) => (
+          <div
+            className="
+              mx-auto
+              flex
+              max-w-4xl
+              flex-col
+              gap-6
+            "
+          >
+
+            {/* STEPS */}
+
+            {loading && steps.length > 0 && (
+
+              <div
+                className="
+                  mb-2
+                  rounded-3xl
+                  border
+                  border-emerald-500/20
+                  bg-emerald-500/5
+                  p-5
+                "
+              >
 
                 <div
-                  key={message.id}
-                  className={`flex ${
-                    message.role === "user"
-                      ? "justify-end"
-                      : "justify-start"
-                  }`}
+                  className="
+                    mb-3
+                    text-xs
+                    font-semibold
+                    uppercase
+                    tracking-wider
+                    text-emerald-400
+                  "
+                >
+                  Live execution
+                </div>
+
+                <div
+                  className="
+                    flex
+                    flex-col
+                    gap-3
+                  "
                 >
 
-                  <div
-                    className={`max-w-2xl rounded-3xl border px-5 py-4 ${
-                      message.role === "user"
-                        ? "border-white bg-white text-black"
-                        : "border-white/10 bg-white/[0.03]"
-                    }`}
-                  >
+                  {steps.map((step) => (
 
-                    <p className="whitespace-pre-wrap text-sm leading-7 md:text-base">
-                      {message.content}
-                    </p>
+                    <div
+                      key={step.id}
+                      className="
+                        flex
+                        items-center
+                        gap-3
+                        text-sm
+                        text-zinc-300
+                      "
+                    >
 
-                    {message.steps &&
-                      message.steps.length > 0 && (
+                      <div
+                        className="
+                          h-2
+                          w-2
+                          animate-pulse
+                          rounded-full
+                          bg-emerald-400
+                        "
+                      />
 
-                        <div className="mt-5 space-y-2 border-t border-white/10 pt-4">
+                      <span>
+                        {step.label}
+                      </span>
 
-                          <p className="text-xs uppercase tracking-wide text-zinc-500">
-                            Agent workflow
-                          </p>
+                    </div>
 
-                          {message.steps.map((step) => (
-
-                            <div
-                              key={step.id}
-                              className="flex items-center gap-3 text-sm text-zinc-300"
-                            >
-
-                              <div
-                                className={`h-2 w-2 rounded-full ${
-                                  step.status === "completed"
-                                    ? "bg-green-500"
-                                    : step.status === "running"
-                                    ? "bg-yellow-500"
-                                    : "bg-zinc-500"
-                                }`}
-                              />
-
-                              <span>{step.label}</span>
-
-                            </div>
-
-                          ))}
-
-                        </div>
-
-                      )}
-
-                  </div>
+                  ))}
 
                 </div>
 
-              )
+              </div>
+
             )}
 
-            <div ref={messagesEndRef} />
+            {/* MESSAGES */}
+
+            {messages.map((message, index) => {
+
+              const isLastMessage =
+                index ===
+                messages.length - 1;
+
+              const isStreaming =
+                loading &&
+                isLastMessage &&
+                message.role ===
+                  "assistant";
+
+              return (
+
+                <ChatMessageBubble
+                  key={message.id}
+                  message={message}
+                  isStreaming={
+                    isStreaming
+                  }
+                />
+
+              );
+            })}
+
+            <div ref={bottomRef} />
 
           </div>
 
-        </div>
+        </section>
 
-        {/* INPUT */}
-        <div className="border-t border-white/10 bg-zinc-950/80 p-6 backdrop-blur-xl">
+        {/* Footer */}
 
-          <div className="mx-auto max-w-4xl">
+        <footer
+          className="
+            shrink-0
+            border-t
+            border-white/10
+            bg-zinc-950
+            p-6
+          "
+        >
 
-            {/* Suggestions */}
-            <div className="mb-4 flex flex-wrap gap-2">
+          <div
+            className="
+              mx-auto
+              max-w-4xl
+            "
+          >
 
-              {[
-                "Analyse mes KPIs",
-                "Explique ce modèle dbt",
-                "Génère une requête SQL",
-                "Résume les anomalies",
-              ].map((suggestion: string) => (
+            <div
+              className="
+                rounded-3xl
+                border
+                border-white/10
+                bg-white/[0.03]
+                p-3
+              "
+            >
 
-                <button
-                  key={suggestion}
-                  onClick={() => setInput(suggestion)}
-                  className="rounded-full border border-white/10 bg-white/[0.03] px-4 py-2 text-sm transition hover:bg-white/[0.06]"
-                >
-                  {suggestion}
-                </button>
+              <div
+                className="
+                  flex
+                  items-end
+                  gap-3
+                "
+              >
 
-              ))}
-
-            </div>
-
-            {/* INPUT BOX */}
-            <div className="rounded-3xl border border-white/10 bg-white/[0.03] p-3 shadow-2xl shadow-black/20">
-
-              <div className="flex items-end gap-3">
-
-                {/* Upload */}
-                <button className="flex h-11 w-11 items-center justify-center rounded-2xl bg-white/[0.05] text-xl transition hover:bg-white/[0.08]">
-                  +
-                </button>
-
-                {/* Textarea */}
                 <textarea
                   value={input}
                   onChange={(e) =>
-                    setInput(e.target.value)
+                    setInput(
+                      e.target.value
+                    )
                   }
-                  onKeyDown={async (e) => {
+                  onKeyDown={async (
+                    e
+                  ) => {
 
                     if (
-                      e.key === "Enter" &&
+                      e.key ===
+                        "Enter" &&
                       !e.shiftKey
                     ) {
 
@@ -288,37 +350,42 @@ export default function AIChatDashboard() {
                       await handleSubmit();
                     }
                   }}
-                  placeholder="Ask anything about your data..."
+                  placeholder="
+Pose une question sur tes données...
+"
                   rows={1}
-                  className="max-h-40 flex-1 resize-none bg-transparent pt-3 text-sm outline-none placeholder:text-zinc-500"
+                  className="
+                    flex-1
+                    resize-none
+                    bg-transparent
+                    py-3
+                    text-sm
+                    outline-none
+                  "
                 />
 
-                {/* Send */}
                 <button
-                  onClick={handleSubmit}
+                  type="button"
+                  onClick={
+                    handleSubmit
+                  }
                   disabled={loading}
-                  className="h-11 rounded-2xl bg-white px-5 font-medium text-black transition hover:opacity-90 disabled:opacity-50"
+                  className="
+                    shrink-0
+                    rounded-2xl
+                    bg-white
+                    px-5
+                    py-3
+                    text-black
+                    transition
+                    hover:opacity-90
+                    disabled:opacity-50
+                  "
                 >
-                  Send
+                  {loading
+                    ? "..."
+                    : "Send"}
                 </button>
-
-              </div>
-
-              <div className="mt-3 flex items-center justify-between px-1">
-
-                <div className="flex items-center gap-2 text-xs text-zinc-500">
-
-                  <span>Image upload ready</span>
-
-                  <span>•</span>
-
-                  <span>Streaming enabled</span>
-
-                </div>
-
-                <div className="text-xs text-zinc-500">
-                  GPT + LangGraph Agent
-                </div>
 
               </div>
 
@@ -326,7 +393,7 @@ export default function AIChatDashboard() {
 
           </div>
 
-        </div>
+        </footer>
 
       </main>
 

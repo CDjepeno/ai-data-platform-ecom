@@ -7,10 +7,14 @@ from lang_graph.nodes.build_format_response import (
 from lang_graph.typing.analytics_state import (
     AnalyticsState,
 )
+from lang_graph.utils.timer import async_timed_node
 
 load_dotenv()
 
 
+@async_timed_node(
+    "format_response"
+)
 async def format_response(
     state: AnalyticsState,
 ):
@@ -25,7 +29,7 @@ async def format_response(
     if not results:
         raise ValueError("Results missing from state")
 
-    prompt = build_formatting_prompt(
+    prompt = await build_formatting_prompt(
         question=question,
         results=results,
     )

@@ -1,7 +1,11 @@
 from lang_graph.typing.analytics_state import AnalyticsState
+from lang_graph.utils.timer import async_timed_node
 
 
-def build_metricflow_query(state: AnalyticsState):
+@async_timed_node(
+    "build_metricflow_query"
+)
+async def build_metricflow_query(state: AnalyticsState):
 
     intent = state.get("intent")
 

@@ -11,7 +11,12 @@ from lang_graph.typing.analytics_state import AnalyticsState
 from lang_graph.nodes.generate_response import generate_response
 
 
-graph = StateGraph(AnalyticsState)
+
+graph = StateGraph(
+    AnalyticsState
+)
+
+# Nodes
 
 graph.add_node(
     "retrieve_context",
@@ -43,14 +48,13 @@ graph.add_node(
     format_response,
 )
 
-graph.add_node(
-    "generate_response",
-    generate_response,
-)
+# Entry point
 
 graph.set_entry_point(
     "retrieve_context"
 )
+
+# Edges
 
 graph.add_edge(
     "retrieve_context",
@@ -77,14 +81,13 @@ graph.add_edge(
     "format_response",
 )
 
-graph.add_edge(
-    "format_response",
-    "generate_response",
-)
+# Final node
 
 graph.add_edge(
-    "generate_response",
-    END
+    "format_response",
+    END,
 )
+
+# Compile
 
 analytics_graph = graph.compile()

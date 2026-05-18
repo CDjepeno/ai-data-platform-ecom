@@ -5,10 +5,14 @@ from dotenv import load_dotenv
 
 from lang_graph.typing.analytics_state import AnalyticsState
 from lang_graph.factory.factory_service import llm_service
+from lang_graph.utils.timer import async_timed_node
 
 load_dotenv()
 
 
+@async_timed_node(
+    "generate_response"
+)
 async def generate_response(state: AnalyticsState, *args, **kwargs):
     writer = kwargs.get('writer')
     if writer is None and len(args) > 0:
@@ -21,7 +25,6 @@ async def generate_response(state: AnalyticsState, *args, **kwargs):
 
     async for chunk in llm_service.stream(prompt):
         if chunk:
-            print(f"DEBUG: chunk received = {chunk}")  # déjà présent
             if writer:
                 writer(chunk)   # envoi immédiat
             yield {"response": chunk}  # pour l'état (non utilisé en custom)

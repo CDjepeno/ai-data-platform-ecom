@@ -6,9 +6,13 @@ from lang_graph.validator.fuzzy_metric_validator import FuzzyMetricValidator
 from lang_graph.validator.metric_exists_validator import MetricExistsValidator
 from lang_graph.validator.metrics_type_validator import MetricsTypeValidator
 from lang_graph.validator.required_fields_validator import RequiredFieldsValidator
+from lang_graph.utils.timer import async_timed_node
 
 
-def validate_metrics(
+@async_timed_node(
+    "validate_metrics"
+)
+async def validate_metrics(
     state: AnalyticsState,
 ):
 

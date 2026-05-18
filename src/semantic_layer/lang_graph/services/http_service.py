@@ -65,8 +65,6 @@ class HttpxClient:
             json=json_body,
         )
 
-        logger.info(f"📡 Status code: {response.status_code}")
-
         response.raise_for_status()
 
         return {
