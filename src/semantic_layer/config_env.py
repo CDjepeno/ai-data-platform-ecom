@@ -18,13 +18,14 @@ class Config:
     # =========================
     # Embedding
     # =========================
-    MODEL_EMBEDDING = os.getenv("MODEL_EMBEDDING", "text-embedding-3-small")
+    MODEL_EMBEDDING = os.getenv("MODEL_EMBEDDING", "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2")
 
     # =========================
     # dbt
     # =========================
     DBT_PROJECT_DIR = Path(os.getenv("DBT_PROJECT_DIR", "app/transformation"))
     DBT_PROFILES_DIR = DBT_PROJECT_DIR / ".dbt"
+    SEMANTIC_MODELS_PATH = Path(os.getenv("SEMANTIC_MODELS_PATH", "/app/transformations/mart/semantic_models"))
     
     # =========================
     # qdrant
@@ -32,6 +33,7 @@ class Config:
     QDRANT_HOST = os.getenv("QDRANT_HOST", "qdrant")    
     QDRANT_PORT = int(os.getenv("QDRANT_PORT", "6334"))
     QDRANT_COLLECTION = os.getenv("QDRANT_COLLECTION", "semantic_models")
+    QDRANT_SIZE = int(os.getenv("QDRANT_SIZE", 384))
     
     # =========================
     # Trino

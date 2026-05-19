@@ -37,15 +37,18 @@ async def main():
 
         async with httpx.AsyncClient(timeout=300) as client:
 
+            logger.info("🔨 Building dbt...")
             response = await client.post(
                 "http://semantic_layer:8001/build-dbt"
             )
+            response.raise_for_status()
 
-        response.raise_for_status()
+            logger.info("📦 Indexing semantic models...")
+            response = await client.post(
+                "http://semantic_layer:8001/index"
+            )
+            response.raise_for_status()
 
-        await httpx.AsyncClient().post(
-            "http://semantic_layer:8001/index"
-        )
 
         logger.info("🏁 Pipeline finished 🌞")
     else:

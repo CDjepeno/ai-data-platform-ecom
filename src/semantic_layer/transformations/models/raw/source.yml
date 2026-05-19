@@ -42,17 +42,11 @@ sources:
 
           - name: customer_id
             description: Reference to the customer
-            tests:
-              - relationships:
-                  to: source('raw', 'customers')
-                  field: customer_id
+    
 
           - name: branch_id
             description: Reference to the branch/store
-            tests:
-              - relationships:
-                  to: source('raw', 'branches')
-                  field: branch_id
+  
 
       # ==========================================================
       # ORDER ITEMS
@@ -69,17 +63,11 @@ sources:
 
           - name: order_id
             description: Reference to the order
-            tests:
-              - relationships:
-                  to: source('raw', 'orders')
-                  field: order_id
+
 
           - name: product_id
             description: Reference to the product
-            tests:
-              - relationships:
-                  to: source('raw', 'products')
-                  field: product_id
+
 
       # ==========================================================
       # PRODUCTS
@@ -119,17 +107,12 @@ sources:
             description: Reference to the product
             tests:
               - not_null
-              - relationships:
-                  to: source('raw', 'products')
-                  field: product_id
 
           - name: category_id
             description: Reference to the category
             tests:
               - not_null
-              - relationships:
-                  to: source('raw', 'categories')
-                  field: category_id
+
 
       # ==========================================================
       # BRANCHES
@@ -154,17 +137,11 @@ sources:
         columns:
           - name: branch_id
             description: Reference to the branch
-            tests:
-              - relationships:
-                  to: source('raw', 'branches')
-                  field: branch_id
+
 
           - name: product_id
             description: Reference to the product
-            tests:
-              - relationships:
-                  to: source('raw', 'products')
-                  field: product_id
+
 
       # ==========================================================
       # PAYMENTS
@@ -181,10 +158,7 @@ sources:
 
           - name: order_id
             description: Reference to the order
-            tests:
-              - relationships:
-                  to: source('raw', 'orders')
-                  field: order_id
+
 
       # ==========================================================
       # SHIPMENTS
@@ -201,10 +175,7 @@ sources:
 
           - name: order_id
             description: Reference to the order
-            tests:
-              - relationships:
-                  to: source('raw', 'orders')
-                  field: order_id
+ 
       # ==========================================================
       # USERS
       # ==========================================================

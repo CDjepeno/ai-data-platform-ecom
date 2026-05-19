@@ -5,7 +5,7 @@ from pathlib import Path
 
 from utils.logger import get_logger
 from lang_graph.services.embedding_service import (
-    OpenAIEmbedderService,
+    BGEFrEnEmbedderAdapter,
 )
 
 from lang_graph.services.qdrant_service import (
@@ -20,7 +20,7 @@ class MetricIndexer:
 
     def __init__(
         self,
-        embedder: OpenAIEmbedderService,
+        embedder: BGEFrEnEmbedderAdapter,
         qdrant: QdrantService,
     ):
 

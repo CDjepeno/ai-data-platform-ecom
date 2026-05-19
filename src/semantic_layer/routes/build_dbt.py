@@ -1,7 +1,7 @@
 from fastapi import APIRouter
 from fastapi.concurrency import run_in_threadpool
 
-from transformation.run_dbt_build import run_dbt_build
+from transformations.run_dbt_build import run_dbt_build
 
 router = APIRouter()
 

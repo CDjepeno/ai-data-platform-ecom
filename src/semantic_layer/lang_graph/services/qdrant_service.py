@@ -23,16 +23,15 @@ class QdrantService:
         host: str,
         port: int,
         collection_name: str,
+        qdrant_client: QdrantClient,
+        size: int
     ):
 
         self._collection_name = collection_name
-        self._host = Config.QDRANT_HOST
-        self._port = Config.QDRANT_PORT
-        self._collection_name = Config.QDRANT_COLLECTION
-        self._client = QdrantClient(
-            host=host,
-            port=port,
-        )
+        self._host = host
+        self._port = port
+        self._client = qdrant_client
+        self._size = size
 
     def create_collection(self):
 
@@ -49,7 +48,7 @@ class QdrantService:
         self._client.create_collection(
             collection_name=self._collection_name,
             vectors_config=VectorParams(
-                size=1536,
+                size=self._size,
                 distance=Distance.COSINE,
             ),
         )

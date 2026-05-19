@@ -1,61 +1,81 @@
-from openai import AsyncOpenAI
-
 from utils.logger import get_logger
 
 
 logger = get_logger(__name__)
 
 
-class OpenAIEmbedderService:
+
+import asyncio
+from typing import Sequence, List
+from sentence_transformers import SentenceTransformer
+
+
+
+class BGEFrEnEmbedderAdapter():
 
     def __init__(
         self,
-        client: AsyncOpenAI,
-        model: str = "text-embedding-3-small",
-    ) -> None:
-        self._client = client
-        self._model = model
+        model_name: str,
+        device: str = "cpu",
+    ):
+        self._model = SentenceTransformer(
+            model_name,
+            device=device,
+            local_files_only=True,
+        )
 
-    async def embed(
-        self,
-        text: str,
-    ) -> list[float]:
+        # ❌ PAS DE .half() SUR CPU
+        self._dimension = 384
 
-        if not text.strip():
-            logger.warning("⚠️ Empty text received for embedding")
+    async def embed(self, text: str) -> List[float]:
+
+        if not text or not text.strip():
             return []
 
-        try:
-            response = await self._client.embeddings.create(
-                model=self._model,
-                input=text,
-            )
+        embedding = await asyncio.to_thread(
+            self._model.encode,
+            text,
+            normalize_embeddings=True,
+        )
 
-            return response.data[0].embedding
-
-        except Exception as e:
-            logger.exception(f"❌ Embedding generation failed: {e}")
-            return []
+        return embedding.tolist()
 
     async def embed_batch(
         self,
-        texts: list[str],
-    ) -> list[list[float]]:
+        texts: Sequence[str],
+    ) -> Sequence[Sequence[float]]:
 
         if not texts:
             return []
 
-        try:
+        valid_texts = [t for t in texts if t and t.strip()]
 
-            response = await self._client.embeddings.create(
-                model=self._model,
-                input=texts,
-            )
+        if not valid_texts:
+            return [[] for _ in texts]
 
-            return [item.embedding for item in response.data]
+        print(f"🧠 Embedding batch: {len(valid_texts)} texts")
 
-        except Exception as e:
+        embeddings = await asyncio.to_thread(
+            self._model.encode,
+            valid_texts,
+            normalize_embeddings=True,
+            show_progress_bar=False,
+            batch_size=8,
+        )
 
-            logger.exception(f"❌ Batch embedding failed: {e}")
+        result = []
 
-            return []
+        idx = 0
+
+        for t in texts:
+            if t and t.strip():
+                result.append(embeddings[idx].tolist())
+                idx += 1
+            else:
+                result.append([])
+
+        return result
+
+    @property
+    def dimension(self) -> int:
+        return self._dimension

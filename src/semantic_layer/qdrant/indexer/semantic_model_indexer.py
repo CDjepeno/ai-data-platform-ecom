@@ -3,8 +3,9 @@ import yaml
 
 from pathlib import Path
 
+from config_env import Config
 from utils.logger import get_logger
-from lang_graph.services.embedding_service import OpenAIEmbedderService
+from lang_graph.services.embedding_service import BGEFrEnEmbedderAdapter
 from lang_graph.services.qdrant_service import QdrantService
 
 
@@ -15,7 +16,7 @@ class SemanticModelsIndexer:
 
     def __init__(
         self,
-        embedder: OpenAIEmbedderService,
+        embedder: BGEFrEnEmbedderAdapter,
         qdrant: QdrantService,
     ):
         self._embedder = embedder
@@ -23,31 +24,73 @@ class SemanticModelsIndexer:
 
     async def index_semantic_models(self):
 
-        semantic_path = Path("src/etl_ecom/transformations/mart/semantic_models")
+        semantic_path = Config.SEMANTIC_MODELS_PATH
 
-        for file in semantic_path.glob("*.yml"):
+        if not semantic_path.exists():
+            logger.error(f"❌ Path not found: {semantic_path}")
+            raise FileNotFoundError(f"Semantic models path not found: {semantic_path}")
 
-            logger.info(f"📄 Indexing {file.name}")
+        files = list(semantic_path.glob("*.yml"))
 
-            with open(file, "r") as f:
-                data = yaml.safe_load(f)
+        if not files:
+            logger.error(f"❌ No .yml files found in: {semantic_path}")
+            raise ValueError(f"No .yml files found in: {semantic_path}")
 
-            text_to_embed = self._build_semantic_text(data)
+        logger.info(f"📂 Found {len(files)} files to index in {semantic_path}")
 
-            embedding = await self._embedder.embed(text_to_embed)
+        indexed = 0
+        errors = []
 
-            payload = {
-                "file_name": file.name,
-                "content": text_to_embed,
-            }
+        for file in files:
+            try:
+                logger.info(f"📄 Indexing {file.name}")
 
-            self._qdrant.insert_embedding(
-                point_id=str(uuid.uuid4()),
-                embedding=embedding,
-                payload=payload,
-            )
+                with open(file, "r") as f:
+                    data = yaml.safe_load(f)
 
-            logger.info(f"✅ Indexed {file.name}")
+                if not data:
+                    logger.warning(f"⚠️ Empty or invalid YAML: {file.name}")
+                    continue
+
+                text_to_embed = self._build_semantic_text(data)
+
+                if not text_to_embed.strip():
+                    logger.warning(f"⚠️ Empty text generated for: {file.name}")
+                    continue
+
+                logger.info(f"🧠 Embedding {file.name} ({len(text_to_embed)} chars)")
+                embedding = await self._embedder.embed(text_to_embed)
+
+                if not embedding:
+                    logger.error(f"❌ Empty embedding returned for: {file.name}")
+                    errors.append(file.name)
+                    continue
+
+                logger.info(f"📐 Embedding dimension: {len(embedding)}")
+
+                payload = {
+                    "file_name": file.name,
+                    "content": text_to_embed,
+                }
+
+                self._qdrant.insert_embedding(
+                    point_id=str(uuid.uuid4()),
+                    embedding=embedding,
+                    payload=payload,
+                )
+
+                indexed += 1
+                logger.info(f"✅ Indexed {file.name}")
+
+            except Exception as e:
+                logger.exception(f"❌ Failed to index {file.name}: {e}")
+                errors.append(file.name)
+
+        logger.info(f"📊 Indexing complete: {indexed}/{len(files)} files indexed")
+
+        if errors:
+            logger.error(f"❌ Failed files: {errors}")
+            raise RuntimeError(f"Indexing failed for: {errors}")
 
     def _build_semantic_text(self, data: dict) -> str:
 

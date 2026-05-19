@@ -1,4 +1,4 @@
-from langgraph.graph import END
+from langgraph.graph import END, START
 from langgraph.graph import StateGraph
 
 from lang_graph.nodes.build_metricsflow_query import build_metricflow_query
@@ -18,76 +18,24 @@ graph = StateGraph(
 
 # Nodes
 
-graph.add_node(
-    "retrieve_context",
-    retrieve_context,
-)
+graph.add_node("retrieve_context", retrieve_context)
+graph.add_node("parse_intent", parse_intent)
+graph.add_node("validate_metrics", validate_metrics)
+graph.add_node("build_query", build_metricflow_query)
+graph.add_node("execute_query", execute_query)
+graph.add_node("format_response", format_response)
 
-graph.add_node(
-    "parse_intent",
-    parse_intent,
-)
+# ✅ START → les deux en parallèle
+graph.add_edge(START, "retrieve_context")
+graph.add_edge(START, "parse_intent")
 
-graph.add_node(
-    "validate_metrics",
-    validate_metrics,
-)
+# ✅ validate_metrics attend que les deux soient finis
+graph.add_edge("retrieve_context", "validate_metrics")
+graph.add_edge("parse_intent", "validate_metrics")
 
-graph.add_node(
-    "build_query",
-    build_metricflow_query,
-)
-
-graph.add_node(
-    "execute_query",
-    execute_query,
-)
-
-graph.add_node(
-    "format_response",
-    format_response,
-)
-
-# Entry point
-
-graph.set_entry_point(
-    "retrieve_context"
-)
-
-# Edges
-
-graph.add_edge(
-    "retrieve_context",
-    "parse_intent",
-)
-
-graph.add_edge(
-    "parse_intent",
-    "validate_metrics",
-)
-
-graph.add_edge(
-    "validate_metrics",
-    "build_query",
-)
-
-graph.add_edge(
-    "build_query",
-    "execute_query",
-)
-
-graph.add_edge(
-    "execute_query",
-    "format_response",
-)
-
-# Final node
-
-graph.add_edge(
-    "format_response",
-    END,
-)
-
-# Compile
+graph.add_edge("validate_metrics", "build_query")
+graph.add_edge("build_query", "execute_query")
+graph.add_edge("execute_query", "format_response")
+graph.add_edge("format_response", END)
 
 analytics_graph = graph.compile()

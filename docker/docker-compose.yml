@@ -104,7 +104,9 @@ services:
       dockerfile: Dockerfile
     depends_on:
       postgres:
-        condition: service_healthy   
+        condition: service_healthy
+      semantic_layer:
+        condition: service_healthy    
     env_file:
       - .env
     extra_hosts:
@@ -139,15 +141,13 @@ services:
   semantic_layer:
     build:
       context: ../src/semantic_layer
-
+      args:
+        HF_TOKEN: ${HF_TOKEN}
     working_dir: /app
-
     ports:
     - "8001:8001"
-
     env_file:
       - .env
-
     volumes:
       - ../src/semantic_layer:/app
       - ../src/etl_ecom:/app/etl_ecom
@@ -156,6 +156,12 @@ services:
     depends_on:
       - trino
       - qdrant
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8001/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s 
 
     networks:
       - etl_ecom

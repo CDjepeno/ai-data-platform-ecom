@@ -8,6 +8,8 @@ RUN apt-get update && apt-get install -y \
     curl \
     && rm -rf /var/lib/apt/lists/*
 
+
+
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 
@@ -21,6 +23,11 @@ RUN pip install --upgrade pip && pip install poetry
 COPY pyproject.toml poetry.lock* ./
 
 RUN poetry install --no-root
+
+ARG HF_TOKEN
+RUN HUGGING_FACE_HUB_TOKEN=${HF_TOKEN} python -c \
+    "from sentence_transformers import SentenceTransformer; \
+    SentenceTransformer('sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2')"
 
 COPY . .
 

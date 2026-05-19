@@ -1,5 +1,3 @@
-from openai import AsyncOpenAI
-
 from lang_graph.factory.factory_service import embedding_service
 from qdrant.indexer.metric_indexer import MetricIndexer
 from qdrant.indexer.semantic_model_indexer import SemanticModelsIndexer

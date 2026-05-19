@@ -1,38 +1,32 @@
-import os
-import subprocess
+import asyncio
 
 from lang_graph.typing.analytics_state import AnalyticsState
 from lang_graph.utils.timer import async_timed_node
+from trino.dbapi import connect
+
+_trino_conn = connect(
+    host="trino",
+    port=8080,
+    http_scheme="http",
+)
 
 
 @async_timed_node(
     "execute_query"
 )
+@async_timed_node("execute_query")
 async def execute_query(state: AnalyticsState):
-
-    metricflow_query = state.get("metricflow_query")
     
-    if metricflow_query is None:
-        raise ValueError("metricflow_query is required")
-
-    result = subprocess.run(
-        metricflow_query,
-        cwd="/app/transformation",
-        env={
-            **os.environ,
-            "DBT_PROFILES_DIR": "/app/.dbt"
-        },
-        capture_output=True,
-        text=True
+    sql = state.get("metricflow_query_sql")  # SQL généré directement
+    
+    cursor = await asyncio.to_thread(
+        lambda: _trino_conn.cursor()
     )
-
-    return {
-        "results": {
-            "stdout": result.stdout,
-            "stderr": result.stderr,
-            "returncode": result.returncode
-        }
-    }
+    
+    await asyncio.to_thread(cursor.execute, sql)
+    rows = await asyncio.to_thread(cursor.fetchall)
+    
+    return {"results": rows}
     
     
     
