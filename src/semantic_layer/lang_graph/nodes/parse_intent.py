@@ -42,5 +42,6 @@ async def parse_intent(state: AnalyticsState):
     raw_intent = await llm_service.generate(prompt)
 
     intent = json.loads(raw_intent)
+    logger.info(f"🎯 Intent parsed: {intent}")
 
     return {"intent": intent}

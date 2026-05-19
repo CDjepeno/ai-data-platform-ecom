@@ -26,7 +26,6 @@ async def build_metricflow_query(state: AnalyticsState):
         "query",
         "--metrics",
         ",".join(metrics),
-        "--csv", "/tmp/mf_result.csv",
     ]
 
     group_by = intent.get("group_by")

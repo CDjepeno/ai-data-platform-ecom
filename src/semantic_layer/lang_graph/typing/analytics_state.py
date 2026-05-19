@@ -11,19 +11,24 @@ class SemanticDimension(TypedDict):
     type: str
 
 class SemanticModel(TypedDict):
-
-    name: str
-
+    type: str
+    file_name: str
+    model_name: str
     description: str
+    dbt_model_ref: str
+    measures: list[dict]
+    dimensions: list[dict]
+    entities: list[dict]
 
 
 class SemanticMetric(TypedDict):
-
+    type: str
+    file_name: str
     metric_name: str
+    description: str
+    label: str
+    measure_ref: str
 
-    metric_type: str
-
-    content: str
 
 class SemanticContext(TypedDict):
 
@@ -31,7 +36,7 @@ class SemanticContext(TypedDict):
 
     dimensions: list[SemanticDimension]
 
-    semantic_models: list[SemanticModel]
+    models: list[SemanticModel]
     
     
 class AnalyticsIntent(TypedDict):

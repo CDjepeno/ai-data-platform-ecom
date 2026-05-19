@@ -23,9 +23,10 @@ class Config:
     # =========================
     # dbt
     # =========================
-    DBT_PROJECT_DIR = Path(os.getenv("DBT_PROJECT_DIR", "app/transformation"))
-    DBT_PROFILES_DIR = DBT_PROJECT_DIR / ".dbt"
+    DBT_PROJECT_DIR = Path(os.getenv("DBT_PROJECT_DIR", "app/transformations"))
+    DBT_PROFILES_DIR = Path(os.getenv("DBT_PROFILES_DIR", "/app/.dbt"))
     SEMANTIC_MODELS_PATH = Path(os.getenv("SEMANTIC_MODELS_PATH", "/app/transformations/mart/semantic_models"))
+    METRICS_PATH = Path(os.getenv("METRICS_PATH","/app/transformations/models/metrics"))
     
     # =========================
     # qdrant
