@@ -1,4 +1,4 @@
-from typing import TypedDict
+from typing import Literal, TypedDict
 
 
 
@@ -37,6 +37,10 @@ class SemanticContext(TypedDict):
     dimensions: list[SemanticDimension]
 
     models: list[SemanticModel]
+
+class Period(TypedDict):
+    start_time: str
+    end_time: str
     
     
 class AnalyticsIntent(TypedDict):
@@ -46,7 +50,30 @@ class AnalyticsIntent(TypedDict):
     group_by: list[str]
 
     filters: list[str]
+    start_time: str | None   
+    end_time: str | None     
+    where: str | None 
+    query_type: str          
+    period_1: Period | None  
+    period_2: Period | None
     
+
+class PeriodResult(TypedDict):
+    range: Period
+    data: str
+
+
+class SimpleResult(TypedDict):
+    query_type: Literal["simple"]
+    stdout: str
+    stderr: str
+    returncode: int
+
+
+class ComparisonResult(TypedDict):
+    query_type: Literal["comparison"]
+    period_1: PeriodResult
+    period_2: PeriodResult
 
 class AnalyticsState(TypedDict,total=False,):
 
@@ -58,11 +85,11 @@ class AnalyticsState(TypedDict,total=False,):
 
     metricflow_query: list[str]
 
-    results: list
-
     response: str
     
     final_prompt: str
+    
+    results: SimpleResult | ComparisonResult
     
 
 

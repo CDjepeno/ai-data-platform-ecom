@@ -1,7 +1,7 @@
 import asyncio
 import os
 
-from lang_graph.typing.analytics_state import AnalyticsState
+from lang_graph.typing.analytics_state import AnalyticsState, SimpleResult
 from lang_graph.utils.timer import async_timed_node
 from utils.logger import get_logger
 
@@ -9,7 +9,7 @@ logger = get_logger(__name__)
 
 
 @async_timed_node("execute_query")
-async def execute_query(state: AnalyticsState):
+async def execute_query(state: AnalyticsState) -> dict:
 
     metricflow_query = state.get("metricflow_query")
 
@@ -28,7 +28,7 @@ async def execute_query(state: AnalyticsState):
 
     stdout, stderr = await process.communicate()
     
-    # ← ajoute ici avant le if
+    # ← add logging here before the if
     logger.info(f"📄 stdout: {stdout.decode()}")
     logger.info(f"📄 stderr: {stderr.decode()}")
     logger.info(f"📄 returncode: {process.returncode}")
@@ -40,9 +40,10 @@ async def execute_query(state: AnalyticsState):
     logger.info(f"✅ Query result: {stdout.decode()[:200]}")
 
     return {
-        "results": {
-            "stdout": stdout.decode(),
-            "stderr": stderr.decode(),
-            "returncode": process.returncode,
-        }
+        "results": SimpleResult(
+            query_type="simple",
+            stdout=stdout.decode(),
+            stderr=stderr.decode(),
+            returncode=process.returncode,
+        )
     }

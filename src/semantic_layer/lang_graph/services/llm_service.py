@@ -78,7 +78,7 @@ class LlmService:
             json_body=payload,
         ):
             buffer += chunk
-            # Découpage par lignes complètes
+            # Split on complete lines
             while "\n" in buffer:
                 line, buffer = buffer.split("\n", 1)
                 line = line.strip()
@@ -96,7 +96,7 @@ class LlmService:
                 try:
                     data = json.loads(raw)
                 except json.JSONDecodeError:
-                    # Passe en debug pour éviter les warnings intempestifs
+                    # Use debug to avoid spurious warnings
                     logger.debug(f"Failed to parse JSON chunk: {raw}")
                     continue
                 delta = data.get("choices", [{}])[0].get("delta", {})

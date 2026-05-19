@@ -76,8 +76,8 @@ ruff = ">=0.15.12,<0.16.0"
 
 sqlfluff = ">=4.1.0,<5.0.0"
 
-# sqlfluff-templater-dbt supprimé
-# car dbt part dans semantic_layer
+# sqlfluff-templater-dbt removed
+# because dbt moved to semantic_layer
 
 # ─────────────────────────────────────
 # BUILD

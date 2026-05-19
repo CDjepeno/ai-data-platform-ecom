@@ -20,7 +20,7 @@ async def ask_question(payload: AskRequest):
             "http://semantic_layer:8001/ask",
             json={"question": payload.question},
             headers={"Content-Type": "application/json"},
-            timeout=None,  # important pour éviter les timeouts longs
+            timeout=None,  # important to avoid long timeouts
         ) as response:
             response.raise_for_status()
             async for chunk in response.aiter_bytes():

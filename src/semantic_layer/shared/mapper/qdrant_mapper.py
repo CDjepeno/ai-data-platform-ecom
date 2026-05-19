@@ -30,12 +30,12 @@ class QdrantMapper:
 
             if payload_type == "metric":
                 semantic_context["metrics"].append(
-                    cast(SemanticMetric, payload)  # ← on sait que c'est un SemanticMetric
+                    cast(SemanticMetric, payload)  # ← we know this is a SemanticMetric
                 )
 
             elif payload_type == "semantic_model":
                 semantic_context["models"].append(
-                    cast(SemanticModel, payload)  # ← on sait que c'est un SemanticModel
+                    cast(SemanticModel, payload)  # ← we know this is a SemanticModel
                 )
 
             else:

@@ -24,7 +24,7 @@ class BGEFrEnEmbedderAdapter():
             local_files_only=True,
         )
 
-        # ❌ PAS DE .half() SUR CPU
+        # ❌ NO .half() ON CPU
         self._dimension = 384
 
     async def embed(self, text: str) -> List[float]:

@@ -16,7 +16,7 @@ load_dotenv()
 async def generate_response(state: AnalyticsState, *args, **kwargs):
     writer = kwargs.get('writer')
     if writer is None and len(args) > 0:
-        writer = args[0]  # sécurité
+        writer = args[0]  # safety fallback
     print(f"DEBUG: writer = {writer}")  # important
 
     prompt = state.get("final_prompt")
@@ -26,5 +26,5 @@ async def generate_response(state: AnalyticsState, *args, **kwargs):
     async for chunk in llm_service.stream(prompt):
         if chunk:
             if writer:
-                writer(chunk)   # envoi immédiat
-            yield {"response": chunk}  # pour l'état (non utilisé en custom)
+                writer(chunk)   # immediate send
+            yield {"response": chunk}  # for state (not used in custom mode)
