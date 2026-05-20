@@ -88,3 +88,21 @@ class QdrantService:
         )
 
         return results
+
+    def recreate_collection(self) -> None:
+        
+        collections = self._client.get_collections()
+        existing = [c.name for c in collections.collections]
+
+        if self._collection_name in existing:
+            self._client.delete_collection(self._collection_name)
+            logger.info(f"🗑️ Collection dropped: {self._collection_name}")
+
+        self._client.create_collection(
+            collection_name=self._collection_name,
+            vectors_config=VectorParams(
+                size=Config.QDRANT_SIZE,
+                distance=Distance.COSINE,
+            ),
+        )
+        logger.info(f"✅ Collection recreated: {self._collection_name}")

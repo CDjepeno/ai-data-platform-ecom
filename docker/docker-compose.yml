@@ -224,6 +224,16 @@ services:
     networks:
       - etl_ecom
 
+  valkey:
+    image: valkey/valkey:8-alpine
+    ports:
+      - "6379:6379"
+    networks:
+      - etl_ecom
+    volumes:
+      - valkey_data:/data
+    command: valkey-server --save 60 1 --loglevel warning
+
 volumes:
   minio_data_dev: 
   postgres_data_dev:
@@ -231,6 +241,7 @@ volumes:
   nessie_data:
   prometheus_data:
   grafana_data:
+  valkey_data:
 
 networks:
   etl_ecom:

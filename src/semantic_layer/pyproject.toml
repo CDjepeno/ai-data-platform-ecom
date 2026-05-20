@@ -24,7 +24,9 @@ dependencies = [
 
     "fastapi",
     "uvicorn",
-    "prometheus-client>=0.20.0,<1.0.0"
+    "prometheus-client>=0.20.0,<1.0.0",
+    "prometheus-fastapi-instrumentator>=7.0.0,<8.0.0",
+    "redis>=5.0.0,<6.0.0"
 ]
 
 [build-system]

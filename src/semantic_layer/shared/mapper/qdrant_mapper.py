@@ -18,6 +18,8 @@ class QdrantMapper:
             models=[],
             dimensions=[],
         )
+        
+        seen_metrics: set[str] = set()
 
         for point in response.points:
 
@@ -29,8 +31,11 @@ class QdrantMapper:
             payload_type = payload.get("type")
 
             if payload_type == "metric":
-                semantic_context["metrics"].append(
-                    cast(SemanticMetric, payload)  # ← we know this is a SemanticMetric
+                metric_name = payload.get("metric_name", "")
+                if metric_name not in seen_metrics:  # ← déduplique
+                    seen_metrics.add(metric_name)
+                    semantic_context["metrics"].append(
+                        cast(SemanticMetric, payload)
                 )
 
             elif payload_type == "semantic_model":

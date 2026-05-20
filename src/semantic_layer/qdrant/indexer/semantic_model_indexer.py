@@ -26,6 +26,8 @@ class SemanticModelsIndexer:
 
     async def index_semantic_models(self) -> None:
         self._validate_paths()
+        
+        self._qdrant.recreate_collection()
 
         semantic_files = list(self._semantic_path.glob("*.yml"))
         metric_files = list(self._metrics_path.glob("*.yml"))

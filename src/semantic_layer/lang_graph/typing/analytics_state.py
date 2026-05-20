@@ -91,5 +91,7 @@ class AnalyticsState(TypedDict,total=False,):
     
     results: SimpleResult | ComparisonResult
     
+    cache_hit: bool
+    
 
 

@@ -1,4 +1,5 @@
 from fastapi import FastAPI
+from prometheus_fastapi_instrumentator import Instrumentator
 from routes.ask import router as ask_router
 from routes.build_dbt import router as build_dbt_router
 from routes.indexing import router as indexing_router
@@ -15,6 +16,8 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+Instrumentator().instrument(app).expose(app)
 
 app.include_router(ask_router)
 app.include_router(build_dbt_router)

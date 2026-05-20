@@ -46,3 +46,10 @@ class Config:
     TRINO_PORT = os.getenv("TRINO_PORT")
     OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
     
+    
+    # =========================
+    # Valkey
+    # =========================
+    VALKEY_HOST = os.getenv("VALKEY_HOST", "valkey")
+    VALKEY_PORT = int(os.getenv("VALKEY_PORT", "6379"))
+    VALKEY_TTL = int(os.getenv("VALKEY_TTL", "3600"))
