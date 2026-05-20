@@ -128,3 +128,12 @@
     @apply font-sans;
   }
 }
+
+@keyframes fadeOut {
+  from { opacity: 1; transform: translateY(0); }
+  to { opacity: 0; transform: translateY(-8px); }
+}
+
+.steps-fade-out {
+  animation: fadeOut 0.4s ease forwards;
+}

@@ -6,6 +6,7 @@ export type ChatMessage = {
   id: string;
   role: "user" | "assistant";
   content: string;
+  steps?: ChatStep[];
 };
 
 export type ChatStep = {
@@ -23,6 +24,8 @@ export function useChatHook() {
 
   const [loading, setLoading] =
     useState(false);
+
+  const [completedMessageIds, setCompletedMessageIds] = useState<Set<string>>(new Set());
 
   const handleSendMessage = async (
     question: string
@@ -111,20 +114,21 @@ export function useChatHook() {
         );
       };
 
-      const addStep = (
-        label: string
-      ) => {
-
-        setSteps((prev) => [
-
-          ...prev,
-
-          {
-            id: crypto.randomUUID(),
-            label,
-          },
-        ]);
-      };
+      const addStep = (label: string) => {
+      setMessages((prev) =>
+        prev.map((message) =>
+          message.id === userMessage.id
+            ? {
+                ...message,
+                steps: [
+                  ...(message.steps ?? []),
+                  { id: crypto.randomUUID(), label },
+                ],
+              }
+            : message
+        )
+      );
+    };
 
       const parseSseLine = (
         line: string
@@ -222,13 +226,17 @@ export function useChatHook() {
     } finally {
 
       setLoading(false);
+
+      setTimeout(() => {
+        setCompletedMessageIds(prev => new Set([...prev, userMessage.id]));
+      }, 2000);
     }
   };
 
   return {
     messages,
-    steps,
     loading,
     handleSendMessage,
+    completedMessageIds
   };
 }

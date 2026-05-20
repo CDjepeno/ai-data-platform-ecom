@@ -155,7 +155,7 @@ export function AssistantMessage({
   }
 
   return (
-    <div className="space-y-3 text-[15px] leading-relaxed text-zinc-300">
+    <div className="space-y-3 text-base leading-[1.75] text-zinc-300">
       {blocks.map((block, index) => {
         if (block.type === "list") {
           return (
