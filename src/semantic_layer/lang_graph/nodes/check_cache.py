@@ -9,11 +9,6 @@ logger = get_logger(__name__)
 
 @async_timed_node("check_cache")
 async def check_cache(state: AnalyticsState) -> dict:
-    """
-    Checks if the intent result is already cached in Valkey.
-    If hit → stores result in state so format_response can use it directly.
-    If miss → returns empty cache_hit so pipeline continues normally.
-    """
 
     intent = state.get("intent")
 
@@ -22,13 +17,7 @@ async def check_cache(state: AnalyticsState) -> dict:
 
     key = redis_service.build_intent_key(dict(intent))
     cached = await redis_service.get(key)
-
     if cached:
-        logger.info(f"🎯 Cache hit for key: {key}")
-        return {
-            "cache_hit": True,
-            "results": json.loads(cached),
-        }
+        return {"cache_hit": True, "results": json.loads(cached)}
 
-    logger.info(f"❌ Cache miss for key: {key}")
     return {"cache_hit": False}

@@ -41,7 +41,7 @@ async def ask(payload: AskRequest):
             )
 
             graph_duration = (
-                time.perf_counter()
+            time.perf_counter()
                 - graph_start
             )
 

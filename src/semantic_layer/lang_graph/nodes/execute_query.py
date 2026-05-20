@@ -10,13 +10,16 @@ logger = get_logger(__name__)
 
 @async_timed_node("execute_query")
 async def execute_query(state: AnalyticsState) -> dict:
+    
+    logger.info(f"🔍 Intent: {state.get('intent')}")
 
     metricflow_query = state.get("metricflow_query")
+    
+    logger.info(f"🚀 Running: metricflow_query {metricflow_query}")
 
     if metricflow_query is None:
         raise ValueError("metricflow_query is required")
 
-    logger.info(f"🚀 Running: {' '.join(metricflow_query)}")
 
     process = await asyncio.create_subprocess_exec(
         *metricflow_query,

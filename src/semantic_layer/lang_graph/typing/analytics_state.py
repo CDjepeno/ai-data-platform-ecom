@@ -2,6 +2,18 @@ from typing import Literal, TypedDict
 
 
 
+RelativePeriod = Literal[
+    "last_7_days",
+    "last_30_days", 
+    "last_90_days",
+    "this_month",
+    "last_month",
+    "this_year",
+    "last_year",
+    "ytd",
+    "custom_days",
+    "all_time",
+]
 
 
 class SemanticDimension(TypedDict):
@@ -56,6 +68,8 @@ class AnalyticsIntent(TypedDict):
     query_type: str          
     period_1: Period | None  
     period_2: Period | None
+    relative_period: RelativePeriod | None  
+    n_days: int | None 
     
 
 class PeriodResult(TypedDict):
