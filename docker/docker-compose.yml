@@ -233,6 +233,18 @@ services:
     volumes:
       - valkey_data:/data
     command: valkey-server --save 60 1 --loglevel warning
+  
+  mcp:
+    build:
+      context: ../src/mcp          
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    environment:
+      - .env
+    depends_on:
+      - fast_api
+    networks:
+      - etl_ecom
 
 volumes:
   minio_data_dev: 
@@ -245,3 +257,4 @@ volumes:
 
 networks:
   etl_ecom:
+    driver: bridge

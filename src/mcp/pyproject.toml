@@ -1,0 +1,84 @@
+[tool.poetry]
+name = "mcp-gateway"
+version = "0.1.0"
+description = "MCP Server + Slack Bot — generic gateway over any FastAPI /ask endpoint"
+authors = ["Toi <toi@email.com>"]
+
+# package-mode = false : this is a service (application), not a library to publish.
+# Poetry won't try to install the project itself as a package,
+# and won't complain about missing README or packages config.
+package-mode = false
+
+# ── Runtime dependencies ───────────────────────────────────────────────────────
+[tool.poetry.dependencies]
+python          = "^3.11"
+
+# MCP — official Anthropic Python SDK
+mcp             = "^1.3.0"
+
+# Async HTTP client — calls FastAPI /ask
+httpx           = "^0.27.0"
+
+# Slack Bolt async + SDK
+slack-bolt      = "^1.20.0"
+slack-sdk       = "^3.31.0"
+
+# Validation & settings
+pydantic        = "^2.7.0"
+pydantic-settings = "^2.3.0"
+
+# Async runtime (used by mcp + httpx)
+anyio           = "^4.4.0"
+
+# ── Dev dependencies ───────────────────────────────────────────────────────────
+[tool.poetry.group.dev.dependencies]
+# Tests
+pytest          = "^8.2.0"
+pytest-asyncio  = "^0.23.0"
+pytest-mock     = "^3.14.0"
+respx           = "^0.21.0"   # httpx mock — no monkey-patching needed
+
+# Code quality
+ruff            = "^0.4.0"    # linter + formatter (replaces black + isort + flake8)
+mypy            = "^1.10.0"   # strict static type checker
+
+# ── CLI entry points ───────────────────────────────────────────────────────────
+[tool.poetry.scripts]
+mcp-server  = "mcp_gateway.server:main_sync"
+slack-bot   = "slack_bot.bot:main_sync"
+
+# ── Ruff ──────────────────────────────────────────────────────────────────────
+[tool.ruff]
+line-length    = 88
+target-version = "py311"
+
+[tool.ruff.lint]
+select = [
+    "E",    # pycodestyle errors
+    "F",    # pyflakes
+    "I",    # isort
+    "UP",   # pyupgrade
+    "B",    # flake8-bugbear
+    "SIM",  # flake8-simplify
+]
+ignore = []
+
+# ── Mypy (strict) ─────────────────────────────────────────────────────────────
+[tool.mypy]
+python_version      = "3.11"
+strict              = true
+ignore_missing_imports = true
+
+# ── Pytest ────────────────────────────────────────────────────────────────────
+[tool.pytest.ini_options]
+asyncio_mode = "auto"          # no need for @pytest.mark.asyncio on every test
+testpaths    = ["tests"]
+# Add project root to sys.path so pytest can import:
+#   mcp_gateway/  adapters/  slack_bot/
+# Without this, pytest only sees the tests/ folder
+pythonpath   = ["."]
+
+# ── Build backend ─────────────────────────────────────────────────────────────
+[build-system]
+requires      = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
