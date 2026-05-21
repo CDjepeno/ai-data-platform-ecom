@@ -242,7 +242,7 @@ services:
     environment:
       - .env
     depends_on:
-      - fast_api
+      - api
     networks:
       - etl_ecom
 
