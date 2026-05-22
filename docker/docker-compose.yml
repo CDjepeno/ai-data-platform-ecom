@@ -239,7 +239,7 @@ services:
       context: ../src/mcp          
       dockerfile: Dockerfile
     restart: unless-stopped
-    environment:
+    env_file:
       - .env
     depends_on:
       - api

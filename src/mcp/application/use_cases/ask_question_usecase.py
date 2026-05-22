@@ -5,7 +5,7 @@ import logging
 from domain.errors import EmptyStreamError
 from domain.ports import  StepCallbackPort
 from domain.tools.sse import SseStep, SseToken
-from mcp.domain.ports.ask_gateway_port import AskGatewayPort
+from domain.ports.ask_gateway_port import AskGatewayPort
 
 logger = logging.getLogger(__name__)
 

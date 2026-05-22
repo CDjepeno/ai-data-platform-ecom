@@ -8,11 +8,11 @@ from mcp.server.stdio import stdio_server
 from mcp.types import CallToolResult, TextContent, Tool
 
 from infrastructure.config import settings
-from adapters.ecom.ask_tool import AskToolAdapter
 from domain.tools.base import AbstractTool
 from infrastructure.adapters.fast_api.http_stream_reader import HttpStreamReader
 from infrastructure.factory.client_factory import create_http_client
 from infrastructure.logging.setup import configure_logging
+from infrastructure.adapters.mcp.ask_tool_adapter import AskToolAdapter
 from utils import get_logger
 
 # ── Logging first — before any other module logs anything ─────────────────────
@@ -104,3 +104,7 @@ async def main() -> None:
 def main_sync() -> None:
     """Sync entry point for `poetry run mcp-server`."""
     asyncio.run(main())
+
+
+if __name__ == "__main__":
+    main_sync()
