@@ -37,7 +37,7 @@ def build_app() -> tuple[AsyncApp, HttpStreamReader]:
     # ── Event handlers ─────────────────────────────────────────────────────────
 
     @app.event("app_mention")
-    async def handle_mention(event: dict, say) -> None:  # type: ignore[type-arg]
+    async def handle_mention(event: dict, say) -> None:  
 
         user_id: str = event.get("user", "unknown")
         channel: str = event["channel"]
@@ -61,7 +61,7 @@ def build_app() -> tuple[AsyncApp, HttpStreamReader]:
         # Post placeholder — user sees immediate feedback
         placeholder = await say(
             text="⏳ Thinking...",
-            thread_ts=event["ts"],
+            # thread_ts=event["ts"],
         )
         placeholder_ts: str = placeholder["ts"]
 
@@ -85,6 +85,8 @@ def build_app() -> tuple[AsyncApp, HttpStreamReader]:
         except Exception:
             logger.exception("Unexpected error | user=%s", user_id)
             answer = "Sorry, an unexpected error occurred. Please try again."
+        
+        answer = _strip_markdown(answer)
 
         # Replace placeholder with the final answer
         try:
@@ -94,20 +96,17 @@ def build_app() -> tuple[AsyncApp, HttpStreamReader]:
                 text=answer,
             )
         except Exception:
-            # Fallback — post new message if update fails
+
             logger.warning(
                 "chat_update failed, posting new message | user=%s",
                 user_id,
                 exc_info=True,
             )
-            await say(text=answer, thread_ts=event["ts"])
+            await say(text=answer)
 
     @app.event("message")
     async def handle_message_events(body: dict, logger) -> None:  # type: ignore[type-arg]
-        """
-        Catch-all for non-mention message events.
-        Without this, Slack Bolt logs a warning for every unhandled message.
-        """
+
         pass
 
     return app, reader
@@ -116,25 +115,22 @@ def build_app() -> tuple[AsyncApp, HttpStreamReader]:
 # ── Helpers ────────────────────────────────────────────────────────────────────
 
 def _strip_mention(text: str) -> str:
-    """
-    Remove the <@UXXX> bot mention prefix from a Slack message.
 
-    Example:
-        "<@U12345ABC> What were sales last month?"
-        → "What were sales last month?"
-    """
     return re.sub(r"^<@[A-Z0-9]+>\s*", "", text).strip()
+
+def _strip_markdown(text: str) -> str:
+    
+    text = re.sub(r'\*\*(.*?)\*\*', r'\1', text)  
+    text = re.sub(r'\*(.*?)\*', r'\1', text)        
+    text = re.sub(r'__(.*?)__', r'\1', text)
+    text = re.sub(r'`(.*?)`', r'\1', text)
+    return text.strip()
 
 
 # ── Entry points ───────────────────────────────────────────────────────────────
 
 async def main() -> None:
-    """
-    Start the Slack bot in Socket Mode.
 
-    Socket Mode: persistent WebSocket to Slack servers.
-    No public URL needed — works behind any firewall.
-    """
     logger.info("Starting Slack bot in Socket Mode")
 
     app, reader = build_app()
@@ -146,10 +142,13 @@ async def main() -> None:
     try:
         await handler.start_async()
     finally:
-        await reader._client.aclose()  # type: ignore[attr-defined]
+        await reader._client.aclose()  
         logger.info("Slack bot stopped")
 
 
 def main_sync() -> None:
-    """Sync entry point for `poetry run slack-bot`."""
+
     asyncio.run(main())
+    
+if __name__ == "__main__":
+    main_sync()
