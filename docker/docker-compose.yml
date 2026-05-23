@@ -137,6 +137,7 @@ services:
 
     networks:
       - etl_ecom
+   
     
   semantic_layer:
     build:
