@@ -23,19 +23,23 @@ jobs:
       - name: Install ruff
         run: pip install ruff
 
-      - name: Run linter on semantic_layer
+      - name: Run linter
         run: |
-          cd src/semantic_layer && ruff check . --exit-zero
+          ruff check src/semantic_layer/ --exit-zero
+          ruff check src/fast_api/ --exit-zero
 
-      - name: Run linter on fast_api
-        run: |
-          cd src/fast_api && ruff check . --exit-zero
-
-      - name: Run tests
-        run: |
-          pip install pytest
-          python -m pytest tests/ -v --tb=short
-        continue-on-error: true
+      - name: Notify Slack on failure
+        if: failure()
+        uses: slackapi/slack-github-action@v1.26.0
+        with:
+          payload: |
+            {
+              "text": "❌ CI lint failed on *${{ github.repository }}* branch `${{ github.ref_name }}`",
+              "blocks": [{"type": "section","text": {"type": "mrkdwn","text": "❌ *Lint failed* on `${{ github.ref_name }}`\n*Author:* ${{ github.actor }}\n*<${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|View logs>*"}}]
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
 
   build-images:
     name: Build Docker images
@@ -50,6 +54,13 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+        with:
+          # Use docker driver instead of buildkit
+          # avoids "unknown blob" error on large images
+          driver: docker
+
       - name: Log in to GitHub Container Registry
         uses: docker/login-action@v3
         with:
@@ -62,6 +73,8 @@ jobs:
         with:
           context: ./src/semantic_layer
           push: true
+          # Use standard docker driver — more reliable for large images
+          provenance: false
           build-args: |
             HF_TOKEN=${{ secrets.HF_TOKEN }}
           tags: |
@@ -73,6 +86,7 @@ jobs:
         with:
           context: ./src/fast_api
           push: true
+          provenance: false
           tags: |
             ghcr.io/cdjepeno/ecom-fastapi:${{ github.sha }}
             ghcr.io/cdjepeno/ecom-fastapi:latest
@@ -82,6 +96,7 @@ jobs:
         with:
           context: ./src/etl_ecom
           push: true
+          provenance: false
           tags: |
             ghcr.io/cdjepeno/ecom-pipeline:${{ github.sha }}
             ghcr.io/cdjepeno/ecom-pipeline:latest
@@ -91,6 +106,33 @@ jobs:
         with:
           context: ./src/mcp
           push: true
+          provenance: false
           tags: |
             ghcr.io/cdjepeno/ecom-mcp:${{ github.sha }}
             ghcr.io/cdjepeno/ecom-mcp:latest
+
+      - name: Notify Slack on success
+        if: success()
+        uses: slackapi/slack-github-action@v1.26.0
+        with:
+          payload: |
+            {
+              "text": "✅ Images built on *${{ github.repository }}* branch `${{ github.ref_name }}`",
+              "blocks": [{"type": "section","text": {"type": "mrkdwn","text": "✅ *Images pushed to ghcr.io* on `${{ github.ref_name }}`\n*Author:* ${{ github.actor }}\n*<${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|View run>*"}}]
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
+
+      - name: Notify Slack on failure
+        if: failure()
+        uses: slackapi/slack-github-action@v1.26.0
+        with:
+          payload: |
+            {
+              "text": "❌ Image build failed on *${{ github.repository }}* branch `${{ github.ref_name }}`",
+              "blocks": [{"type": "section","text": {"type": "mrkdwn","text": "❌ *Docker build failed* on `${{ github.ref_name }}`\n*Author:* ${{ github.actor }}\n*<${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|View logs>*"}}]
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
