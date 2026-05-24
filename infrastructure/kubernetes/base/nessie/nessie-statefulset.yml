@@ -1,0 +1,88 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: nessie
+  labels:
+    app: nessie
+    component: iceberg-catalog
+spec:
+  serviceName: nessie
+  replicas: 1
+  selector:
+    matchLabels:
+      app: nessie
+  template:
+    metadata:
+      labels:
+        app: nessie
+        component: iceberg-catalog
+    spec:
+      containers:
+        - name: nessie
+          image: ghcr.io/projectnessie/nessie:latest
+          ports:
+            - containerPort: 19120
+              name: http
+          env:
+            - name: QUARKUS_HTTP_PORT
+              value: "19120"
+            - name: nessie.catalog.default-warehouse
+              value: "warehouse"
+            - name: nessie.catalog.warehouses.warehouse.location
+              value: "s3://ecom-platform-warehouse-dev/warehouse"
+            - name: nessie.catalog.service.s3.default-options.endpoint
+              valueFrom:
+                secretKeyRef:
+                  name: warehouse-s3-secret
+                  key: endpoint
+            - name: nessie.catalog.service.s3.default-options.path-style-access
+              value: "true"
+            - name: nessie.catalog.service.s3.default-options.region
+              value: "gra"
+            - name: nessie.catalog.service.s3.default-options.auth-type
+              value: "application-global"
+            - name: AWS_ACCESS_KEY_ID
+              valueFrom:
+                secretKeyRef:
+                  name: warehouse-s3-secret
+                  key: access_key
+            - name: AWS_SECRET_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: warehouse-s3-secret
+                  key: secret_key
+            - name: AWS_REGION
+              value: "gra"
+            - name: nessie.version.store.type
+              value: "ROCKSDB"
+            - name: nessie.version.store.persist.rocksdb.database-path
+              value: "/nessie-data"
+          resources:
+            requests:
+              memory: "512Mi"
+              cpu: "200m"
+            limits:
+              memory: "1Gi"
+              cpu: "500m"
+          volumeMounts:
+            - name: nessie-data
+              mountPath: /nessie-data
+          readinessProbe:
+            tcpSocket:
+              port: 19120
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            failureThreshold: 5
+          livenessProbe:
+            tcpSocket:
+              port: 19120
+            initialDelaySeconds: 60
+            periodSeconds: 20
+  volumeClaimTemplates:
+    - metadata:
+        name: nessie-data
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        resources:
+          requests:
+            storage: 5Gi

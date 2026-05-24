@@ -1,0 +1,59 @@
+name: Deploy to prod
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  deploy:
+    name: Deploy to Kubernetes prod
+    runs-on: ubuntu-latest
+    environment: prod  # requires manual approval in GitHub
+
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push production images
+        run: |
+          docker build \
+            --build-arg HF_TOKEN=${{ secrets.HF_TOKEN }} \
+            -t ghcr.io/cdjepeno/ecom-semantic-layer:${{ github.sha }} \
+            -t ghcr.io/cdjepeno/ecom-semantic-layer:prod \
+            ./src/semantic_layer
+          docker push ghcr.io/cdjepeno/ecom-semantic-layer:prod
+
+          docker build \
+            -t ghcr.io/cdjepeno/ecom-fastapi:${{ github.sha }} \
+            -t ghcr.io/cdjepeno/ecom-fastapi:prod \
+            ./src/fast_api
+          docker push ghcr.io/cdjepeno/ecom-fastapi:prod
+
+      - name: Set up kubectl
+        uses: azure/setup-kubectl@v3
+        with:
+          version: "v1.31.0"
+
+      - name: Configure kubeconfig
+        run: |
+          mkdir -p ~/.kube
+          echo "${{ secrets.KUBECONFIG_PROD }}" | base64 -d > ~/.kube/config
+          chmod 600 ~/.kube/config
+
+      - name: Deploy to Kubernetes prod
+        run: |
+          kubectl apply -k infrastructure/kubernetes/overlays/prod/
+
+      - name: Verify deployment
+        run: kubectl get pods -n ecom-prod
