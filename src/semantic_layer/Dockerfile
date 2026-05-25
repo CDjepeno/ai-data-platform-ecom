@@ -6,7 +6,9 @@ RUN apt-get update && apt-get install -y \
     gcc \
     g++ \
     curl \
-    && rm -rf /var/lib/apt/lists/*
+    && rm -rf /var/lib/apt/lists/* \
+    # Clean apt cache in the same layer to avoid bloat
+    && apt-get clean
 
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
@@ -14,18 +16,15 @@ ENV PYTHONPATH=/app
 ENV POETRY_VIRTUALENVS_CREATE=false
 ENV POETRY_NO_INTERACTION=1
 
+# HuggingFace will cache models here at runtime — mounted as a volume in K8s
+ENV HF_HOME=/mnt/hf-cache
+
 RUN pip install --upgrade pip && pip install poetry
 
 COPY pyproject.toml poetry.lock* ./
 RUN poetry install --no-root
 
-# 2. Then download the model (sentence_transformers is now installed)
-ARG HF_TOKEN
-RUN HUGGING_FACE_HUB_TOKEN=${HF_TOKEN} python -c \
-    "from sentence_transformers import SentenceTransformer; \
-    SentenceTransformer('sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2')"
-
-# 3. Finally copy the application code
+# No model download here — image stays lightweight
 COPY . .
 
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8001", "--reload"]
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8001"]
