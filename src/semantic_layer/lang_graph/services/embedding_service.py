@@ -1,135 +1,114 @@
-import asyncio
+# lang_graph/services/embedding_service.py
+
+from __future__ import annotations
+
 import logging
-from functools import lru_cache
 from typing import Final, Protocol, Sequence, runtime_checkable
 
-from sentence_transformers import SentenceTransformer
+from openai import AsyncOpenAI
 
 logger = logging.getLogger(__name__)
-
 
 
 @runtime_checkable
 class EmbedderPort(Protocol):
     """Port interface for text embedding adapters."""
 
-    async def embed(self, text: str) -> list[float]:
-        """Embed a single text. Returns empty list for blank input."""
-        ...
-
-    async def embed_batch(self, texts: Sequence[str]) -> list[list[float]]:
-        """Embed a batch of texts. Preserves order, empty string → empty list."""
-        ...
+    async def embed(self, text: str) -> list[float]: ...
+    async def embed_batch(self, texts: Sequence[str]) -> list[list[float]]: ...
 
     @property
-    def dimension(self) -> int:
-        """Return the embedding vector dimension."""
-        ...
-
-
-
-class BGEFrEnEmbedderAdapter:
-
-    def __init__(
-        self,
-        model_name: str,
-        device: str = "cpu",
-    ) -> None:
-        logger.info("Loading embedding model '%s' on device '%s'", model_name, device)
-
-        self._model = SentenceTransformer(
-            model_name,
-            device=device,
-            local_files_only=False,
-        )
-
-        # Read dimension directly from the model — never hardcode
-        raw_dimension = self._model.get_embedding_dimension()
-
-        if raw_dimension is None:
-            raise ValueError(
-                f"Model '{model_name}' returned None for embedding dimension — "
-                "the model may be corrupted or incompatible."
-            )
-
-        self._dimension: int = raw_dimension
-
-        logger.info(
-            "Embedding model loaded — dimension=%d device=%s",
-            self._dimension,
-            device,
-        )
-
-    async def embed(self, text: str) -> list[float]:
-
-        if not text or not text.strip():
-            logger.debug("embed() received blank text — returning empty list")
-            return []
-
-        try:
-            embedding = await asyncio.to_thread(
-                self._model.encode,
-                text,
-                normalize_embeddings=True,
-            )
-            return embedding.tolist()
-
-        except Exception as exc:
-            logger.exception("Failed to embed text: %s", exc)
-            raise EmbeddingError(f"Embedding failed for input: {text!r}") from exc
-
-    async def embed_batch(self, texts: Sequence[str]) -> list[list[float]]:
-
-        if not texts:
-            return []
-
-        # Separate valid texts and track their original positions
-        indexed_valid: list[tuple[int, str]] = [
-            (i, t) for i, t in enumerate(texts) if t and t.strip()
-        ]
-
-        if not indexed_valid:
-            return [[] for _ in texts]
-
-        valid_texts = [t for _, t in indexed_valid]
-
-        logger.debug("Embedding batch of %d valid texts (total=%d)", len(valid_texts), len(texts))
-
-        try:
-            embeddings = await asyncio.to_thread(
-                self._model.encode,
-                valid_texts,
-                normalize_embeddings=True,
-                show_progress_bar=False,
-                batch_size=8,
-            )
-        except Exception as exc:
-            logger.exception("Failed to embed batch: %s", exc)
-            raise EmbeddingError(f"Batch embedding failed for {len(valid_texts)} texts") from exc
-
-        # Reconstruct the full result list preserving original positions
-        result: list[list[float]] = [[] for _ in texts]
-        for embed_idx, (original_idx, _) in enumerate(indexed_valid):
-            result[original_idx] = embeddings[embed_idx].tolist()
-
-        return result
-
-    @property
-    def dimension(self) -> int:
-        return self._dimension
-
+    def dimension(self) -> int: ...
 
 
 class EmbeddingError(Exception):
     """Raised when the embedding model fails to process input."""
 
 
+# OpenAI model → output dimension mapping
+# https://platform.openai.com/docs/models/embeddings
+_OPENAI_DIMENSIONS: Final[dict[str, int]] = {
+    "text-embedding-3-small": 1536,
+    "text-embedding-3-large": 3072,
+    "text-embedding-ada-002": 1536,
+}
 
-MODEL_NAME: Final[str] = (
-    "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2"
-)
 
-@lru_cache(maxsize=1)
-def get_embedder() -> BGEFrEnEmbedderAdapter:
+class OpenAIEmbedderAdapter:
+    """
+    Adapter wrapping OpenAI embeddings API.
+    No local model — pure HTTP call to OpenAI.
+    Drop-in replacement for BGEFrEnEmbedderAdapter via EmbedderPort protocol.
+    """
 
-    return BGEFrEnEmbedderAdapter(model_name=MODEL_NAME, device="cpu")
+    def __init__(
+        self,
+        model_name: str,
+        api_key: str,
+    ) -> None:
+        if model_name not in _OPENAI_DIMENSIONS:
+            raise ValueError(
+                f"Unknown OpenAI embedding model '{model_name}'. "
+                f"Known models: {list(_OPENAI_DIMENSIONS.keys())}"
+            )
+
+        self._model_name = model_name
+        self._dimension: Final[int] = _OPENAI_DIMENSIONS[model_name]
+        self._client = AsyncOpenAI(api_key=api_key)
+
+        logger.info(
+            "OpenAIEmbedderAdapter ready — model=%s dimension=%d",
+            self._model_name,
+            self._dimension,
+        )
+
+    async def embed(self, text: str) -> list[float]:
+        if not text or not text.strip():
+            logger.debug("embed() received blank input — returning empty list")
+            return []
+
+        try:
+            response = await self._client.embeddings.create(
+                model=self._model_name,
+                input=text,
+            )
+            return response.data[0].embedding
+
+        except Exception as exc:
+            logger.exception("embed() failed for model=%s", self._model_name)
+            raise EmbeddingError(f"OpenAI embedding failed: {exc}") from exc
+
+    async def embed_batch(self, texts: Sequence[str]) -> list[list[float]]:
+        if not texts:
+            return []
+
+        indexed_valid: list[tuple[int, str]] = [
+            (i, t) for i, t in enumerate(texts) if t and t.strip()
+        ]
+        if not indexed_valid:
+            return [[] for _ in texts]
+
+        valid_texts = [t for _, t in indexed_valid]
+        logger.debug("embed_batch() valid=%d total=%d", len(valid_texts), len(texts))
+
+        try:
+            response = await self._client.embeddings.create(
+                model=self._model_name,
+                input=valid_texts,
+            )
+        except Exception as exc:
+            logger.exception("embed_batch() failed for model=%s", self._model_name)
+            raise EmbeddingError(
+                f"OpenAI batch embedding failed for {len(valid_texts)} texts"
+            ) from exc
+
+        # Reconstruct full result list preserving original positions
+        result: list[list[float]] = [[] for _ in texts]
+        for embed_idx, (original_idx, _) in enumerate(indexed_valid):
+            result[original_idx] = response.data[embed_idx].embedding
+
+        return result
+
+    @property
+    def dimension(self) -> int:
+        return self._dimension

@@ -4,7 +4,7 @@ from fastapi import APIRouter
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 
-from lang_graph.factory.factory_service import llm_service
+from lang_graph.factory.factory_service import get_llm_service
 from lang_graph.graphs.analytics_graph import analytics_graph
 from utils.logger import get_logger
 
@@ -67,7 +67,7 @@ async def ask(payload: AskRequest):
 
             llm_start = time.perf_counter()
 
-            async for chunk in llm_service.stream(
+            async for chunk in get_llm_service().stream(
                 prompt
             ):
 

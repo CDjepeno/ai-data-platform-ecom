@@ -7,8 +7,8 @@ from qdrant_client.models import (
     VectorParams,
     PointStruct,
 )
+from config_env import settings
 
-from config_env import Config
 from utils.logger import get_logger
 
 logger = get_logger(__name__)
@@ -101,7 +101,7 @@ class QdrantService:
         self._client.create_collection(
             collection_name=self._collection_name,
             vectors_config=VectorParams(
-                size=Config.QDRANT_SIZE,
+                size=settings.qdrant_size,
                 distance=Distance.COSINE,
             ),
         )

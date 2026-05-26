@@ -5,28 +5,29 @@ description = "DBT Semantic Layer with MetricFlow"
 requires-python = ">=3.11,<3.13"
 
 dependencies = [
+    # -- Data / dbt stack (original working versions)
     "dbt-core>=1.10,<1.11",
     "dbt-trino>=1.10,<1.11",
     "dbt-metricflow>=0.10,<0.11",
+
+    # -- LLM / orchestration (original working versions)
     "langgraph>=1.1.10,<2.0.0",
-    "langchain>=1.2.18,<2.0.0",
+    "langchain>=1.2.18,<2.0.0",#
     "openai>=2.36.0,<3.0.0",
-    "pyiceberg>=0.7,<0.8",
 
+    # -- Vector store
     "qdrant-client>=1.17.1,<2.0.0",
-    "sentence-transformers>=5.4.1,<6.0.0",
 
-
+    # -- API / infra
+    "fastapi>=0.115.0,<0.116.0",
+    "uvicorn[standard]>=0.31.0,<0.32.0",
     "python-dotenv>=1.2.2,<2.0.0",
     "pyyaml>=6.0.3,<7.0.0",
-
     "trino>=0.337.0,<0.338.0",
-
-    "fastapi",
-    "uvicorn",
     "prometheus-client>=0.20.0,<1.0.0",
     "prometheus-fastapi-instrumentator>=7.0.0,<8.0.0",
-    "redis>=5.0.0,<6.0.0"
+    "redis>=5.0.0,<6.0.0",
+    "pydantic-settings>=2.0.0,<3.0.0",
 ]
 
 [build-system]
@@ -35,3 +36,7 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.poetry]
 package-mode = false
+
+[tool.poetry.dependencies]
+python = ">=3.11,<3.13"
+# torch excluded — embeddings served by OpenAI API

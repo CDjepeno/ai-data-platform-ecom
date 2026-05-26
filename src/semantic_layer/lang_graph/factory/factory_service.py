@@ -1,36 +1,50 @@
+# lang_graph/factory/factory_service.py
 
-import httpx
-from numpy import size
-from openai import AsyncOpenAI
+from functools import lru_cache
+import logging
+
 from qdrant_client import QdrantClient
 
-from lang_graph.services.embedding_service import BGEFrEnEmbedderAdapter
+from lang_graph.services.embedding_service import OpenAIEmbedderAdapter
 from lang_graph.services.http_service import HttpxClient
 from lang_graph.services.llm_service import LlmService
-from lang_graph.services.qdrant_service import (
-    QdrantService,
-)
-from config_env import Config
+from lang_graph.services.qdrant_service import QdrantService
+from config_env import settings
+
+logger = logging.getLogger(__name__)
 
 
-qdrant_service = QdrantService(
-    host=Config.QDRANT_HOST,
-    port=Config.QDRANT_PORT,
-    size= Config.QDRANT_SIZE,
-    collection_name=Config.QDRANT_COLLECTION,
-    qdrant_client= QdrantClient(
-        port= Config.QDRANT_PORT,
-        host=Config.QDRANT_HOST
+@lru_cache(maxsize=1)
+def get_qdrant_service() -> QdrantService:
+    logger.info("Initializing QdrantService host=%s", settings.qdrant_host)
+    return QdrantService(
+        host=settings.qdrant_host,
+        port=settings.qdrant_port,
+        size=settings.qdrant_size,
+        collection_name=settings.qdrant_collection,
+        qdrant_client=QdrantClient(
+            host=settings.qdrant_host,
+            port=settings.qdrant_port,
+        ),
     )
-)
 
-embedding_service = BGEFrEnEmbedderAdapter(
-    model_name=Config.MODEL_EMBEDDING,
-)
 
-llm_service = LlmService(
-    http_client=HttpxClient(),
-    model=Config.MODEL_DEEP_SEEK,
-    api_key=Config.DEEP_SEEK_API,
-    base_url=Config.BASE_URL_DEEP_SEEK_API,
-)
+@lru_cache(maxsize=1)
+def get_embedding_service() -> OpenAIEmbedderAdapter:
+    # No model download — just instantiates the OpenAI async client
+    logger.info("Initializing OpenAIEmbedderAdapter model=%s", settings.model_embedding)
+    return OpenAIEmbedderAdapter(
+        model_name=settings.model_embedding,
+        api_key=settings.openai_api_key,
+    )
+
+
+@lru_cache(maxsize=1)
+def get_llm_service() -> LlmService:
+    logger.info("Initializing LlmService model=%s", settings.model_deep_seek)
+    return LlmService(
+        http_client=HttpxClient(),
+        model=settings.model_deep_seek,
+        api_key=settings.deep_seek_api,
+        base_url=settings.base_url_deep_seek_api,
+    )

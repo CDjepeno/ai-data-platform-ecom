@@ -7,7 +7,7 @@ from lang_graph.typing.analytics_state import AnalyticsState
 from lang_graph.utils.timer import async_timed_node
 from lang_graph.utils.date_resolver import resolve_relative_period
 from utils.logger import get_logger
-from lang_graph.factory.factory_service import llm_service
+from lang_graph.factory.factory_service import get_llm_service
 
 logger = get_logger(__name__)
 
@@ -40,7 +40,7 @@ async def parse_intent(state: AnalyticsState):
         context=context,
     )
 
-    raw_intent = await llm_service.generate(prompt)
+    raw_intent = await get_llm_service().generate(prompt)
 
     intent = json.loads(raw_intent)
     

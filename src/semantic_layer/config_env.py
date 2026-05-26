@@ -1,55 +1,151 @@
+from __future__ import annotations
+
 from pathlib import Path
 
-from dotenv import load_dotenv
-import os
-
-load_dotenv()
+from pydantic import Field
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
-class Config:
+BASE_DIR = Path(__file__).resolve().parent
+ENV_FILE = BASE_DIR / ".env"
 
-    # =========================
-    # DeepSeek
-    # =========================
-    DEEP_SEEK_API = os.getenv("DEEP_SEEK_API", "xxxx")
-    BASE_URL_DEEP_SEEK_API = os.getenv("BASE_URL_DEEP_SEEK_API", "https://api.deepseek.com")
-    MODEL_DEEP_SEEK = os.getenv("MODEL_DEEP_SEEK", "deepseek-v4-pro")
-    
-    # =========================
-    # Embedding
-    # =========================
-    MODEL_EMBEDDING = os.getenv("MODEL_EMBEDDING", "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2")
 
-    # =========================
-    # dbt
-    # =========================
-    DBT_PROJECT_DIR = Path(os.getenv("DBT_PROJECT_DIR", "app/transformations"))
-    DBT_PROFILES_DIR = Path(os.getenv("DBT_PROFILES_DIR", "/app/.dbt"))
-    SEMANTIC_MODELS_PATH = Path(os.getenv("SEMANTIC_MODELS_PATH", "/app/transformations/mart/semantic_models"))
-    METRICS_PATH = Path(os.getenv("METRICS_PATH","/app/transformations/models/metrics"))
-    
-    # =========================
-    # qdrant
-    # =========================
-    QDRANT_HOST = os.getenv("QDRANT_HOST", "qdrant")    
-    QDRANT_PORT = int(os.getenv("QDRANT_PORT", "6334"))
-    QDRANT_COLLECTION = os.getenv("QDRANT_COLLECTION", "semantic_models")
-    QDRANT_SIZE = int(os.getenv("QDRANT_SIZE", 384))
-    
-    # =========================
-    # Trino
-    # =========================
-    TRINO_HOST = os.getenv("TRINO_HOST")  
-    TRINO_USER = os.getenv("TRINO_USER")
-    TRINO_CATALOG = os.getenv("TRINO_CATALOG")
-    TRINO_SCHEMA = os.getenv("TRINO_SCHEMA")  
-    TRINO_PORT = os.getenv("TRINO_PORT")
-    OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
-    
-    
-    # =========================
-    # Valkey
-    # =========================
-    VALKEY_HOST = os.getenv("VALKEY_HOST", "valkey")
-    VALKEY_PORT = int(os.getenv("VALKEY_PORT", "6379"))
-    VALKEY_TTL = int(os.getenv("VALKEY_TTL", "3600"))
+class Settings(BaseSettings):
+    """Application configuration."""
+
+    model_config = SettingsConfigDict(
+        env_file=ENV_FILE,
+        env_file_encoding="utf-8",
+        case_sensitive=False,
+        extra="ignore",
+    )
+
+    # ── DeepSeek ─────────────────────────────────────────────
+
+    deep_seek_api: str = Field(
+        description="DeepSeek API key.",
+    )
+
+    base_url_deep_seek_api: str = Field(
+        default="https://api.deepseek.com",
+        description="DeepSeek API base URL.",
+    )
+
+    model_deep_seek: str = Field(
+        default="deepseek-v4-flash",
+        description="LLM model name.",
+    )
+
+    # ── Embedding ────────────────────────────────────────────
+
+    model_embedding: str = Field(
+        default="sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2",
+        description="Embedding model name.",
+    )
+
+    # ── dbt ──────────────────────────────────────────────────
+
+    dbt_project_dir: Path = Field(
+        default=Path("/app/transformations"),
+        description="dbt project directory.",
+    )
+
+    dbt_profiles_dir: Path = Field(
+        default=Path("/app/.dbt"),
+        description="dbt profiles directory.",
+    )
+
+    semantic_models_path: Path = Field(
+        default=Path(
+            "/app/transformations/mart/semantic_models"
+        ),
+        description="Semantic models directory.",
+    )
+
+    metrics_path: Path = Field(
+        default=Path(
+            "/app/transformations/models/metrics"
+        ),
+        description="dbt metrics directory.",
+    )
+
+    # ── Qdrant ───────────────────────────────────────────────
+
+    qdrant_host: str = Field(
+        default="qdrant",
+        description="Qdrant hostname.",
+    )
+
+    qdrant_port: int = Field(
+        default=6333,
+        gt=0,
+        description="Qdrant port.",
+    )
+
+    qdrant_collection: str = Field(
+        default="semantic_models",
+        description="Qdrant collection name.",
+    )
+
+    qdrant_size: int = Field(
+        default=1536,
+        gt=0,
+        description=(
+            "Vector embedding dimension stored in Qdrant. "
+            "Must match the embedding model output size."
+        ),
+    )
+
+    # ── Trino ────────────────────────────────────────────────
+
+    trino_host: str = Field(
+        description="Trino hostname.",
+    )
+
+    trino_user: str = Field(
+        description="Trino username.",
+    )
+
+    trino_catalog: str = Field(
+        description="Trino catalog.",
+    )
+
+    trino_schema: str = Field(
+        description="Trino schema.",
+    )
+
+    trino_port: int = Field(
+        default=8080,
+        gt=0,
+        description="Trino port.",
+    )
+
+    # ── OpenAI ───────────────────────────────────────────────
+
+    openai_api_key: str = Field(
+        description="OpenAI API key.",
+    )
+
+    # ── Valkey ───────────────────────────────────────────────
+
+    valkey_host: str = Field(
+        default="valkey",
+        description="Valkey hostname.",
+    )
+
+    valkey_port: int = Field(
+        default=6379,
+        gt=0,
+        description="Valkey port.",
+    )
+
+    valkey_ttl: int = Field(
+        default=3600,
+        gt=0,
+        description="Valkey cache TTL in seconds.",
+    )
+
+
+# ── Singleton ───────────────────────────────────────────────
+
+settings = Settings()  # type: ignore[call-arg]
