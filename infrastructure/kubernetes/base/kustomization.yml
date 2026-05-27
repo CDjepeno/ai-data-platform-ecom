@@ -9,5 +9,5 @@ resources:
   - trino/
   - semantic-layer/
   - fastapi/
-  - next-frontend/
-  - monitoring/
+  # - next-frontend/
+  # - monitoring/

@@ -5,3 +5,4 @@ resources:
   - trino-configmap.yml
   - trino-deployment.yml
   - trino-service.yml
+  - trino-secret.yml

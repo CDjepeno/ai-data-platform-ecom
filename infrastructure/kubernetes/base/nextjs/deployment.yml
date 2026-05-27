@@ -1,0 +1,60 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nextjs
+  labels:
+    app: nextjs
+    component: frontend
+spec:
+  replicas: 1  # ← was 2, reduced for RAM budget
+
+  selector:
+    matchLabels:
+      app: nextjs
+
+  template:
+    metadata:
+      labels:
+        app: nextjs
+        component: frontend
+
+    spec:
+      imagePullSecrets:
+        - name: ghcr-pull-secret  # ← was missing, caused 403 Forbidden
+
+      containers:
+        - name: nextjs
+          image: ghcr.io/cdjepeno/ecom-nextjs:latest  # ← was chat-ui:v1
+
+          ports:
+            - containerPort: 3000
+              name: http
+
+          env:
+            - name: NEXT_PUBLIC_API_URL
+              value: "http://fastapi:8000"
+
+          # -- Resources: Next.js standalone is lightweight
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "200m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
+
+          readinessProbe:
+            httpGet:
+              path: /api/health
+              port: 3000
+            initialDelaySeconds: 15
+            periodSeconds: 10
+            failureThreshold: 3
+
+          livenessProbe:
+            httpGet:
+              path: /api/health
+              port: 3000
+            initialDelaySeconds: 30
+            periodSeconds: 20
+            failureThreshold: 3

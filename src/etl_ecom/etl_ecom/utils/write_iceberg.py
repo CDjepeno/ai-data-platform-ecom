@@ -1,6 +1,5 @@
 from datetime import datetime
 
-from pyarrow import Table
 import pyarrow as pa
 
 from etl_ecom.scripts.iceberg.iceberg import get_iceberg_catalog

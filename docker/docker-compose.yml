@@ -129,7 +129,7 @@ services:
       - .env
 
     volumes:
-    - ../src/fast_api:/app/fast_api
+    - ../src/fast_api:/app
 
     depends_on:
       - semantic_layer

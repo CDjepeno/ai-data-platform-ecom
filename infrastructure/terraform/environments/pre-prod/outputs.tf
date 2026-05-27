@@ -19,3 +19,15 @@ output "postgres_connection_string" {
   value       = module.postgres.connection_string
   sensitive   = true
 }
+
+output "warehouse_access_key" {
+  description = "S3 access key for the warehouse bucket — inject into K8s secret warehouse-s3-secret"
+  value       = module.warehouse_storage.access_key
+  sensitive   = true
+}
+
+output "warehouse_secret_key" {
+  description = "S3 secret key for the warehouse bucket — inject into K8s secret warehouse-s3-secret"
+  value       = module.warehouse_storage.secret_key
+  sensitive   = true
+}

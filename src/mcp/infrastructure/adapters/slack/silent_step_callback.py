@@ -6,8 +6,6 @@ logger = get_logger(__name__)
 
 class SilentStepCallbackAdapter(StepCallbackPort):
     
-
-
     async def on_step(self, message: str) -> None:
         logger.debug("Step (silent): %s", message)
 

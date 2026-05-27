@@ -1,4 +1,3 @@
-from pyiceberg.io.pyarrow import pyarrow_to_schema
 from pyiceberg.partitioning import PartitionField, PartitionSpec
 from pyiceberg.transforms import IdentityTransform
 

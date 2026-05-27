@@ -1,0 +1,37 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: ecom-pre-prod
+
+resources:
+  - namespace.yml
+  - configmap-env.yml
+  - ../../base/valkey/
+  - ../../base/qdrant/
+  - ../../base/nessie/
+  - ../../base/trino/
+  - ../../base/semantic-layer/
+  - ../../base/fastapi/
+
+# Pre-prod uses specific image tags — never :latest
+# Update these after each validated CI build
+images:
+  - name: ghcr.io/cdjepeno/ecom-fastapi
+    newTag: "latest"
+  - name: ghcr.io/cdjepeno/ecom-semantic-layer
+    newTag: "latest"
+  - name: ghcr.io/cdjepeno/ecom-pipeline
+    newTag: "latest"
+
+# Pre-prod runs with more resources than dev but less than prod
+patches:
+  - patch: |-
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata:
+        name: fastapi
+      spec:
+        replicas: 2
+    target:
+      kind: Deployment
+      name: fastapi

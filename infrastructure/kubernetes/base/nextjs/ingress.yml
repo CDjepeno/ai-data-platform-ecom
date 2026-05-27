@@ -1,0 +1,22 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+
+metadata:
+  name: nextjs
+  namespace: ecom-pre-prod
+
+spec:
+  ingressClassName: nginx
+
+  rules:
+    - host: chat.local
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+
+            backend:
+              service:
+                name: nextjs
+                port:
+                  number: 80

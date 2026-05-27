@@ -1,0 +1,62 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: fastapi
+  labels:
+    app: fastapi
+    component: api-gateway
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: fastapi
+  template:
+    metadata:
+      labels:
+        app: fastapi
+        component: api-gateway
+    spec:
+      imagePullSecrets:
+        - name: ghcr-pull-secret
+      containers:
+        - name: fastapi
+          image: ghcr.io/cdjepeno/ecom-fastapi:latest
+          ports:
+            - containerPort: 8000
+              name: http
+          env:
+            - name: LOG_LEVEL
+              valueFrom:
+                configMapKeyRef:
+                  name: ecom-config
+                  key: LOG_LEVEL
+            - name: JSON_LOGS
+              valueFrom:
+                configMapKeyRef:
+                  name: ecom-config
+                  key: JSON_LOGS
+            - name: SEMANTIC_LAYER_URL
+              value: "http://semantic-layer:8001"
+
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "200m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
+
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8000
+            initialDelaySeconds: 15
+            periodSeconds: 10
+            failureThreshold: 3
+
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8000
+            initialDelaySeconds: 30
+            periodSeconds: 20

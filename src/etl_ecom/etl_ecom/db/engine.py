@@ -1,4 +1,3 @@
-from etl_ecom.db.db_config import Config
 from sqlalchemy import create_engine
 
 
@@ -6,7 +5,8 @@ import duckdb
 
 import boto3
 
-from etl_ecom.utils.logger import get_logger
+from utils.logger import get_logger
+from db.db_config import settings
 
 logger = get_logger(__name__)
 
@@ -14,15 +14,15 @@ logger = get_logger(__name__)
 def get_minio_client():
     return boto3.client(
         "s3",
-        endpoint_url=Config.MINIO_ENDPOINT,
-        aws_access_key_id=Config.MINIO_ROOT_USER,
-        aws_secret_access_key=Config.MINIO_ROOT_PASSWORD,
+        endpoint_url=settings.minio_endpoint,
+        aws_access_key_id=settings.minio_root_user,
+        aws_secret_access_key=settings.minio_root_password,
     )
 
 
 def get_duckdb_connection() -> duckdb.DuckDBPyConnection:
 
-    con = duckdb.connect(Config.DBT_DUCKDB_PATH_DEV)
+    con = duckdb.connect(settings.dbt_duckdb_path_dev)
 
     try:
 
@@ -37,9 +37,9 @@ def get_duckdb_connection() -> duckdb.DuckDBPyConnection:
 
         con.execute(f"""
             SET s3_region = 'us-east-1';
-            SET s3_endpoint = '{Config.MINIO_ENDPOINT.replace("http://", "")}';
-            SET s3_access_key_id = '{Config.MINIO_ROOT_USER}';
-            SET s3_secret_access_key = '{Config.MINIO_ROOT_PASSWORD}';
+            SET s3_endpoint = '{settings.minio_endpoint.replace("http://", "")}';
+            SET s3_access_key_id = '{settings.minio_root_user}';
+            SET s3_secret_access_key = '{settings.minio_root_password}';
             SET s3_url_style = 'path';
             SET s3_use_ssl = false;
         """)
@@ -56,11 +56,11 @@ def get_duckdb_connection() -> duckdb.DuckDBPyConnection:
 
             con.execute(f"""
                 ATTACH '
-                    dbname={Config.POSTGRES_DB}
-                    user={Config.POSTGRES_USER}
-                    password={Config.POSTGRES_PASSWORD}
-                    host={Config.POSTGRES_HOST}
-                    port={Config.POSTGRES_PORT}
+                    dbname={settings.postgres_db}
+                    user={settings.postgres_user}
+                    password={settings.postgres_password}
+                    host={settings.postgres_host}
+                    port={settings.postgres_port}
                 '
                 AS postgres_db
                 (TYPE postgres);
@@ -82,16 +82,16 @@ def get_duckdb_connection() -> duckdb.DuckDBPyConnection:
 
 
 def get_source_engine():
-    return create_engine(Config.SOURCE_URL)
+    return create_engine(settings.source_url)
 
 
 def configure_duckdb_s3(conn: duckdb.DuckDBPyConnection) -> None:
     try:
         conn.execute(f"""
             SET s3_region = 'us-east-1';
-            SET s3_endpoint = '{Config.MINIO_ENDPOINT.replace("http://", "")}';
-            SET s3_access_key_id = '{Config.MINIO_ROOT_USER}';
-            SET s3_secret_access_key = '{Config.MINIO_ROOT_PASSWORD}';
+            SET s3_endpoint = '{settings.minio_endpoint.replace("http://", "")}';
+            SET s3_access_key_id = '{settings.minio_root_user}';
+            SET s3_secret_access_key = '{settings.minio_root_password}';
             SET s3_url_style = 'path';
             SET s3_use_ssl = false;
         """)

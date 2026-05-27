@@ -35,6 +35,7 @@ module "kubernetes" {
   kubernetes_version = "1.31"
   node_flavor        = "b3-8"
   node_count         = 1
+  vlan_id            = 200
 
   tags = {
     project = var.project_name
