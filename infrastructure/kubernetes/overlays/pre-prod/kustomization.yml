@@ -1,3 +1,7 @@
+# overlays/pre-prod/kustomization.yml
+# Pre-prod overlay — mirrors prod topology with reduced resources.
+# Images are pinned to CI-built tags, never :latest.
+# Secrets are injected via CI pipeline (GitHub Actions Secrets).
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 
@@ -12,19 +16,20 @@ resources:
   - ../../base/trino/
   - ../../base/semantic-layer/
   - ../../base/fastapi/
+  - ../../base/nextjs/
 
-# Pre-prod uses specific image tags — never :latest
-# Update these after each validated CI build
+# Pin to CI-built SHA tags — updated automatically by GitHub Actions
+# NEVER use :latest in pre-prod — you must know exactly what is running
 images:
   - name: ghcr.io/cdjepeno/ecom-fastapi
     newTag: "latest"
   - name: ghcr.io/cdjepeno/ecom-semantic-layer
     newTag: "latest"
-  - name: ghcr.io/cdjepeno/ecom-pipeline
+  - name: ghcr.io/cdjepeno/ecom-nextjs
     newTag: "latest"
 
-# Pre-prod runs with more resources than dev but less than prod
 patches:
+  # -- Replicas: pre-prod runs 2 replicas for HA testing
   - patch: |-
       apiVersion: apps/v1
       kind: Deployment
@@ -35,3 +40,64 @@ patches:
     target:
       kind: Deployment
       name: fastapi
+
+  # -- imagePullPolicy: Always in pre-prod — always pull the pinned CI tag
+  #    This is correct here because images come from ghcr.io, not kind load
+  - patch: |-
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata:
+        name: fastapi
+      spec:
+        template:
+          spec:
+            imagePullPolicy: Always
+    target:
+      kind: Deployment
+      name: fastapi
+
+  # -- Restore imagePullSecrets for ghcr.io authentication
+  #    Removed from base, added back here for all cloud environments
+  - patch: |-
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata:
+        name: fastapi
+      spec:
+        template:
+          spec:
+            imagePullSecrets:
+              - name: ghcr-pull-secret
+    target:
+      kind: Deployment
+      name: fastapi
+
+  # -- Same imagePullSecrets patch for semantic-layer
+  - patch: |-
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata:
+        name: semantic-layer
+      spec:
+        template:
+          spec:
+            imagePullSecrets:
+              - name: ghcr-pull-secret
+    target:
+      kind: Deployment
+      name: semantic-layer
+
+  # -- Same imagePullSecrets patch for nextjs
+  - patch: |-
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata:
+        name: nextjs
+      spec:
+        template:
+          spec:
+            imagePullSecrets:
+              - name: ghcr-pull-secret
+    target:
+      kind: Deployment
+      name: nextjs

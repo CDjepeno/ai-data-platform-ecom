@@ -21,6 +21,7 @@ spec:
       containers:
         - name: fastapi
           image: ghcr.io/cdjepeno/ecom-fastapi:latest
+          imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 8000
               name: http
