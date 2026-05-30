@@ -3,8 +3,16 @@ target/
 dbt_packages/
 logs/
 .env
+.env.*
 .duckdb
-
+env-local/
+.env
+.env.*
+*.env
+**/env-local/
+**/env-preprod/
+**/env-prod/
+**/env-*/
 # =========================
 # PYTHON
 # =========================

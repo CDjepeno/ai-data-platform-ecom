@@ -39,7 +39,7 @@ class Settings(BaseSettings):
     # ── Embedding ────────────────────────────────────────────
 
     model_embedding: str = Field(
-        default="sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2",
+        default="text-embedding-3-small",
         description="Embedding model name.",
     )
 

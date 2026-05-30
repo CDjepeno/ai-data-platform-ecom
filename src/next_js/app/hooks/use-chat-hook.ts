@@ -69,8 +69,10 @@ export function useChatHook() {
 
     try {
 
+      const FASTAPI_URL = process.env.NEXT_PUBLIC_FASTAPI_URL ?? "http://localhost:8000";
+
       const response = await fetch(
-        "http://127.0.0.1:8000/ask",
+        `${FASTAPI_URL}/ask`,
         {
           method: "POST",
           headers: {

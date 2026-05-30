@@ -1,0 +1,19 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: nessie
+spec:
+  template:
+    spec:
+      containers:
+        - name: nessie                    
+          env:
+            - name: nessie.catalog.warehouses.warehouse.location
+              value: "s3://ecom-etl/warehouse"
+
+            - name: nessie.catalog.service.s3.default-options.region
+              value: "us-east-1"
+
+            - name: AWS_REGION
+              value: "us-east-1"
+

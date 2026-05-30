@@ -19,8 +19,6 @@ spec:
         component: frontend
 
     spec:
-      imagePullSecrets:
-        - name: ghcr-pull-secret  # ← was missing, caused 403 Forbidden
 
       containers:
         - name: nextjs

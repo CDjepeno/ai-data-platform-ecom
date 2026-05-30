@@ -17,7 +17,7 @@ ENV POETRY_VIRTUALENVS_CREATE=false
 ENV POETRY_NO_INTERACTION=1
 
 # IMPORTANT
-ENV PYTHONPATH=/app:/app/semantic_layer
+ENV PYTHONPATH=/app
 
 # Install poetry
 RUN pip install --upgrade pip \

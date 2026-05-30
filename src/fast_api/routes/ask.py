@@ -29,7 +29,7 @@ async def ask_question(payload: AskRequest):
     async def generate():
         async with client.stream(
             "POST",
-            "http://semantic_layer:8001/ask",
+            "http://semantic-layer:8001/ask",
             json={"question": payload.question},
             headers={"Content-Type": "application/json"},
             timeout=None,

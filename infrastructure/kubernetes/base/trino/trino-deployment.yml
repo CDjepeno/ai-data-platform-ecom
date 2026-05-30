@@ -22,18 +22,25 @@ spec:
           ports:
             - containerPort: 8080
               name: http
+
+          envFrom:
+            - configMapRef:
+                name: ecom-config
+
           env:
             # S3 credentials injected from secret — never hardcoded
             - name: AWS_ACCESS_KEY_ID
               valueFrom:
                 secretKeyRef:
-                  name: warehouse-s3-secret
-                  key: access_key
+                  name: minio-secret
+                  key: AWS_ACCESS_KEY_ID
+
             - name: AWS_SECRET_ACCESS_KEY
               valueFrom:
                 secretKeyRef:
-                  name: warehouse-s3-secret
-                  key: secret_key
+                  name: minio-secret
+                  key: AWS_SECRET_ACCESS_KEY
+
           resources:
             requests:
               memory: "1Gi"

@@ -16,8 +16,6 @@ spec:
         app: fastapi
         component: api-gateway
     spec:
-      imagePullSecrets:
-        - name: ghcr-pull-secret
       containers:
         - name: fastapi
           image: ghcr.io/cdjepeno/ecom-fastapi:latest

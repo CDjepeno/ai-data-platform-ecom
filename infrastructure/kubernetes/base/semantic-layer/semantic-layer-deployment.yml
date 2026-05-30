@@ -20,137 +20,60 @@ spec:
         - name: ghcr-pull-secret
 
       containers:
-        - name: semantic-layer
-          image: ghcr.io/cdjepeno/ecom-semantic-layer:latest
-          ports:
-            - containerPort: 8001
-              name: http
+      - name: semantic-layer
+        image: ghcr.io/cdjepeno/ecom-semantic-layer:latest
+        ports:
+          - containerPort: 8001
+            name: http
 
-          # -- Resource limits: no torch, OpenAI API only → lightweight
-          resources:
-            requests:
-              memory: "512Mi"
-              cpu: "250m"
-            limits:
-              memory: "1Gi"
-              cpu: "500m"
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "250m"
+          limits:
+            memory: "1Gi"
+            cpu: "500m"
 
-          # -- Readiness: wait for uvicorn to be fully up
-          readinessProbe:
-            httpGet:
-              path: /health
-              port: 8001
-            initialDelaySeconds: 30
-            periodSeconds: 10
-            failureThreshold: 3
+        # Inject all non-sensitive config in one shot
+        envFrom:
+          - configMapRef:
+              name: ecom-config
 
-          # -- Liveness: restart if process deadlocks
-          livenessProbe:
-            httpGet:
-              path: /health
-              port: 8001
-            initialDelaySeconds: 60
-            periodSeconds: 20
-            failureThreshold: 3
+        # Inject only sensitive values explicitly
+        env:
+          - name: OPENAI_API_KEY
+            valueFrom:
+              secretKeyRef:
+                name: openai-secret
+                key: OPENAI_API_KEY
+          - name: DEEP_SEEK_API
+            valueFrom:
+              secretKeyRef:
+                name: deepseek-secret
+                key: DEEP_SEEK_API
+          - name: BASE_URL_DEEP_SEEK_API
+            valueFrom:
+              secretKeyRef:
+                name: deepseek-secret
+                key: BASE_URL_DEEP_SEEK_API
+          - name: MODEL_DEEP_SEEK
+            valueFrom:
+              secretKeyRef:
+                name: deepseek-secret
+                key: MODEL_DEEP_SEEK
 
-          env:
-            - name: TRINO_HOST
-              valueFrom:
-                configMapKeyRef:
-                  name: ecom-config
-                  key: TRINO_HOST
-            - name: TRINO_PORT
-              valueFrom:
-                configMapKeyRef:
-                  name: ecom-config
-                  key: TRINO_PORT
-            - name: TRINO_USER
-              valueFrom:
-                configMapKeyRef:
-                  name: ecom-config
-                  key: TRINO_USER
-            - name: TRINO_CATALOG
-              valueFrom:
-                configMapKeyRef:
-                  name: ecom-config
-                  key: TRINO_CATALOG
-            - name: TRINO_SCHEMA
-              valueFrom:
-                configMapKeyRef:
-                  name: ecom-config
-                  key: TRINO_SCHEMA
-            - name: QDRANT_HOST
-              valueFrom:
-                configMapKeyRef:
-                  name: ecom-config
-                  key: QDRANT_HOST
-            - name: QDRANT_PORT
-              valueFrom:
-                configMapKeyRef:
-                  name: ecom-config
-                  key: QDRANT_PORT
-            - name: QDRANT_COLLECTION
-              valueFrom:
-                configMapKeyRef:
-                  name: ecom-config
-                  key: QDRANT_COLLECTION
-            - name: QDRANT_SIZE
-              valueFrom:
-                configMapKeyRef:
-                  name: ecom-config
-                  key: QDRANT_SIZE
-            - name: MODEL_EMBEDDING
-              valueFrom:
-                configMapKeyRef:
-                  name: ecom-config
-                  key: MODEL_EMBEDDING
-            - name: VALKEY_HOST
-              valueFrom:
-                configMapKeyRef:
-                  name: ecom-config
-                  key: VALKEY_HOST
-            - name: VALKEY_PORT
-              valueFrom:
-                configMapKeyRef:
-                  name: ecom-config
-                  key: VALKEY_PORT
-            - name: VALKEY_TTL
-              valueFrom:
-                configMapKeyRef:
-                  name: ecom-config
-                  key: VALKEY_TTL
-            - name: LOG_LEVEL
-              valueFrom:
-                configMapKeyRef:
-                  name: ecom-config
-                  key: LOG_LEVEL
-            - name: MCP_HTTP_TIMEOUT
-              valueFrom:
-                configMapKeyRef:
-                  name: ecom-config
-                  key: MCP_HTTP_TIMEOUT
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8001
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          failureThreshold: 3
 
-            # -- Secret: never in configmap
-            - name: OPENAI_API_KEY
-              valueFrom:
-                secretKeyRef:
-                  name: openai-secret
-                  key: OPENAI_API_KEY
-
-            # -- Deepseek 
-            - name: DEEP_SEEK_API
-              valueFrom:
-                secretKeyRef:
-                  name: deepseek-secret
-                  key: DEEP_SEEK_API
-            - name: BASE_URL_DEEP_SEEK_API
-              valueFrom:
-                secretKeyRef:
-                  name: deepseek-secret
-                  key: BASE_URL_DEEP_SEEK_API
-            - name: MODEL_DEEP_SEEK
-              valueFrom:
-                secretKeyRef:
-                  name: deepseek-secret
-                  key: MODEL_DEEP_SEEK
-          # -- No volumeMounts: hf-model-cache removed (OpenAI API needs no local model)
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8001
+          initialDelaySeconds: 60
+          periodSeconds: 20
+          failureThreshold: 3

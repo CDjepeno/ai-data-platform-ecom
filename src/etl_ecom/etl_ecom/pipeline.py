@@ -39,13 +39,13 @@ async def main():
 
             logger.info("🔨 Building dbt...")
             response = await client.post(
-                "http://semantic_layer:8001/build-dbt"
+                "http://semantic-layer:8001/build-dbt"
             )
             response.raise_for_status()
 
             logger.info("📦 Indexing semantic models...")
             response = await client.post(
-                "http://semantic_layer:8001/index"
+                "http://semantic-layer:8001/index"
             )
             response.raise_for_status()
 

@@ -41,6 +41,7 @@ class Settings(BaseSettings):
     postgres_port: int = Field(
         default=5432,
         gt=0,
+        alias="PG_PORT",
         description="PostgreSQL port.",
     )
 

@@ -1,0 +1,34 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: etl-pipeline
+spec:
+  ttlSecondsAfterFinished: 300
+  template:
+    spec:
+      restartPolicy: Never
+      imagePullSecrets:
+        - name: ghcr-pull-secret
+      containers:
+        - name: etl
+          image: ghcr.io/cdjepeno/ecom-etl:latest
+          imagePullPolicy: Never 
+          command: ["python", "-m", "etl_ecom.pipeline"]
+
+          envFrom:
+            - configMapRef:
+                name: ecom-config
+            - secretRef:
+                name: openai-secret
+            - secretRef:
+                name: minio-secret
+            - secretRef:
+                name: etl-secret
+
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "200m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"

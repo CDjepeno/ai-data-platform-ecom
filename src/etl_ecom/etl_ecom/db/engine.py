@@ -5,8 +5,8 @@ import duckdb
 
 import boto3
 
-from utils.logger import get_logger
-from db.db_config import settings
+from etl_ecom.utils.logger import get_logger
+from etl_ecom.db.db_config import settings
 
 logger = get_logger(__name__)
 
