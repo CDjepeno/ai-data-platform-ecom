@@ -11,7 +11,7 @@ jobs:
     environment: pre-prod
 
     permissions:
-      contents: write   # needed to commit kustomize image tag update
+      contents: write
       packages: write
 
     steps:
@@ -27,29 +27,47 @@ jobs:
 
       - name: Build and push pre-prod images
         run: |
-          # Semantic layer — model loaded at runtime from PVC, no HF_TOKEN at build time
+          SHA=${{ github.sha }}
+
+          # Semantic layer
           docker build \
-            -t ghcr.io/cdjepeno/ecom-semantic-layer:${{ github.sha }} \
+            -t ghcr.io/cdjepeno/ecom-semantic-layer:${SHA} \
             -t ghcr.io/cdjepeno/ecom-semantic-layer:pre-prod \
             ./src/semantic_layer
-          docker push ghcr.io/cdjepeno/ecom-semantic-layer:${{ github.sha }}
+          docker push ghcr.io/cdjepeno/ecom-semantic-layer:${SHA}
           docker push ghcr.io/cdjepeno/ecom-semantic-layer:pre-prod
 
           # FastAPI
           docker build \
-            -t ghcr.io/cdjepeno/ecom-fastapi:${{ github.sha }} \
+            -t ghcr.io/cdjepeno/ecom-fastapi:${SHA} \
             -t ghcr.io/cdjepeno/ecom-fastapi:pre-prod \
             ./src/fast_api
-          docker push ghcr.io/cdjepeno/ecom-fastapi:${{ github.sha }}
+          docker push ghcr.io/cdjepeno/ecom-fastapi:${SHA}
           docker push ghcr.io/cdjepeno/ecom-fastapi:pre-prod
 
-          # Pipeline
+          # ETL pipeline
           docker build \
-            -t ghcr.io/cdjepeno/ecom-pipeline:${{ github.sha }} \
+            -t ghcr.io/cdjepeno/ecom-pipeline:${SHA} \
             -t ghcr.io/cdjepeno/ecom-pipeline:pre-prod \
             ./src/etl_ecom
-          docker push ghcr.io/cdjepeno/ecom-pipeline:${{ github.sha }}
+          docker push ghcr.io/cdjepeno/ecom-pipeline:${SHA}
           docker push ghcr.io/cdjepeno/ecom-pipeline:pre-prod
+
+          # MCP
+          docker build \
+            -t ghcr.io/cdjepeno/ecom-mcp:${SHA} \
+            -t ghcr.io/cdjepeno/ecom-mcp:pre-prod \
+            ./src/mcp
+          docker push ghcr.io/cdjepeno/ecom-mcp:${SHA}
+          docker push ghcr.io/cdjepeno/ecom-mcp:pre-prod
+
+          # Next.js
+          docker build \
+            -t ghcr.io/cdjepeno/ecom-nextjs:${SHA} \
+            -t ghcr.io/cdjepeno/ecom-nextjs:pre-prod \
+            ./src/next_js
+          docker push ghcr.io/cdjepeno/ecom-nextjs:${SHA}
+          docker push ghcr.io/cdjepeno/ecom-nextjs:pre-prod
 
       - name: Set up kubectl
         uses: azure/setup-kubectl@v3
@@ -67,10 +85,15 @@ jobs:
           kubectl config current-context
           kubectl get nodes
 
+      - name: Create namespace if not exists
+        run: |
+          kubectl create namespace ecom-pre-prod \
+            --dry-run=client -o yaml | kubectl apply -f -
+
       - name: Provision Kubernetes secrets
         run: |
-          # GHCR pull secret
-          kubectl create secret docker-registry ghcr-pull-secret \
+          # GHCR pull secret — name matches kustomization ghcr-secret
+          kubectl create secret docker-registry ghcr-secret \
             --namespace ecom-pre-prod \
             --docker-server=ghcr.io \
             --docker-username=cdjepeno \
@@ -78,81 +101,59 @@ jobs:
             --docker-email=djepenodev@gmail.com \
             --dry-run=client -o yaml | kubectl apply -f -
 
-          # DeepSeek secret
+          # OpenAI
+          kubectl create secret generic openai-secret \
+            --namespace ecom-pre-prod \
+            --from-literal=OPENAI_API_KEY="${{ secrets.OPENAI_API_KEY }}" \
+            --dry-run=client -o yaml | kubectl apply -f -
+
+          # Postgres — OVH Managed PostgreSQL
+          kubectl create secret generic postgres-secret \
+            --namespace ecom-pre-prod \
+            --from-literal=POSTGRES_HOST="${{ secrets.POSTGRES_HOST }}" \
+            --from-literal=POSTGRES_PASSWORD="${{ secrets.POSTGRES_PASSWORD }}" \
+            --from-literal=POSTGRES_URL="${{ secrets.POSTGRES_URL_PRE_PROD }}" \
+            --dry-run=client -o yaml | kubectl apply -f -
+
+          # ETL
+          kubectl create secret generic etl-secret \
+            --namespace ecom-pre-prod \
+            --from-literal=AWS_ACCESS_KEY_ID="${{ secrets.AWS_ACCESS_KEY_ID }}" \
+            --from-literal=AWS_SECRET_ACCESS_KEY="${{ secrets.AWS_SECRET_ACCESS_KEY }}" \
+            --dry-run=client -o yaml | kubectl apply -f -
+
+          # MCP Slack
+          kubectl create secret generic mcp-slack-secret \
+            --namespace ecom-pre-prod \
+            --from-literal=SLACK_BOT_TOKEN="${{ secrets.SLACK_BOT_TOKEN }}" \
+            --from-literal=SLACK_APP_TOKEN="${{ secrets.SLACK_APP_TOKEN }}" \
+            --dry-run=client -o yaml | kubectl apply -f -
+
+          # MinIO/S3 — OVH Object Storage
+          kubectl create secret generic minio-secret \
+            --namespace ecom-pre-prod \
+            --from-literal=AWS_ACCESS_KEY_ID="${{ secrets.AWS_ACCESS_KEY_ID }}" \
+            --from-literal=AWS_SECRET_ACCESS_KEY="${{ secrets.AWS_SECRET_ACCESS_KEY }}" \
+            --from-literal=WAREHOUSE_ENDPOINT="${{ secrets.WAREHOUSE_ENDPOINT }}" \
+            --dry-run=client -o yaml | kubectl apply -f -
+
+          # DeepSeek
           kubectl create secret generic deepseek-secret \
             --namespace ecom-pre-prod \
             --from-literal=api_key="${{ secrets.DEEP_SEEK_API }}" \
             --from-literal=base_url="${{ secrets.BASE_URL_DEEP_SEEK_API }}" \
             --dry-run=client -o yaml | kubectl apply -f -
 
-          # HuggingFace secret — runtime only, not build time
+          # HuggingFace
           kubectl create secret generic hf-secret \
             --namespace ecom-pre-prod \
             --from-literal=token="${{ secrets.HF_TOKEN }}" \
             --dry-run=client -o yaml | kubectl apply -f -
 
-          # Warehouse S3 secret
-          kubectl create secret generic warehouse-s3-secret \
-            --namespace ecom-pre-prod \
-            --from-literal=access_key="${{ secrets.WAREHOUSE_ACCESS_KEY }}" \
-            --from-literal=secret_key="${{ secrets.WAREHOUSE_SECRET_KEY }}" \
-            --from-literal=endpoint="${{ secrets.WAREHOUSE_ENDPOINT }}" \
-            --dry-run=client -o yaml | kubectl apply -f -
-
       - name: Update image tags in Kustomize overlay
         run: |
           cd infrastructure/kubernetes/overlays/pre-prod
+          SHA=${{ github.sha }}
+
           kustomize edit set image \
-            ghcr.io/cdjepeno/ecom-semantic-layer=ghcr.io/cdjepeno/ecom-semantic-layer:${{ github.sha }}
-          kustomize edit set image \
-            ghcr.io/cdjepeno/ecom-fastapi=ghcr.io/cdjepeno/ecom-fastapi:${{ github.sha }}
-          kustomize edit set image \
-            ghcr.io/cdjepeno/ecom-pipeline=ghcr.io/cdjepeno/ecom-pipeline:${{ github.sha }}
-
-      - name: Commit updated image tags
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add infrastructure/kubernetes/overlays/pre-prod/kustomization.yml
-          git diff --staged --quiet || git commit -m "ci: update pre-prod image tags to ${{ github.sha }}"
-          git push
-
-      - name: Deploy to Kubernetes pre-prod
-        run: |
-          kubectl apply -k infrastructure/kubernetes/overlays/pre-prod/
-
-      - name: Verify deployment
-        run: |
-          kubectl rollout status deployment/fastapi \
-            -n ecom-pre-prod --timeout=300s
-          kubectl rollout status deployment/semantic-layer \
-            -n ecom-pre-prod --timeout=300s
-          kubectl rollout status statefulset/nessie \
-            -n ecom-pre-prod --timeout=300s
-          kubectl get pods -n ecom-pre-prod
-
-      - name: Notify Slack on success
-        if: success()
-        uses: slackapi/slack-github-action@v1.26.0
-        with:
-          payload: |
-            {
-              "text": "✅ Pre-prod deployment succeeded on *${{ github.repository }}*",
-              "blocks": [{"type": "section","text": {"type": "mrkdwn","text": "✅ *Deployed to Kubernetes pre-prod* — `${{ github.sha }}`\n*Author:* ${{ github.actor }}\n*<${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|View run>*"}}]
-            }
-        env:
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
-          SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
-
-      - name: Notify Slack on failure
-        if: failure()
-        uses: slackapi/slack-github-action@v1.26.0
-        with:
-          payload: |
-            {
-              "text": "❌ Pre-prod deployment failed on *${{ github.repository }}*",
-              "blocks": [{"type": "section","text": {"type": "mrkdwn","text": "❌ *Deployment to Kubernetes pre-prod failed* — `${{ github.sha }}`\n*Author:* ${{ github.actor }}\n*<${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|View logs>*"}}]
-            }
-        env:
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
-          SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
+            ghcr.io/cdjepeno/ecom-semantic-layer=ghcr.i

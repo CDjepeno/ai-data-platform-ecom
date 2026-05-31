@@ -1,12 +1,4 @@
-# ─────────────────────────────────────
-#  Variables
-# ─────────────────────────────────────
-
-include docker/.env
-export
-
-ETL_DIR := src/etl_ecom
-
+# ───────────────────────────────────── #  Variables # ───────────────────────────────────── m
 DBT_DIR := $(ETL_DIR)/etl_ecom/transformation
 
 POETRY := poetry -C $(ETL_DIR)

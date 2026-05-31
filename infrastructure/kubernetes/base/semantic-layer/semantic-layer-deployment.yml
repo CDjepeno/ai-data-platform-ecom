@@ -77,3 +77,13 @@ spec:
           initialDelaySeconds: 60
           periodSeconds: 20
           failureThreshold: 3
+
+        volumeMounts:
+          - name: dbt-profiles
+            mountPath: /app/.dbt
+            readOnly: true
+
+    volumes:
+      - name: dbt-profiles
+        configMap:
+          name: dbt-profiles

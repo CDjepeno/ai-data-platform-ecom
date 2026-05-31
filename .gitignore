@@ -62,3 +62,52 @@ mcp-server.json
 infrastructure/kubernetes/overlays/local/charts/charts/
 infrastructure/kubernetes/overlays/local/charts/kube-prometheus-stack-65.1.1/
 infrastructure/kubernetes/overlays/local/charts/
+
+mcp-server.json
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Poetry
+.venv/
+
+# Environment
+.env
+.env.local
+
+# Logs
+*.log
+
+# DBT
+target/
+dbt_packages/
+logs/
+
+# DuckDB
+*.duckdb
+
+# Node
+node_modules/
+
+# Next.js
+.next/
+out/
+
+# Mac/Linux
+.DS_Store
+
+# IDE
+.vscode/
+.idea/
+
+# Docker
+*.pid
+
+target/
+dbt_packages/
+logs/
+.env
+.duckdb

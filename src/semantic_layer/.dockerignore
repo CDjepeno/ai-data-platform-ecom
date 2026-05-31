@@ -31,15 +31,12 @@ tests/
 .mypy_cache
 .ruff_cache
 
-# -- dbt local config
-.dbt/
 
 # -- dbt runtime artifacts (generated at runtime by dbt build)
 # These are NOT application code — they are build outputs
 transformations/target/
 transformations/logs/
 transformations/dev.duckdb
-transformations/.dbt/
 transformations/seeds/*.csv
 
 # -- Docker itself
