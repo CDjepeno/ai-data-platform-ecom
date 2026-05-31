@@ -58,3 +58,7 @@ htmlcov/
 .env
 
 mcp-server.json
+
+infrastructure/kubernetes/overlays/local/charts/charts/
+infrastructure/kubernetes/overlays/local/charts/kube-prometheus-stack-65.1.1/
+infrastructure/kubernetes/overlays/local/charts/

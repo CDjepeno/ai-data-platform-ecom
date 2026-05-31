@@ -1,0 +1,48 @@
+# base/mcp/mcp-deployment.yml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mcp
+  labels:
+    app: mcp
+    component: ai-gateway
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mcp
+  template:
+    metadata:
+      labels:
+        app: mcp
+        component: ai-gateway
+    spec:
+      containers:
+        - name: mcp
+          # [NOTE] build locally: docker build -t ecom-mcp:local src/mcp/
+          image: ecom-mcp:local
+          imagePullPolicy: Never        # use local Kind image, never pull from registry
+          ports:
+            - containerPort: 8001
+              name: http
+          env:
+            - name: FASTAPI_BASE_URL
+              # [NOTE] internal DNS — MCP calls FastAPI pod-to-pod
+              value: "http://fastapi.ecom-local.svc.cluster.local:8000"
+            - name: MCP_HTTP_TIMEOUT
+              value: "60.0"
+            - name: MCP_TRANSPORT
+              value: "sse"              # use SSE for Kubernetes, not stdio
+            - name: LOG_LEVEL
+              value: "INFO"
+          # Slack tokens injected from a Secret — never hardcoded
+          envFrom:
+            - secretRef:
+                name: mcp-slack-secret
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "100m"
+            limits:
+              memory: "256Mi"
+              cpu: "300m"

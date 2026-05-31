@@ -17,10 +17,13 @@ class Settings(BaseSettings):
     # ── FastAPI target ─────────────────────────────────────────────────────────
 
     fastapi_base_url: str = Field(
-        default="http://api:8000",
+        default="http://fastapi.ecom-local.svc.cluster.local:8000",
         description=(
             "Base URL of the FastAPI /ask service. "
             "In Docker Compose: use service name (http://fast_api:8000)."
+            "In kubernetes: use service namme (http://api.ecom-local.svc.cluster.local:8000)"
+            "Pre-prod:     http://fastapi.ecom-preprod.svc.cluster.local:8000 "
+            "Production:   http://fastapi.ecom-prod.svc.cluster.local:8000"
         ),
     )
 
@@ -36,16 +39,17 @@ class Settings(BaseSettings):
     # ── Transport ──────────────────────────────────────────────────────────────
 
     mcp_transport: str = Field(
-        default="stdio",
+        default="sse",
         description=(
             "stdio → local CLI / Claude Desktop. "
-            "sse   → Docker / Kubernetes (listens on mcp_port)."
+            "sse   → Docker / Kubernetes (listens on mcp_server_port)."
         ),
     )
 
-    mcp_port: int = Field(
+    mcp_server_port: int = Field(
         default=8002,
         gt=0,
+        lt= 65536,
         description="HTTP port for SSE transport. Only used when mcp_transport=sse.",
     )
 

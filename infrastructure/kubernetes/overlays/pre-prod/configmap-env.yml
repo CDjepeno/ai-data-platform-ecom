@@ -18,7 +18,7 @@ data:
   # -- Qdrant — dimension must match MODEL_EMBEDDING output
   QDRANT_HOST: "qdrant"
   QDRANT_PORT: "6333"
-  QDRANT_COLLECTION: "semantic_layer"
+  QDRANT_COLLECTION: "semantic_models"
   QDRANT_SIZE: "1536"                        # ← was 384, now matches text-embedding-3-small
 
   # -- Embedding model (OpenAI API — no local model, no torch)

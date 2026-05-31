@@ -22,7 +22,7 @@ spec:
 
       containers:
         - name: nextjs
-          image: ghcr.io/cdjepeno/ecom-nextjs:latest  # ← was chat-ui:v1
+          image: nextjs:local  
 
           ports:
             - containerPort: 3000
@@ -30,7 +30,7 @@ spec:
 
           env:
             - name: NEXT_PUBLIC_API_URL
-              value: "http://fastapi:8000"
+              value: "http://chat.local:8000/api"
 
           # -- Resources: Next.js standalone is lightweight
           resources:

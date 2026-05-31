@@ -12,11 +12,12 @@ async def run_semantic_indexing():
 
     logger.info("🧠 Starting semantic indexing")
 
-    get_qdrant_service().create_collection()
+    qdrant = get_qdrant_service()
+    qdrant.create_collection()
 
     semantic_indexer = SemanticModelsIndexer(
-        embedder=get_embedding_service,
-        qdrant=qdrant_service,
+        embedder=get_embedding_service(),
+        qdrant=qdrant,
     )
 
     metric_indexer = MetricIndexer(

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { v4 as uuidv4 } from "uuid";
 
 export type ChatMessage = {
   id: string;
@@ -40,7 +41,7 @@ export function useChatHook() {
 
     // USER MESSAGE
     const userMessage: ChatMessage = {
-      id: crypto.randomUUID(),
+      id: uuidv4(),
       role: "user",
       content: question,
     };
@@ -52,7 +53,7 @@ export function useChatHook() {
 
     // ASSISTANT PLACEHOLDER
     const assistantId =
-      crypto.randomUUID();
+      uuidv4();
 
     const assistantMessage: ChatMessage = {
       id: assistantId,
@@ -69,7 +70,7 @@ export function useChatHook() {
 
     try {
 
-      const FASTAPI_URL = process.env.NEXT_PUBLIC_FASTAPI_URL ?? "http://localhost:8000";
+      const FASTAPI_URL = process.env.NEXT_PUBLIC_FASTAPI_URL ?? "http://api.ecom.local:8080";
 
       const response = await fetch(
         `${FASTAPI_URL}/ask`,
@@ -124,7 +125,7 @@ export function useChatHook() {
                 ...message,
                 steps: [
                   ...(message.steps ?? []),
-                  { id: crypto.randomUUID(), label },
+                  { id: uuidv4(), label },
                 ],
               }
             : message

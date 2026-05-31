@@ -1,5 +1,6 @@
 import asyncio
 from datetime import datetime
+from time import perf_counter
 
 from etl_ecom.db.engine import get_duckdb_connection
 from etl_ecom.warehouse.warehouse_initialized import warehouse_initialized
@@ -25,8 +26,6 @@ async def main():
 
         run_id = datetime.now().strftime("%Y%m%d_%H%M%S")
 
-        conn = get_duckdb_connection()
-
         initialize_infra()
 
         validate_schema_drift(conn)
@@ -37,15 +36,26 @@ async def main():
 
         async with httpx.AsyncClient(timeout=300) as client:
 
-            logger.info("🔨 Building dbt...")
+            start = perf_counter()
             response = await client.post(
                 "http://semantic-layer:8001/build-dbt"
             )
+            duration_dbt = perf_counter() - start
+
+            logger.info(
+                "dbt build completed in %.2f seconds",
+                duration_dbt,
+            )
             response.raise_for_status()
 
-            logger.info("📦 Indexing semantic models...")
+            duration_indexing = perf_counter() - start
             response = await client.post(
                 "http://semantic-layer:8001/index"
+            )
+            
+            logger.info(
+                "indexing completed in %.2f seconds",
+                duration_indexing,
             )
             response.raise_for_status()
 

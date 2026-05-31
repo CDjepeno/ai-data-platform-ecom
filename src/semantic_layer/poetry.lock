@@ -2369,14 +2369,14 @@ files = [
 
 [[package]]
 name = "qdrant-client"
-version = "1.18.0"
+version = "1.17.1"
 description = "Client library for the Qdrant vector search engine"
 optional = false
 python-versions = ">=3.10"
 groups = ["main"]
 files = [
-    {file = "qdrant_client-1.18.0-py3-none-any.whl", hash = "sha256:093aa8cf8a420ee3ad2a68b007e1378d7992b2600e0b53c193fc172674f659cd"},
-    {file = "qdrant_client-1.18.0.tar.gz", hash = "sha256:52e8ece1a7d40519801bf0b70713bfa0f6b7ae28c7275bbe0b0286fbed7f6db4"},
+    {file = "qdrant_client-1.17.1-py3-none-any.whl", hash = "sha256:6cda4064adfeaf211c751f3fbc00edbbdb499850918c7aff4855a9a759d56cbd"},
+    {file = "qdrant_client-1.17.1.tar.gz", hash = "sha256:22f990bbd63485ed97ba551a4c498181fcb723f71dcab5d6e4e43fe1050a2bc0"},
 ]
 
 [package.dependencies]
@@ -2392,8 +2392,8 @@ pydantic = ">=1.10.8,<2.0.dev0 || >2.2.0"
 urllib3 = ">=1.26.14,<3"
 
 [package.extras]
-fastembed = ["fastembed (>=0.8,<0.9)"]
-fastembed-gpu = ["fastembed-gpu (>=0.8,<0.9)"]
+fastembed = ["fastembed (>=0.7,<0.8)"]
+fastembed-gpu = ["fastembed-gpu (>=0.7,<0.8)"]
 
 [[package]]
 name = "rapidfuzz"
@@ -3727,4 +3727,4 @@ cffi = ["cffi (>=1.17,<2.0) ; platform_python_implementation != \"PyPy\" and pyt
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.11,<3.13"
-content-hash = "1210495fdafebec34af633eb1cf5d982b1cf20fbb7e504461d7b8d9a40ff366d"
+content-hash = "966a609e41a00f533d2b1ceb6108ec654ce43a1b35df288d6bd6a4b8776dd287"

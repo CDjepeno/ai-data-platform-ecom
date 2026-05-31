@@ -110,7 +110,7 @@ async def run_sse(app: Server, http_client: Any) -> None:
     """
     logger.info(
         "MCP transport=sse — listening on 0.0.0.0:%d",
-        settings.mcp_port,
+        settings.mcp_server_port,
     )
 
     sse = SseServerTransport("/messages/")
@@ -138,7 +138,7 @@ async def run_sse(app: Server, http_client: Any) -> None:
     config = uvicorn.Config(
         app=starlette_app,
         host="0.0.0.0",
-        port=settings.mcp_port,
+        port=settings.mcp_server_port,
         log_level=settings.log_level.lower(),
     )
     server = uvicorn.Server(config)

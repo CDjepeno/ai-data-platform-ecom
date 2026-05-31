@@ -17,6 +17,7 @@ resources:
   - ../../base/fastapi/
   - ../../base/nextjs/
   - ../../base/etl-pipeline/
+  - ../../base/mcp/
   - trino-configmap.yml
 
 images:
@@ -30,6 +31,9 @@ images:
     newName: ecom-nextjs
     newTag: local
   - name: ecom-etl
+    newTag: local
+  - name: ghcr.io/cdjepeno/ecom-mcp
+    newName: ecom-mcp
     newTag: local
 
 patches:
@@ -84,6 +88,24 @@ patches:
       kind: Deployment
       name: semantic-layer
 
+  - patch: |-
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata:
+        name: mcp
+      spec:
+        replicas: 1
+        template:
+          spec:
+            imagePullSecrets: []
+            containers:
+              - name: mcp
+                imagePullPolicy: Never
+    target:
+      kind: Deployment
+      name: mcp
+
+
   - path: ingress-patch.yml
     target:
       kind: Service
@@ -123,24 +145,15 @@ secretGenerator:
 - name: openai-secret
   envs:
   - env-local/.env.openai
-
+  
 - name: postgres-secret
   envs:
   - env-local/.env.postgres 
 
+- name: mcp-slack-secret
+  envs:
+    - env-local/.env.slack
 
 generatorOptions:
  disableNameSuffixHash: true
-
-
-
-
-
-
-
-
-
-
-
-
 
