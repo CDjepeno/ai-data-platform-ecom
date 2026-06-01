@@ -7,7 +7,6 @@ services:
     env_file:
       - .env
     ports:
-    # host:container -> 5433 (machine) vers 5432 (postgres container)
       - "5434:5432"
     volumes:
         - postgres_data_dev:/var/lib/postgresql/data
@@ -95,13 +94,18 @@ services:
 
     volumes:
       - qdrant_data:/qdrant/storage
+    networks:
+      - etl_ecom
 
   pipeline:
     build: 
-      context: ..etl_ecom
+      context: ../src/etl_ecom
+      dockerfile: Dockerfile
     depends_on:
       postgres:
-        condition: service_healthy   
+        condition: service_healthy
+      semantic_layer:
+        condition: service_healthy    
     env_file:
       - .env
     extra_hosts:
@@ -109,25 +113,136 @@ services:
     networks:
       - etl_ecom
     volumes:
-      - ../src:/app/src
+      - ../src/etl_ecom:/app
+      - ../src/semantic_layer:/app/semantic_layer
 
   api:
     build:
-      context: ./fast_api
+      context: ../src/fast_api
 
     ports:
       - "8000:8000"
+
+    working_dir: /app
 
     env_file:
       - .env
 
     volumes:
-      - ./api:/app
+    - ../src/fast_api:/app/fast_api
 
     depends_on:
-      - qdrant
-      - trino
+      - semantic_layer
 
+    networks:
+      - etl_ecom
+   
+    
+  semantic_layer:
+    build:
+      context: ../src/semantic_layer
+      args:
+        HF_TOKEN: ${HF_TOKEN}
+    working_dir: /app
+    ports:
+    - "8001:8001"
+    env_file:
+      - .env
+    volumes:
+      - ../src/semantic_layer:/app
+      - ../src/etl_ecom:/app/etl_ecom
+      - ../src/semantic_layer/.dbt:/app/.dbt
+
+    depends_on:
+      - trino
+      - qdrant
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8001/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s 
+
+    networks:
+      - etl_ecom
+
+  # frontend:
+  #   build:
+  #     context: ../src/next_js
+
+  #   container_name: next_frontend
+
+  #   ports:
+  #     - "3000:3000"
+
+  #   volumes:
+  #     - ../src/next_js:/app
+  #     - /app/node_modules
+
+  #   depends_on:
+  #     - api
+
+  #   networks:
+  #     - etl_ecom
+
+   # ==============================
+  # MONITORING
+  # ==============================
+
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.enable-lifecycle'
+    depends_on:
+      - api
+      - semantic_layer
+    networks:
+      - etl_ecom
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    ports:
+      - "3001:3000"
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_USERS_ALLOW_SIGN_UP=false
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./monitoring/grafana/provisioning:/etc/grafana/provisioning
+    depends_on:
+      - prometheus
+    networks:
+      - etl_ecom
+
+  valkey:
+    image: valkey/valkey:8-alpine
+    ports:
+      - "6379:6379"
+    networks:
+      - etl_ecom
+    volumes:
+      - valkey_data:/data
+    command: valkey-server --save 60 1 --loglevel warning
+  
+  mcp:
+    build:
+      context: ../src/mcp          
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    env_file:
+      - .env
+    depends_on:
+      - api
     networks:
       - etl_ecom
 
@@ -136,6 +251,10 @@ volumes:
   postgres_data_dev:
   qdrant_data:
   nessie_data:
+  prometheus_data:
+  grafana_data:
+  valkey_data:
 
 networks:
   etl_ecom:
+    driver: bridge

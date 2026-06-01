@@ -2,53 +2,88 @@
 name = "etl-ecom"
 version = "0.1.0"
 description = "ETL and lakehouse pipeline for ecommerce analytics"
+
 authors = [
     { name = "CDjepeno", email = "djepenodev@gmail.com" }
 ]
+
 requires-python = ">=3.11,<3.13"
-
-dependencies = [
-    # ENV
-    "python-dotenv>=1.2.2,<2.0.0",
-
-    # DATABASE
-    "psycopg2-binary>=2.9.12,<3.0.0",
-    "sqlalchemy>=2.0.49,<3.0.0",
-
-    # DATA PROCESSING
-    "pandas>=3.0.2,<4.0.0",
-    "pyarrow>=24.0.0,<25.0.0",
-    "duckdb>=1.5.2,<2.0.0",
-
-    # AWS / S3 / STORAGE
-    "boto3==1.40.18",
-    "s3fs==2025.3.2",
-
-    # ICEBERG / LAKEHOUSE
-    "pyiceberg>=0.11.1,<0.12.0",
-
-    # QUERY ENGINE
-    "trino>=0.337.0,<0.338.0",
-
-    # CONFIG
-    "pyyaml>=6.0.3,<7.0.0",
-
-    # DBT STACK (PINNED)
-    "dbt-core==1.10.11",
-    "dbt-trino==1.10.0",
-    "dbt-semantic-interfaces==0.9.0"
-]
 
 [tool.poetry]
 package-mode = false
 
+[tool.poetry.dependencies]
+python = ">=3.11,<3.13"
+
+# ─────────────────────────────────────
+# ENV
+# ─────────────────────────────────────
+
+python-dotenv = ">=1.2.2,<2.0.0"
+
+# ─────────────────────────────────────
+# DATABASE
+# ─────────────────────────────────────
+
+psycopg2-binary = ">=2.9.12,<3.0.0"
+sqlalchemy = ">=2.0.49,<3.0.0"
+
+# ─────────────────────────────────────
+# DATA PROCESSING
+# ─────────────────────────────────────
+
+pandas = ">=2.2.0,<3.0.0"
+
+pyarrow = ">=14.0.0,<15.0.0"
+
+duckdb = ">=1.5.2,<2.0.0"
+
+# ─────────────────────────────────────
+# AWS / S3 / STORAGE
+# ─────────────────────────────────────
+
+boto3 = "==1.40.18"
+
+s3fs = "2023.12.2"
+
+# ─────────────────────────────────────
+# ICEBERG / LAKEHOUSE
+# ─────────────────────────────────────
+
+pyiceberg = "^0.7.0"
+
+# ─────────────────────────────────────
+# QUERY ENGINE
+# ─────────────────────────────────────
+
+trino = ">=0.337.0,<0.338.0"
+
+# ─────────────────────────────────────
+# CONFIG
+# ─────────────────────────────────────
+
+pyyaml = ">=6.0.3,<7.0.0"
+
+httpx = ">=0.28.1,<0.29.0"
+
+# ─────────────────────────────────────
+# DEV
+# ─────────────────────────────────────
+
+[tool.poetry.group.dev.dependencies]
+
+ruff = ">=0.15.12,<0.16.0"
+
+sqlfluff = ">=4.1.0,<5.0.0"
+
+# sqlfluff-templater-dbt removed
+# because dbt moved to semantic_layer
+
+# ─────────────────────────────────────
+# BUILD
+# ─────────────────────────────────────
+
 [build-system]
 requires = ["poetry-core>=2.0.0,<3.0.0"]
-build-backend = "poetry.core.masonry.api"
 
-[dependency-groups]
-dev = [
-    "sqlfluff>=4.1.0,<5.0.0",
-    "sqlfluff-templater-dbt>=4.1.0,<5.0.0",
-    "ruff>=0.15.12,<0.16.0"
-]
+build-backend = "poetry.core.masonry.api"

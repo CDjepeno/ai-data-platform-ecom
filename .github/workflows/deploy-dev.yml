@@ -1,0 +1,83 @@
+name: Deploy to dev
+
+on:
+  push:
+    branches: [dev]
+
+jobs:
+  deploy:
+    name: Deploy to Kubernetes dev
+    runs-on: ubuntu-latest
+    environment: dev
+
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push all images
+        run: |
+          # Semantic layer
+          docker build \
+            --build-arg HF_TOKEN=${{ secrets.HF_TOKEN }} \
+            -t ghcr.io/cdjepeno/ecom-semantic-layer:${{ github.sha }} \
+            -t ghcr.io/cdjepeno/ecom-semantic-layer:dev \
+            ./src/semantic_layer
+          docker push ghcr.io/cdjepeno/ecom-semantic-layer:${{ github.sha }}
+          docker push ghcr.io/cdjepeno/ecom-semantic-layer:dev
+
+          # FastAPI
+          docker build \
+            -t ghcr.io/cdjepeno/ecom-fastapi:${{ github.sha }} \
+            -t ghcr.io/cdjepeno/ecom-fastapi:dev \
+            ./src/fast_api
+          docker push ghcr.io/cdjepeno/ecom-fastapi:${{ github.sha }}
+          docker push ghcr.io/cdjepeno/ecom-fastapi:dev
+
+          # Pipeline
+          docker build \
+            -t ghcr.io/cdjepeno/ecom-pipeline:${{ github.sha }} \
+            -t ghcr.io/cdjepeno/ecom-pipeline:dev \
+            ./src/etl_ecom
+          docker push ghcr.io/cdjepeno/ecom-pipeline:${{ github.sha }}
+          docker push ghcr.io/cdjepeno/ecom-pipeline:dev
+
+      - name: Set up kubectl
+        uses: azure/setup-kubectl@v3
+        with:
+          version: "v1.31.0"
+
+      - name: Configure kubeconfig
+        run: |
+          mkdir -p ~/.kube
+          echo "${{ secrets.KUBECONFIG_DEV }}" | base64 -d > ~/.kube/config
+          chmod 600 ~/.kube/config
+
+      - name: Verify cluster connection
+        run: kubectl get nodes
+
+      - name: Update image tags in overlays
+        run: |
+          # Update semantic-layer image tag
+          sed -i "s|ghcr.io/cdjepeno/ecom-semantic-layer:.*|ghcr.io/cdjepeno/ecom-semantic-layer:${{ github.sha }}|g" \
+            infrastructure/kubernetes/overlays/dev/kustomization.yml
+
+      - name: Deploy to Kubernetes dev
+        run: |
+          kubectl apply -k infrastructure/kubernetes/overlays/dev/
+
+      - name: Verify deployment
+        run: |
+          kubectl rollout status deployment/fastapi -n ecom-dev --timeout=120s || true
+          kubectl rollout status statefulset/nessie -n ecom-dev --timeout=120s || true
+          kubectl get pods -n ecom-dev
