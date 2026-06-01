@@ -25,8 +25,12 @@ jobs:
 
       - name: Run linter
         run: |
-          ruff check src/semantic_layer/ --exit-zero
-          ruff check src/fast_api/ --exit-zero
+          # Removed --exit-zero — lint failures must actually fail the pipeline
+          # All Python services are checked, not just two
+          ruff check src/semantic_layer/
+          ruff check src/fast_api/
+          ruff check src/etl_ecom/
+          ruff check src/mcp/
 
       - name: Notify Slack on failure
         if: failure()
@@ -44,11 +48,11 @@ jobs:
   build-images:
     name: Build Docker images
     runs-on: ubuntu-latest
-    needs: lint-and-test
+    needs: lint-and-test  # images are never built if lint fails
 
     permissions:
-      contents: read
-      packages: write
+      contents: read        # read code only — no write access needed
+      packages: write       # push images to GHCR
 
     steps:
       - name: Checkout code
@@ -118,13 +122,39 @@ jobs:
             ghcr.io/cdjepeno/ecom-mcp:${{ github.sha }}
             ghcr.io/cdjepeno/ecom-mcp:latest
 
+      - name: Build and push nextjs image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./src/next_js
+          push: true
+          provenance: false
+          cache-from: type=registry,ref=ghcr.io/cdjepeno/ecom-nextjs:buildcache
+          cache-to: type=registry,ref=ghcr.io/cdjepeno/ecom-nextjs:buildcache,mode=max
+          tags: |
+            ghcr.io/cdjepeno/ecom-nextjs:${{ github.sha }}
+            ghcr.io/cdjepeno/ecom-nextjs:latest
+
       - name: Notify Slack on success
         if: success()
         uses: slackapi/slack-github-action@v1.26.0
         with:
           payload: |
             {
-              "text": "✅ Images built on *${{ github.repository }}* branch `${{ github.ref_name }}`"
+              "text": "✅ Images built on *${{ github.repository }}* branch `${{ github.ref_name }}`",
+              "blocks": [{"type": "section","text": {"type": "mrkdwn","text": "✅ *5 images built and pushed* on `${{ github.ref_name }}`\n*Author:* ${{ github.actor }}\n*SHA:* `${{ github.sha }}`\n*<${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|View logs>*"}}]
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
+
+      - name: Notify Slack on failure
+        if: failure()
+        uses: slackapi/slack-github-action@v1.26.0
+        with:
+          payload: |
+            {
+              "text": "❌ Image build failed on *${{ github.repository }}* branch `${{ github.ref_name }}`",
+              "blocks": [{"type": "section","text": {"type": "mrkdwn","text": "❌ *Build failed* on `${{ github.ref_name }}`\n*Author:* ${{ github.actor }}\n*<${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|View logs>*"}}]
             }
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
