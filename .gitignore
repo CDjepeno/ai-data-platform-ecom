@@ -54,3 +54,9 @@ prometheus/*.log
 grafana/data/
 grafana/logs/
 grafana/plugins/
+
+#tfplan
+*.tfstate
+*.tfstate.backup
+.terraform/
+bin/act
