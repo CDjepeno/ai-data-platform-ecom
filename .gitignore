@@ -1,11 +1,4 @@
-.env
-target/
-dbt_packages/
-logs/
-.env
-.env.*
-.duckdb
-env-local/
+# Environment
 .env
 .env.*
 *.env
@@ -13,39 +6,15 @@ env-local/
 **/env-preprod/
 **/env-prod/
 **/env-*/
-# =========================
-# PYTHON
-# =========================
 
+# Python
 __pycache__/
 *.py[cod]
-*.so
-
-# Virtual env
 .venv/
 venv/
-
-# Pytest
 .pytest_cache/
-
-# Ruff
 .ruff_cache/
-
-# Mypy
 .mypy_cache/
-
-# Coverage
-.coverage
-htmlcov/
-
-# Jupyter
-.ipynb_checkpoints/
-
-# MacOS
-.DS_Store
-
-# VSCode
-.vscode/
 
 # Logs
 *.log
@@ -54,60 +23,25 @@ htmlcov/
 *.duckdb
 *.wal
 
-# Env
-.env
-
-mcp-server.json
-
-infrastructure/kubernetes/overlays/local/charts/charts/
-infrastructure/kubernetes/overlays/local/charts/kube-prometheus-stack-65.1.1/
-infrastructure/kubernetes/overlays/local/charts/
-
-mcp-server.json
-
-# Python
-__pycache__/
-*.pyc
-*.pyo
-*.pyd
-
-# Poetry
-.venv/
-
-# Environment
-.env
-.env.local
-
-# Logs
-*.log
-
-# DBT
+# dbt
 target/
 dbt_packages/
 logs/
 
-# DuckDB
-*.duckdb
-
 # Node
 node_modules/
-
-# Next.js
 .next/
 out/
-
-# Mac/Linux
-.DS_Store
 
 # IDE
 .vscode/
 .idea/
 
-# Docker
-*.pid
+# Terraform
+**/.terraform/
+*.tfstate
+*.tfstate.*
+.terraform.lock.hcl
 
-target/
-dbt_packages/
-logs/
-.env
-.duckdb
+# OS
+.DS_Store
