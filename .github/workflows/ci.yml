@@ -25,8 +25,6 @@ jobs:
 
       - name: Run linter
         run: |
-          # Removed --exit-zero — lint failures must actually fail the pipeline
-          # All Python services are checked, not just two
           ruff check src/semantic_layer/
           ruff check src/fast_api/
           ruff check src/etl_ecom/
@@ -48,20 +46,34 @@ jobs:
   build-images:
     name: Build Docker images
     runs-on: ubuntu-latest
-    needs: lint-and-test  # images are never built if lint fails
+    needs: lint-and-test
+
+    outputs:
+      image-tag: ${{ steps.set-tag.outputs.image-tag }}
+      ci-run-id: ${{ github.run_id }}
 
     permissions:
-      contents: read        # read code only — no write access needed
-      packages: write       # push images to GHCR
+      contents: read
+      packages: write
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Set image tag
+        id: set-tag
+        run: |
+          if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+            TAG="pr-${{ github.event.pull_request.number }}-${{ github.sha }}"
+          else
+            TAG="${{ github.sha }}"
+          fi
+          echo "image-tag=$TAG" >> $GITHUB_OUTPUT
+          echo "Using tag: $TAG"
+
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
         with:
-          # buildkit driver required for registry cache support
           driver: docker-container
 
       - name: Log in to GitHub Container Registry
@@ -69,7 +81,19 @@ jobs:
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
-          password: ${{ secrets.GHCR_PAT }} 
+          password: ${{ secrets.GHCR_PAT }}
+      
+      - name: Build and push nextjs image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./src/next_js
+          push: true
+          provenance: false
+          cache-from: type=registry,ref=ghcr.io/cdjepeno/ecom-nextjs:buildcache
+          cache-to: type=registry,ref=ghcr.io/cdjepeno/ecom-nextjs:buildcache,mode=max
+          tags: |
+            ghcr.io/cdjepeno/ecom-nextjs:${{ steps.set-tag.outputs.image-tag }}
+            ghcr.io/cdjepeno/ecom-nextjs:latest
 
       - name: Build and push semantic-layer image
         uses: docker/build-push-action@v5
@@ -77,13 +101,10 @@ jobs:
           context: ./src/semantic_layer
           push: true
           provenance: false
-          # Registry cache — torch and poetry layers cached between CI runs
-          # First run: slow (downloads torch + all deps)
-          # Subsequent runs: fast (reuses cached layers)
           cache-from: type=registry,ref=ghcr.io/cdjepeno/ecom-semantic-layer:buildcache
           cache-to: type=registry,ref=ghcr.io/cdjepeno/ecom-semantic-layer:buildcache,mode=max
           tags: |
-            ghcr.io/cdjepeno/ecom-semantic-layer:${{ github.sha }}
+            ghcr.io/cdjepeno/ecom-semantic-layer:${{ steps.set-tag.outputs.image-tag }}
             ghcr.io/cdjepeno/ecom-semantic-layer:latest
 
       - name: Build and push fastapi image
@@ -95,7 +116,7 @@ jobs:
           cache-from: type=registry,ref=ghcr.io/cdjepeno/ecom-fastapi:buildcache
           cache-to: type=registry,ref=ghcr.io/cdjepeno/ecom-fastapi:buildcache,mode=max
           tags: |
-            ghcr.io/cdjepeno/ecom-fastapi:${{ github.sha }}
+            ghcr.io/cdjepeno/ecom-fastapi:${{ steps.set-tag.outputs.image-tag }}
             ghcr.io/cdjepeno/ecom-fastapi:latest
 
       - name: Build and push pipeline image
@@ -107,7 +128,7 @@ jobs:
           cache-from: type=registry,ref=ghcr.io/cdjepeno/ecom-pipeline:buildcache
           cache-to: type=registry,ref=ghcr.io/cdjepeno/ecom-pipeline:buildcache,mode=max
           tags: |
-            ghcr.io/cdjepeno/ecom-pipeline:${{ github.sha }}
+            ghcr.io/cdjepeno/ecom-pipeline:${{ steps.set-tag.outputs.image-tag }}
             ghcr.io/cdjepeno/ecom-pipeline:latest
 
       - name: Build and push mcp image
@@ -119,36 +140,37 @@ jobs:
           cache-from: type=registry,ref=ghcr.io/cdjepeno/ecom-mcp:buildcache
           cache-to: type=registry,ref=ghcr.io/cdjepeno/ecom-mcp:buildcache,mode=max
           tags: |
-            ghcr.io/cdjepeno/ecom-mcp:${{ github.sha }}
+            ghcr.io/cdjepeno/ecom-mcp:${{ steps.set-tag.outputs.image-tag }}
             ghcr.io/cdjepeno/ecom-mcp:latest
 
-      - name: Build and push nextjs image
-        uses: docker/build-push-action@v5
+      - name: Save image metadata as artifact
+        uses: actions/upload-artifact@v4
         with:
-          context: ./src/next_js
-          push: true
-          provenance: false
-          cache-from: type=registry,ref=ghcr.io/cdjepeno/ecom-nextjs:buildcache
-          cache-to: type=registry,ref=ghcr.io/cdjepeno/ecom-nextjs:buildcache,mode=max
-          tags: |
-            ghcr.io/cdjepeno/ecom-nextjs:${{ github.sha }}
-            ghcr.io/cdjepeno/ecom-nextjs:latest
+          name: ci-metadata-${{ github.run_id }}
+          path: |
+            ${{ github.workspace }}/image-tag.txt
+          retention-days: 1
+      
+      - name: Create image tag file
+        run: |
+          echo "${{ steps.set-tag.outputs.image-tag }}" > ${{ github.workspace }}/image-tag.txt
+          echo "${{ github.run_id }}" > ${{ github.workspace }}/ci-run-id.txt
 
       - name: Notify Slack on success
-        if: success()
+        if: success() && github.ref == 'refs/heads/pre-prod'
         uses: slackapi/slack-github-action@v1.26.0
         with:
           payload: |
             {
               "text": "✅ Images built on *${{ github.repository }}* branch `${{ github.ref_name }}`",
-              "blocks": [{"type": "section","text": {"type": "mrkdwn","text": "✅ *5 images built and pushed* on `${{ github.ref_name }}`\n*Author:* ${{ github.actor }}\n*SHA:* `${{ github.sha }}`\n*<${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|View logs>*"}}]
+              "blocks": [{"type": "section","text": {"type": "mrkdwn","text": "✅ *5 images built and pushed* on `${{ github.ref_name }}`\n*Author:* ${{ github.actor }}\n*Tag:* `${{ steps.set-tag.outputs.image-tag }}`\n*SHA:* `${{ github.sha }}`\n*<${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|View logs>*"}}]
             }
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
           SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
 
       - name: Notify Slack on failure
-        if: failure()
+        if: failure() && github.ref == 'refs/heads/pre-prod'
         uses: slackapi/slack-github-action@v1.26.0
         with:
           payload: |
@@ -165,8 +187,8 @@ jobs:
           echo "## Images built 🐳" >> $GITHUB_STEP_SUMMARY
           echo "| Image | Tag |" >> $GITHUB_STEP_SUMMARY
           echo "|---|---|" >> $GITHUB_STEP_SUMMARY
-          echo "| semantic-layer | \`${{ github.sha }}\` |" >> $GITHUB_STEP_SUMMARY
-          echo "| fastapi | \`${{ github.sha }}\` |" >> $GITHUB_STEP_SUMMARY
-          echo "| pipeline | \`${{ github.sha }}\` |" >> $GITHUB_STEP_SUMMARY
-          echo "| mcp | \`${{ github.sha }}\` |" >> $GITHUB_STEP_SUMMARY
-          echo "| nextjs | \`${{ github.sha }}\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| semantic-layer | \`${{ steps.set-tag.outputs.image-tag }}\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| fastapi | \`${{ steps.set-tag.outputs.image-tag }}\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| pipeline | \`${{ steps.set-tag.outputs.image-tag }}\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| mcp | \`${{ steps.set-tag.outputs.image-tag }}\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| nextjs | \`${{ steps.set-tag.outputs.image-tag }}\` |" >> $GITHUB_STEP_SUMMARY

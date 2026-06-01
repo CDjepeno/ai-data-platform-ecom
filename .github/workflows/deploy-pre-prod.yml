@@ -2,7 +2,7 @@ name: Deploy to pre-prod
 
 on:
   workflow_run:
-    workflows: ["CI"]        # exact name from ci.yml line 1: "name: CI"
+    workflows: ["CI"]
     branches: [pre-prod]
     types: [completed]
   workflow_dispatch:
@@ -13,13 +13,39 @@ jobs:
     runs-on: ubuntu-latest
     environment: pre-prod
 
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      github.event.workflow_run.conclusion == 'success'
+
     permissions:
-      contents: read    # read code only — write was too broad, deploy never pushes commits
-      packages: read    # pull images from GHCR — write not needed here, ci.yml handles pushing
+      contents: read
+      packages: read
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+
+      - name: Download CI metadata
+        uses: actions/download-artifact@v4
+        with:
+          pattern: ci-metadata-*
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          run-id: ${{ github.event.workflow_run.id }}
+          merge-multiple: true
+
+      - name: Read image tag
+        id: read-tag
+        run: |
+          if [[ -f "image-tag.txt" ]]; then
+            IMAGE_TAG=$(cat image-tag.txt)
+            echo "image-tag=$IMAGE_TAG" >> $GITHUB_OUTPUT
+            echo "Using image tag from CI: $IMAGE_TAG"
+          else
+            # Fallback to workflow_run head_sha if artifact not found
+            IMAGE_TAG="${{ github.event.workflow_run.head_sha }}"
+            echo "image-tag=$IMAGE_TAG" >> $GITHUB_OUTPUT
+            echo "⚠️  Artifact not found, using workflow_run.head_sha: $IMAGE_TAG"
+          fi
 
       - name: Log in to GitHub Container Registry
         uses: docker/login-action@v3
@@ -28,13 +54,51 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      # Images are already built and pushed by ci.yml with the same SHA
-      # No rebuild here — single source of truth for artifacts
+      - name: Verify images exist in GHCR
+        run: |
+          TAG="${{ steps.read-tag.outputs.image-tag }}"
+          echo "🔍 Verifying images with tag: $TAG"
+          
+          MISSING_IMAGES=""
+          
+          for image in \
+            "ghcr.io/cdjepeno/ecom-semantic-layer:${TAG}" \
+            "ghcr.io/cdjepeno/ecom-fastapi:${TAG}" \
+            "ghcr.io/cdjepeno/ecom-pipeline:${TAG}" \
+            "ghcr.io/cdjepeno/ecom-mcp:${TAG}" \
+            # "ghcr.io/cdjepeno/ecom-nextjs:${TAG}"; do
+            
+            echo -n "Checking $image ... "
+            
+            if docker manifest inspect ${image} > /dev/null 2>&1; then
+              echo "✅ FOUND"
+            else
+              echo "❌ MISSING"
+              MISSING_IMAGES="${MISSING_IMAGES}\n  - ${image}"
+            fi
+          done
+          
+          if [[ -n "$MISSING_IMAGES" ]]; then
+            echo "❌ Images not found:${MISSING_IMAGES}"
+            echo ""
+            echo "💡 Possible causes:"
+            echo "   1. CI workflow hasn't completed successfully on branch pre-prod"
+            echo "   2. CI workflow used a different tag format"
+            echo "   3. Images were not pushed to GHCR"
+            echo ""
+            echo "🔧 To fix:"
+            echo "   - Check CI workflow run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.event.workflow_run.id }}"
+            echo "   - Or trigger a new CI run on pre-prod branch"
+            exit 1
+          fi
+          
+          echo ""
+          echo "✅ All 5 images verified successfully!"
 
       - name: Set up kubectl
         uses: azure/setup-kubectl@v3
         with:
-          version: "v1.32.0"   # matches cluster version — skew > 1 minor version is unsupported
+          version: "v1.32.0"
 
       - name: Configure kubeconfig
         run: |
@@ -49,17 +113,12 @@ jobs:
 
       - name: Create namespace if not exists
         run: |
-          # --dry-run=client -o yaml | kubectl apply -f - is idempotent
-          # Safe to run on every deploy — no error if namespace already exists
           kubectl create namespace ecom-pre-prod \
             --dry-run=client -o yaml | kubectl apply -f -
 
       - name: Provision Kubernetes secrets
         run: |
-          # All secrets use --dry-run=client | kubectl apply pattern
-          # This is idempotent — updates existing secrets, creates missing ones
-
-          # GHCR pull secret — name must match imagePullSecrets in kustomization
+          # GHCR pull secret
           kubectl create secret docker-registry ghcr-secret \
             --namespace ecom-pre-prod \
             --docker-server=ghcr.io \
@@ -74,7 +133,7 @@ jobs:
             --from-literal=OPENAI_API_KEY="${{ secrets.OPENAI_API_KEY }}" \
             --dry-run=client -o yaml | kubectl apply -f -
 
-          # Postgres — OVH Managed PostgreSQL
+          # Postgres
           kubectl create secret generic postgres-secret \
             --namespace ecom-pre-prod \
             --from-literal=POSTGRES_HOST="${{ secrets.POSTGRES_HOST }}" \
@@ -82,21 +141,21 @@ jobs:
             --from-literal=POSTGRES_URL="${{ secrets.POSTGRES_URL_PRE_PROD }}" \
             --dry-run=client -o yaml | kubectl apply -f -
 
-          # ETL — OVH Object Storage credentials
+          # ETL
           kubectl create secret generic etl-secret \
             --namespace ecom-pre-prod \
             --from-literal=AWS_ACCESS_KEY_ID="${{ secrets.AWS_ACCESS_KEY_ID }}" \
             --from-literal=AWS_SECRET_ACCESS_KEY="${{ secrets.AWS_SECRET_ACCESS_KEY }}" \
             --dry-run=client -o yaml | kubectl apply -f -
 
-          # MCP Slack gateway
+          # MCP Slack
           kubectl create secret generic mcp-slack-secret \
             --namespace ecom-pre-prod \
             --from-literal=SLACK_BOT_TOKEN="${{ secrets.SLACK_BOT_TOKEN }}" \
             --from-literal=SLACK_APP_TOKEN="${{ secrets.SLACK_APP_TOKEN }}" \
             --dry-run=client -o yaml | kubectl apply -f -
 
-          # MinIO/S3 — OVH Object Storage warehouse
+          # MinIO/S3
           kubectl create secret generic minio-secret \
             --namespace ecom-pre-prod \
             --from-literal=AWS_ACCESS_KEY_ID="${{ secrets.AWS_ACCESS_KEY_ID }}" \
@@ -104,7 +163,7 @@ jobs:
             --from-literal=WAREHOUSE_ENDPOINT="${{ secrets.WAREHOUSE_ENDPOINT }}" \
             --dry-run=client -o yaml | kubectl apply -f -
 
-          # DeepSeek LLM
+          # DeepSeek
           kubectl create secret generic deepseek-secret \
             --namespace ecom-pre-prod \
             --from-literal=DEEP_SEEK_API="${{ secrets.DEEP_SEEK_API }}" \
@@ -112,53 +171,43 @@ jobs:
             --from-literal=MODEL_DEEP_SEEK="${{ secrets.MODEL_DEEP_SEEK }}" \
             --dry-run=client -o yaml | kubectl apply -f -
 
-          # HuggingFace — embedding models
+          # HuggingFace
           kubectl create secret generic hf-secret \
             --namespace ecom-pre-prod \
             --from-literal=token="${{ secrets.HF_TOKEN }}" \
             --dry-run=client -o yaml | kubectl apply -f -
-      
-      - name: Verify images exist in GHCR
-        run: |
-          SHA=${{ github.sha }}
-          
-          # Fail fast if any image is missing — prevents deploying ghost SHA
-          for image in \
-            ghcr.io/cdjepeno/ecom-semantic-layer:${SHA} \
-            ghcr.io/cdjepeno/ecom-fastapi:${SHA} \
-            ghcr.io/cdjepeno/ecom-pipeline:${SHA} \
-            ghcr.io/cdjepeno/ecom-mcp:${SHA} \
-            ghcr.io/cdjepeno/ecom-nextjs:${SHA}; do
-            
-            docker manifest inspect ${image} > /dev/null 2>&1 || {
-              echo "❌ Image not found: ${image}"
-              exit 1
-            }
-            echo "✅ Found: ${image}"
-          done
 
       - name: Update tags and deploy
         run: |
-          SHA=${{ github.sha }}
-          OVERLAY=infrastructure/kubernetes/overlays/pre-prod
-
+          TAG="${{ steps.read-tag.outputs.image-tag }}"
+          OVERLAY="infrastructure/kubernetes/overlays/pre-prod"
+          
+          echo "📦 Deploying with image tag: $TAG"
+          
           cd $GITHUB_WORKSPACE/${OVERLAY}
-
+          
+          # Show current images before update
+          echo "Current images in kustomization:"
+          grep -A5 "images:" kustomization.yml || echo "No images section found"
+          
+          # Update images
           kustomize edit set image \
-            ghcr.io/cdjepeno/ecom-fastapi=ghcr.io/cdjepeno/ecom-fastapi:${SHA} \
-            ghcr.io/cdjepeno/ecom-semantic-layer=ghcr.io/cdjepeno/ecom-semantic-layer:${SHA} \
-            ghcr.io/cdjepeno/ecom-nextjs=ghcr.io/cdjepeno/ecom-nextjs:${SHA} \
-            ghcr.io/cdjepeno/ecom-mcp=ghcr.io/cdjepeno/ecom-mcp:${SHA} \
-            ghcr.io/cdjepeno/ecom-pipeline=ghcr.io/cdjepeno/ecom-pipeline:${SHA}
-            # ↑ was ecom-pipeline in CI but ecom-etl in kustomization — now aligned
-
-          # Verify mutation actually happened before applying
-          echo "--- image tags after mutation ---"
-          grep -A2 "images:" kustomization.yml
-
+            ghcr.io/cdjepeno/ecom-fastapi=ghcr.io/cdjepeno/ecom-fastapi:${TAG} \
+            ghcr.io/cdjepeno/ecom-semantic-layer=ghcr.io/cdjepeno/ecom-semantic-layer:${TAG} \
+            ghcr.io/cdjepeno/ecom-nextjs=ghcr.io/cdjepeno/ecom-nextjs:${TAG} \
+            ghcr.io/cdjepeno/ecom-mcp=ghcr.io/cdjepeno/ecom-mcp:${TAG} \
+            ghcr.io/cdjepeno/ecom-pipeline=ghcr.io/cdjepeno/ecom-pipeline:${TAG}
+          
+          # Verify mutation
+          echo ""
+          echo "Updated images in kustomization:"
+          grep -A5 "images:" kustomization.yml
+          
+          # Apply
           cd $GITHUB_WORKSPACE
           kubectl apply -k ${OVERLAY}
-
+          
+          # Wait for rollout
           kubectl rollout status deployment \
             --namespace ecom-pre-prod \
             --timeout=300s
@@ -170,7 +219,7 @@ jobs:
           payload: |
             {
               "text": "✅ Deployed to pre-prod",
-              "blocks": [{"type": "section","text": {"type": "mrkdwn","text": "✅ *Deployed to pre-prod* on `${{ github.ref_name }}`\n*Author:* ${{ github.actor }}\n*SHA:* `${{ github.sha }}`\n*<${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|View logs>*"}}]
+              "blocks": [{"type": "section","text": {"type": "mrkdwn","text": "✅ *Deployed to pre-prod* on `${{ github.ref_name }}`\n*Tag:* `${{ steps.read-tag.outputs.image-tag }}`\n*Author:* ${{ github.actor }}\n*<${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|View logs>*"}}]
             }
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
@@ -183,7 +232,7 @@ jobs:
           payload: |
             {
               "text": "❌ Deploy to pre-prod failed",
-              "blocks": [{"type": "section","text": {"type": "mrkdwn","text": "❌ *Deploy failed* on `${{ github.ref_name }}`\n*Author:* ${{ github.actor }}\n*SHA:* `${{ github.sha }}`\n*<${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|View logs>*"}}]
+              "blocks": [{"type": "section","text": {"type": "mrkdwn","text": "❌ *Deploy failed* on `${{ github.ref_name }}`\n*Tag:* `${{ steps.read-tag.outputs.image-tag }}`\n*Author:* ${{ github.actor }}\n*<${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|View logs>*"}}]
             }
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
@@ -193,7 +242,6 @@ jobs:
         if: always()
         run: |
           kubectl get pods -n ecom-pre-prod
-      
 
       - name: Show events
         if: failure()
