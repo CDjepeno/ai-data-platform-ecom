@@ -45,3 +45,12 @@ out/
 
 # OS
 .DS_Store
+
+# Prometheus
+prometheus/data/
+prometheus/*.log
+
+# Grafana
+grafana/data/
+grafana/logs/
+grafana/plugins/

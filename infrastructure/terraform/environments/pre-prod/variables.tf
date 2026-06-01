@@ -17,3 +17,13 @@ variable "allowed_ip_ranges" {
   type        = list(string)
   default     = []
 }
+
+variable "kubernetes_version" {
+  type        = string
+  description = "OVH Kubernetes version"
+  default     = "1.30"
+}
+
+variable "vlan_id" {
+  type = number
+}

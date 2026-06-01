@@ -32,10 +32,10 @@ module "kubernetes" {
   cluster_name       = var.project_name
   environment        = "pre-prod"
   region             = "GRA9"
-  kubernetes_version = "1.31"
+  kubernetes_version = var.kubernetes_version
   node_flavor        = "b3-8"
-  node_count         = 2        # more than dev, mirrors prod resilience
-  vlan_id            = 201
+  node_count         = 3 # more than dev, mirrors prod resilience
+  vlan_id            = var.vlan_id
 
   tags = {
     project = var.project_name
@@ -50,7 +50,7 @@ module "warehouse_storage" {
   bucket_name        = "${var.project_name}-warehouse"
   environment        = "pre-prod"
   region             = "GRA"
-  versioning_enabled = true     # enabled — mirrors prod behavior
+  versioning_enabled = true # enabled — mirrors prod behavior
 }
 
 module "postgres" {
@@ -59,8 +59,8 @@ module "postgres" {
   service_name      = var.service_name
   environment       = "pre-prod"
   region            = "GRA"
-  plan              = "essential"    # same plan as prod — catch plan-specific bugs
-  flavor            = "db1-4"       # larger than dev
+  plan              = "essential" # same plan as prod — catch plan-specific bugs
+  flavor            = "db1-4"     # larger than dev
   postgres_version  = "15"
   allowed_ip_ranges = var.allowed_ip_ranges
 }
