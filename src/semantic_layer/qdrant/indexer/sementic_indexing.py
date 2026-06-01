@@ -1,7 +1,6 @@
 from lang_graph.factory.factory_service import get_embedding_service
 from qdrant.indexer.metric_indexer import MetricIndexer
 from qdrant.indexer.semantic_model_indexer import SemanticModelsIndexer
-from lang_graph.services import qdrant_service
 from lang_graph.factory.factory_service import get_qdrant_service
 from utils.logger import get_logger
 

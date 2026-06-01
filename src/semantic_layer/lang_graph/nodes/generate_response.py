@@ -1,5 +1,3 @@
-from collections.abc import AsyncIterator
-from typing import Any
 
 from dotenv import load_dotenv
 

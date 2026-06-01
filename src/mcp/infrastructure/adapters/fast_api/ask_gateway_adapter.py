@@ -3,12 +3,11 @@ from __future__ import annotations
 
 from collections.abc import AsyncIterator
 
+from domain.ports.ask_gateway_port import AskGatewayPort
 from domain.services import parse_sse_line
 from domain.tools.sse import SseLine
-from domain.ports.ask_gateway_port import AskGatewayPort
 from infrastructure.adapters.fast_api.http_stream_reader import HttpStreamReader
 from utils import get_logger
-
 
 logger = get_logger(__name__)
 

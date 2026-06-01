@@ -4,11 +4,10 @@ from collections.abc import AsyncIterator
 
 import pytest
 
+from application.use_cases.ask_question_usecase import AskQuestionUseCase
 from domain.errors import EmptyStreamError, StreamErrorSignal
 from domain.ports import AskGatewayPort, StepCallbackPort
 from domain.tools.sse import SseEmpty, SseLine, SseStep, SseToken
-from application.use_cases.ask_question_usecase import AskQuestionUseCase
-
 
 # ── Fakes ──────────────────────────────────────────────────────────────────────
 

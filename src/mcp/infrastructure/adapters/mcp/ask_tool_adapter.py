@@ -1,13 +1,14 @@
 from __future__ import annotations
 
 from mcp.types import CallToolResult, Tool
-
 from pydantic import Field
 
-from domain.errors import EmptyStreamError, StreamError
 from application.use_cases.ask_question_usecase import AskQuestionUseCase
+from domain.errors import EmptyStreamError, StreamError
 from domain.tools.base import AbstractTool, ToolInput, error_result, success_result
-from infrastructure.adapters.fast_api.ask_gateway_adapter import FastApiAskGatewayAdapter
+from infrastructure.adapters.fast_api.ask_gateway_adapter import (
+    FastApiAskGatewayAdapter,
+)
 from infrastructure.adapters.fast_api.http_stream_reader import HttpStreamReader
 from infrastructure.adapters.slack.silent_step_callback import SilentStepCallbackAdapter
 from utils import get_logger

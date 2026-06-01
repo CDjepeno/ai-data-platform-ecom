@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-
 # ── SSE protocol constants ─────────────────────────────────────────────────────
 # Exported so sse_parser.py can import them without circular dependency.
 

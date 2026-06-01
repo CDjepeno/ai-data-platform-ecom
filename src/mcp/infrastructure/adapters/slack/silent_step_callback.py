@@ -1,6 +1,6 @@
 
-from utils import get_logger
 from domain.ports.step_callback_port import StepCallbackPort
+from utils import get_logger
 
 logger = get_logger(__name__)
 

@@ -3,9 +3,9 @@ from __future__ import annotations
 import logging
 
 from domain.errors import EmptyStreamError
-from domain.ports import  StepCallbackPort
-from domain.tools.sse import SseStep, SseToken
+from domain.ports import StepCallbackPort
 from domain.ports.ask_gateway_port import AskGatewayPort
+from domain.tools.sse import SseStep, SseToken
 
 logger = logging.getLogger(__name__)
 
