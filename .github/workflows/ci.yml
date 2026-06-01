@@ -124,9 +124,8 @@ jobs:
         with:
           payload: |
             {
-              "text": "✅ Images built on *$
-      
-      - name: Notify Slack
-        uses: slackapi/slack-github-action@v1
-        with:
-          botToken: ${{ secrets.SLACK_BOT_TOKEN }}
+              "text": "✅ Images built on *${{ github.repository }}* branch `${{ github.ref_name }}`"
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
