@@ -135,19 +135,33 @@ jobs:
             echo "✅ Found: ${image}"
           done
 
-      - name: Update image tags in Kustomize overlay
+      - name: Update tags and deploy
         run: |
-          cd infrastructure/kubernetes/overlays/pre-prod
           SHA=${{ github.sha }}
+          OVERLAY=infrastructure/kubernetes/overlays/pre-prod
 
-          # Reference images already pushed by ci.yml — never rebuild in deploy
-          # SHA tag guarantees we deploy exactly what was built and tested
+          # Inject SHA into the pre-prod overlay only
+          # This mutates the file locally on the runner — never touches local overlay
+          cd $GITHUB_WORKSPACE/${OVERLAY}
+          
           kustomize edit set image \
-            ghcr.io/cdjepeno/ecom-semantic-layer=ghcr.io/cdjepeno/ecom-semantic-layer:${SHA} \
             ghcr.io/cdjepeno/ecom-fastapi=ghcr.io/cdjepeno/ecom-fastapi:${SHA} \
+            ghcr.io/cdjepeno/ecom-semantic-layer=ghcr.io/cdjepeno/ecom-semantic-layer:${SHA} \
             ghcr.io/cdjepeno/ecom-pipeline=ghcr.io/cdjepeno/ecom-pipeline:${SHA} \
             ghcr.io/cdjepeno/ecom-mcp=ghcr.io/cdjepeno/ecom-mcp:${SHA} \
             ghcr.io/cdjepeno/ecom-nextjs=ghcr.io/cdjepeno/ecom-nextjs:${SHA}
+
+          # Verify before applying — catch issues early
+          echo "--- Resolved manifests ---"
+          kustomize build . | grep "image:"
+
+          # Apply from mutated local runner workspace
+          cd $GITHUB_WORKSPACE
+          kubectl apply -k ${OVERLAY}
+
+          kubectl rollout status deployment \
+            --namespace ecom-pre-prod \
+            --timeout=300s
 
       - name: Deploy to Kubernetes
         run: |
