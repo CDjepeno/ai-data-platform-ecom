@@ -11,7 +11,7 @@ spec:
         - name: ghcr-pull-secret
       containers:
         - name: etl
-          image: ghcr.io/cdjepeno/ecom-etl:latest
+          image: ghcr.io/cdjepeno/ecom-pipeline
           imagePullPolicy: Never 
           command: ["python", "-m", "etl_ecom.pipeline"]
 

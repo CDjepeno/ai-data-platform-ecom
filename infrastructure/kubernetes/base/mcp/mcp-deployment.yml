@@ -20,7 +20,7 @@ spec:
       containers:
         - name: mcp
           # [NOTE] build locally: docker build -t ecom-mcp:local src/mcp/
-          image: ecom-mcp:local
+          image: ghcr.io/cdjepeno/ecom-mcp    
           imagePullPolicy: Never        # use local Kind image, never pull from registry
           ports:
             - containerPort: 8001

@@ -22,7 +22,7 @@ spec:
 
       containers:
         - name: nextjs
-          image: nextjs:local  
+          image: ghcr.io/cdjepeno/ecom-nextjs  
 
           ports:
             - containerPort: 3000

@@ -161,14 +161,6 @@ jobs:
             --namespace ecom-pre-prod \
             --timeout=300s
 
-      # DELETE this entire step — it's redundant and destructive
-      - name: Deploy to Kubernetes   # ← REMOVE
-        run: |
-          kubectl apply -k infrastructure/kubernetes/overlays/pre-prod
-          kubectl rollout status deployment \
-            --namespace ecom-pre-prod \
-            --timeout=300s
-
       - name: Notify Slack on success
         if: success()
         uses: slackapi/slack-github-action@v1.26.0
