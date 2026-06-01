@@ -3,15 +3,17 @@ from __future__ import annotations
 import asyncio
 import re
 
-from slack_bolt.async_app import AsyncApp
 from slack_bolt.adapter.socket_mode.async_handler import AsyncSocketModeHandler
+from slack_bolt.async_app import AsyncApp
 
-from domain.errors import StreamError
-from infrastructure.config import settings
 from application.use_cases.ask_question_usecase import AskQuestionUseCase
-from infrastructure.adapters.fast_api.ask_gateway_adapter import FastApiAskGatewayAdapter
+from domain.errors import StreamError
+from infrastructure.adapters.fast_api.ask_gateway_adapter import (
+    FastApiAskGatewayAdapter,
+)
 from infrastructure.adapters.fast_api.http_stream_reader import HttpStreamReader
 from infrastructure.adapters.slack.slack_step_callback import SlackStepCallback
+from infrastructure.config import settings
 from infrastructure.factory.client_factory import create_http_client
 from infrastructure.logging.setup import configure_logging
 from utils import get_logger
@@ -47,7 +49,7 @@ def build_app() -> tuple[AsyncApp, HttpStreamReader]:
 
         if not question:
             await say(
-                text="Please include a question. Example: _@bot What were sales last month?_",
+                text="Example: _@bot What were sales last month?",
                 thread_ts=event.get("ts"),
             )
             return

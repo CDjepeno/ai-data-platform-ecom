@@ -9,7 +9,9 @@ import respx
 
 from domain.errors import StreamErrorSignal
 from domain.tools.sse import SseEmpty, SseStep, SseToken
-from infrastructure.adapters.fast_api.ask_gateway_adapter import FastApiAskGatewayAdapter
+from infrastructure.adapters.fast_api.ask_gateway_adapter import (
+    FastApiAskGatewayAdapter,
+)
 from infrastructure.adapters.fast_api.http_stream_reader import HttpStreamReader
 
 FASTAPI_URL = "http://fast_api:8000"
@@ -52,7 +54,7 @@ class TestHappyPath:
         async with client:
             lines = await _collect(gateway.stream("test question"))
 
-        steps = [l for l in lines if isinstance(l, SseStep)]
+        steps = [line for line in  lines if isinstance(line, SseStep)]
         assert len(steps) == 1
         assert steps[0].message == "🧠 Understanding your request..."
 
@@ -70,7 +72,7 @@ class TestHappyPath:
         async with client:
             lines = await _collect(gateway.stream("test"))
 
-        tokens = [l for l in lines if isinstance(l, SseToken)]
+        tokens = [line for line in lines if isinstance(line, SseToken)]
         assert len(tokens) == 2
         assert tokens[0].token == "Les ventes "
         assert tokens[1].token == "de mars"
@@ -90,7 +92,7 @@ class TestHappyPath:
         async with client:
             lines = await _collect(gateway.stream("test"))
 
-        empty_lines = [l for l in lines if isinstance(l, SseEmpty)]
+        empty_lines = [line for line in lines if isinstance(line, SseEmpty)]
         assert len(empty_lines) == 1
 
     @respx.mock
@@ -111,8 +113,8 @@ class TestHappyPath:
         async with client:
             lines = await _collect(gateway.stream("Quelles sont les ventes ?"))
 
-        steps  = [l for l in lines if isinstance(l, SseStep)]
-        tokens = [l for l in lines if isinstance(l, SseToken)]
+        steps  = [line for line in lines if isinstance(line, SseStep)]
+        tokens = [line for line in lines if isinstance(line, SseToken)]
 
         assert len(steps) == 3
         assert len(tokens) == 2

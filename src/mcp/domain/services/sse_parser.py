@@ -1,10 +1,16 @@
 
 from __future__ import annotations
 
-from domain.tools.sse import SSE_DATA_PREFIX, SSE_ERROR_PREFIX, SSE_STEP_PREFIX, SseEmpty, SseLine, SseStep, SseToken
 from domain.errors.stream import StreamErrorSignal
-
-
+from domain.tools.sse import (
+    SSE_DATA_PREFIX,
+    SSE_ERROR_PREFIX,
+    SSE_STEP_PREFIX,
+    SseEmpty,
+    SseLine,
+    SseStep,
+    SseToken,
+)
 
 
 def parse_sse_line(line: str) -> SseLine:

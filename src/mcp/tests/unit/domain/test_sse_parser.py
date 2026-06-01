@@ -2,11 +2,9 @@ from __future__ import annotations
 
 import pytest
 
+from domain.errors.stream import StreamErrorSignal
 from domain.services.sse_parser import parse_sse_line
 from domain.tools.sse import SseEmpty, SseStep, SseToken
-from domain.errors.stream import StreamErrorSignal
-
-
 
 # ── SseEmpty cases ─────────────────────────────────────────────────────────────
 
