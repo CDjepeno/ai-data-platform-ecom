@@ -13,6 +13,10 @@ jobs:
     runs-on: ubuntu-latest
     environment: pre-prod
 
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      github.event.workflow_run.conclusion == 'success'
+
     permissions:
       contents: read    # read code only — write was too broad, deploy never pushes commits
       packages: read    # pull images from GHCR — write not needed here, ci.yml handles pushing
@@ -120,7 +124,7 @@ jobs:
       
       - name: Verify images exist in GHCR
         run: |
-          SHA=${{ github.sha }}
+          SHA="${{ github.event.workflow_run.head_sha || github.sha }}"
           
           # Fail fast if any image is missing — prevents deploying ghost SHA
           for image in \
@@ -139,7 +143,7 @@ jobs:
 
       - name: Update tags and deploy
         run: |
-          SHA=${{ github.sha }}
+          SHA="${{ github.event.workflow_run.head_sha || github.sha }}"
           OVERLAY=infrastructure/kubernetes/overlays/pre-prod
 
           cd $GITHUB_WORKSPACE/${OVERLAY}

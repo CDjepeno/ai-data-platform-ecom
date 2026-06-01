@@ -70,6 +70,18 @@ jobs:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GHCR_PAT }} 
+      
+      - name: Build and push nextjs image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./src/next_js
+          push: true
+          provenance: false
+          cache-from: type=registry,ref=ghcr.io/cdjepeno/ecom-nextjs:buildcache
+          cache-to: type=registry,ref=ghcr.io/cdjepeno/ecom-nextjs:buildcache,mode=max
+          tags: |
+            ghcr.io/cdjepeno/ecom-nextjs:${{ github.sha }}
+            ghcr.io/cdjepeno/ecom-nextjs:latest
 
       - name: Build and push semantic-layer image
         uses: docker/build-push-action@v5
@@ -122,17 +134,7 @@ jobs:
             ghcr.io/cdjepeno/ecom-mcp:${{ github.sha }}
             ghcr.io/cdjepeno/ecom-mcp:latest
 
-      - name: Build and push nextjs image
-        uses: docker/build-push-action@v5
-        with:
-          context: ./src/next_js
-          push: true
-          provenance: false
-          cache-from: type=registry,ref=ghcr.io/cdjepeno/ecom-nextjs:buildcache
-          cache-to: type=registry,ref=ghcr.io/cdjepeno/ecom-nextjs:buildcache,mode=max
-          tags: |
-            ghcr.io/cdjepeno/ecom-nextjs:${{ github.sha }}
-            ghcr.io/cdjepeno/ecom-nextjs:latest
+     
 
       - name: Notify Slack on success
         if: success()
