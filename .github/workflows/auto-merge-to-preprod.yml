@@ -1,0 +1,32 @@
+name: Auto-merge to pre-prod
+
+on:
+  push:
+    branches:
+      - main    # ← triggers ONLY when main is updated, not on feature branches
+
+jobs:
+  auto-merge:
+    name: Merge main into pre-prod
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+      pull-requests: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GHCR_PAT }}
+
+      - name: Merge main into pre-prod
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          # Switch to pre-prod and merge main into it
+          git checkout pre-prod
+          git merge origin/main --no-edit -m "auto: merge main into pre-prod [skip ci]"
+          git push origin pre-prod

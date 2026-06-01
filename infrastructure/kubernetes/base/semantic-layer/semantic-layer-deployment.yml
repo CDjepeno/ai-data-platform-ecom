@@ -17,7 +17,12 @@ spec:
         component: ai-inference
     spec:
       imagePullSecrets:
-        - name: ghcr-pull-secret
+        - name: ghcr-secret
+      
+      volumes:
+          - name: dbt-profiles
+            configMap:
+              name: dbt-profiles
 
       containers:
       - name: semantic-layer
@@ -83,7 +88,4 @@ spec:
             mountPath: /app/.dbt
             readOnly: true
 
-    volumes:
-      - name: dbt-profiles
-        configMap:
-          name: dbt-profiles
+        
