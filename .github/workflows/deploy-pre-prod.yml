@@ -3,6 +3,7 @@ name: Deploy to pre-prod
 on:
   push:
     branches: [pre-prod]
+  workflow_dispatch:
 
 jobs:
   deploy:
