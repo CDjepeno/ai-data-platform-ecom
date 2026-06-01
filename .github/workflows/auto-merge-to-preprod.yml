@@ -3,12 +3,11 @@ name: Auto-merge to pre-prod
 on:
   push:
     branches:
-      - 'feat/**'
-      - 'fix/**'
+      - main    # ← triggers ONLY when main is updated, not on feature branches
 
 jobs:
   auto-merge:
-    name: Open PR and auto-merge to pre-prod
+    name: Merge main into pre-prod
     runs-on: ubuntu-latest
 
     permissions:
@@ -20,29 +19,14 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          token: ${{ secrets.GHCR_PAT }}
 
-      - name: Create PR to pre-prod
-        id: create-pr
-        uses: peter-evans/create-pull-request@v6
-        with:
-          token: ${{ secrets.GHCR_PAT }}  # ← PAT here too
-          base: pre-prod
-          branch: ${{ github.ref_name }}
-          title: "auto: merge ${{ github.ref_name }} → pre-prod"
-          body: |
-            Automatic PR from `${{ github.ref_name }}`
-            **Author:** ${{ github.actor }}
-            **SHA:** ${{ github.sha }}
-          labels: auto-merge
-
-
-      - name: Enable auto-merge on PR
-        if: steps.create-pr.outputs.pull-request-number != ''
+      - name: Merge main into pre-prod
         run: |
-          gh pr merge ${{ steps.create-pr.outputs.pull-request-number }} \
-            --auto \
-            --squash \
-            --repo ${{ github.repository }}
-        env:
-          GH_TOKEN: ${{ secrets.GHCR_PAT }}
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
 
+          # Switch to pre-prod and merge main into it
+          git checkout pre-prod
+          git merge origin/main --no-edit -m "auto: merge main into pre-prod [skip ci]"
+          git push origin pre-prod
