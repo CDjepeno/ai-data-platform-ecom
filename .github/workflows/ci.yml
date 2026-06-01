@@ -125,3 +125,8 @@ jobs:
           payload: |
             {
               "text": "✅ Images built on *$
+      
+      - name: Notify Slack
+        uses: slackapi/slack-github-action@v1
+        with:
+          botToken: ${{ secrets.SLACK_BOT_TOKEN }}
