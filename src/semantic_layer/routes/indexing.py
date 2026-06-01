@@ -1,4 +1,4 @@
-from fastapi import APIRouter, FastAPI
+from fastapi import APIRouter
 
 from qdrant.indexer.sementic_indexing import (
     run_semantic_indexing

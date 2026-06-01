@@ -1,4 +1,3 @@
-from json import load
 
 from dotenv import load_dotenv
 from qdrant_client import QdrantClient

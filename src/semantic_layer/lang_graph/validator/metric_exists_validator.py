@@ -1,5 +1,5 @@
 
-from lang_graph.helper.semantic_helper import extract_dimension_names, extract_metric_names
+from lang_graph.helper.semantic_helper import extract_metric_names
 from lang_graph.typing.analytics_state import AnalyticsIntent, SemanticContext
 from lang_graph.validator.base_validator import Validator
 
