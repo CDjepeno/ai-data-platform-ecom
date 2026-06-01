@@ -238,12 +238,4 @@ jobs:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
           SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
 
-      - name: Show pods
-        if: always()
-        run: |
-          kubectl get pods -n ecom-pre-prod
-
-      - name: Show events
-        if: failure()
-        run: |
-          kubectl get events -n ecom-pre-prod --sort-by=.metadata.creationTimestamp
+    
