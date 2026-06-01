@@ -105,8 +105,9 @@ jobs:
           # DeepSeek LLM
           kubectl create secret generic deepseek-secret \
             --namespace ecom-pre-prod \
-            --from-literal=api_key="${{ secrets.DEEP_SEEK_API }}" \
-            --from-literal=base_url="${{ secrets.BASE_URL_DEEP_SEEK_API }}" \
+            --from-literal=DEEP_SEEK_API="${{ secrets.DEEP_SEEK_API }}" \
+            --from-literal=BASE_URL_DEEP_SEEK_API="${{ secrets.BASE_URL_DEEP_SEEK_API }}" \
+            --from-literal=MODEL_DEEP_SEEK="${{ secrets.MODEL_DEEP_SEEK }}" \
             --dry-run=client -o yaml | kubectl apply -f -
 
           # HuggingFace — embedding models
@@ -183,3 +184,14 @@ jobs:
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
           SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
+
+      - name: Show pods
+        if: always()
+        run: |
+          kubectl get pods -n ecom-pre-prod
+      
+
+      - name: Show events
+        if: failure()
+        run: |
+          kubectl get events -n ecom-pre-prod --sort-by=.metadata.creationTimestamp
