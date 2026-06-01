@@ -113,6 +113,25 @@ jobs:
             --namespace ecom-pre-prod \
             --from-literal=token="${{ secrets.HF_TOKEN }}" \
             --dry-run=client -o yaml | kubectl apply -f -
+      
+      - name: Verify images exist in GHCR
+        run: |
+          SHA=${{ github.sha }}
+          
+          # Fail fast if any image is missing — prevents deploying ghost SHA
+          for image in \
+            ghcr.io/cdjepeno/ecom-semantic-layer:${SHA} \
+            ghcr.io/cdjepeno/ecom-fastapi:${SHA} \
+            ghcr.io/cdjepeno/ecom-pipeline:${SHA} \
+            ghcr.io/cdjepeno/ecom-mcp:${SHA} \
+            ghcr.io/cdjepeno/ecom-nextjs:${SHA}; do
+            
+            docker manifest inspect ${image} > /dev/null 2>&1 || {
+              echo "❌ Image not found: ${image}"
+              exit 1
+            }
+            echo "✅ Found: ${image}"
+          done
 
       - name: Update image tags in Kustomize overlay
         run: |

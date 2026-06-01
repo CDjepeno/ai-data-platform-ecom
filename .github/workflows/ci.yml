@@ -159,3 +159,14 @@ jobs:
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
           SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
+      
+      - name: Output build summary
+        run: |
+          echo "## Images built 🐳" >> $GITHUB_STEP_SUMMARY
+          echo "| Image | Tag |" >> $GITHUB_STEP_SUMMARY
+          echo "|---|---|" >> $GITHUB_STEP_SUMMARY
+          echo "| semantic-layer | \`${{ github.sha }}\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| fastapi | \`${{ github.sha }}\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| pipeline | \`${{ github.sha }}\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| mcp | \`${{ github.sha }}\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| nextjs | \`${{ github.sha }}\` |" >> $GITHUB_STEP_SUMMARY
