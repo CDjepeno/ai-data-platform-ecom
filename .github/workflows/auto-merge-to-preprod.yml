@@ -1,0 +1,46 @@
+name: Auto-merge to pre-prod
+
+on:
+  push:
+    branches:
+      - 'feat/**'
+      - 'fix/**'
+
+jobs:
+  auto-merge:
+    name: Open PR and auto-merge to pre-prod
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+      pull-requests: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Create PR to pre-prod
+        id: create-pr
+        uses: peter-evans/create-pull-request@v6
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          base: pre-prod
+          branch: ${{ github.ref_name }}
+          title: "auto: merge ${{ github.ref_name }} → pre-prod"
+          body: |
+            Automatic PR from `${{ github.ref_name }}`
+            **Author:** ${{ github.actor }}
+            **SHA:** ${{ github.sha }}
+          labels: auto-merge
+
+      - name: Enable auto-merge on PR
+        if: steps.create-pr.outputs.pull-request-number != ''
+        run: |
+          gh pr merge ${{ steps.create-pr.outputs.pull-request-number }} \
+            --auto \
+            --squash \
+            --repo ${{ github.repository }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
