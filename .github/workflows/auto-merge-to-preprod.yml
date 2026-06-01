@@ -28,5 +28,6 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
           git checkout pre-prod
-          git merge origin/dev --no-edit -m "auto: merge dev into pre-prod [skip ci]"
-          git push origin pre-prod
+          git reset --hard origin/dev
+          # No [skip ci] — CI must run and build images for this SHA
+          git push origin pre-prod --force-with-lease
