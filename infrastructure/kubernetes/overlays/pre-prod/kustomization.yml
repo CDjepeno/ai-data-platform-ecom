@@ -26,10 +26,15 @@ resources:
 # NEVER edit these manually — CI owns these values
 images:
   - name: ghcr.io/cdjepeno/ecom-fastapi
+    newTag: ci-managed
   - name: ghcr.io/cdjepeno/ecom-semantic-layer
+    newTag: ci-managed
   - name: ghcr.io/cdjepeno/ecom-nextjs
+    newTag: ci-managed
   - name: ghcr.io/cdjepeno/ecom-mcp
-  - name: ecom-etl
+    newTag: ci-managed
+  - name: ghcr.io/cdjepeno/ecom-pipeline          # fix: was ecom-etl
+    newTag: ci-managed
 
 patches:
   # [PRE-PROD] Always pull from ghcr.io — never use cached local image

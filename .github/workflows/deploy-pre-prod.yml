@@ -140,22 +140,20 @@ jobs:
           SHA=${{ github.sha }}
           OVERLAY=infrastructure/kubernetes/overlays/pre-prod
 
-          # Inject SHA into the pre-prod overlay only
-          # This mutates the file locally on the runner — never touches local overlay
           cd $GITHUB_WORKSPACE/${OVERLAY}
-          
+
           kustomize edit set image \
             ghcr.io/cdjepeno/ecom-fastapi=ghcr.io/cdjepeno/ecom-fastapi:${SHA} \
             ghcr.io/cdjepeno/ecom-semantic-layer=ghcr.io/cdjepeno/ecom-semantic-layer:${SHA} \
-            ghcr.io/cdjepeno/ecom-pipeline=ghcr.io/cdjepeno/ecom-pipeline:${SHA} \
+            ghcr.io/cdjepeno/ecom-nextjs=ghcr.io/cdjepeno/ecom-nextjs:${SHA} \
             ghcr.io/cdjepeno/ecom-mcp=ghcr.io/cdjepeno/ecom-mcp:${SHA} \
-            ghcr.io/cdjepeno/ecom-nextjs=ghcr.io/cdjepeno/ecom-nextjs:${SHA}
+            ghcr.io/cdjepeno/ecom-pipeline=ghcr.io/cdjepeno/ecom-pipeline:${SHA}
+            # ↑ was ecom-pipeline in CI but ecom-etl in kustomization — now aligned
 
-          # Verify before applying — catch issues early
-          echo "--- Resolved manifests ---"
-          kustomize build . | grep "image:"
+          # Verify mutation actually happened before applying
+          echo "--- image tags after mutation ---"
+          grep -A2 "images:" kustomization.yml
 
-          # Apply from mutated local runner workspace
           cd $GITHUB_WORKSPACE
           kubectl apply -k ${OVERLAY}
 
@@ -163,12 +161,10 @@ jobs:
             --namespace ecom-pre-prod \
             --timeout=300s
 
-      - name: Deploy to Kubernetes
+      # DELETE this entire step — it's redundant and destructive
+      - name: Deploy to Kubernetes   # ← REMOVE
         run: |
           kubectl apply -k infrastructure/kubernetes/overlays/pre-prod
-          
-          # Wait for all deployments to roll out successfully
-          # Fails the pipeline if any deployment does not become ready within 5 minutes
           kubectl rollout status deployment \
             --namespace ecom-pre-prod \
             --timeout=300s
