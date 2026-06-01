@@ -65,7 +65,7 @@ jobs:
             "ghcr.io/cdjepeno/ecom-semantic-layer:${TAG}" \
             "ghcr.io/cdjepeno/ecom-fastapi:${TAG}" \
             "ghcr.io/cdjepeno/ecom-pipeline:${TAG}" \
-            "ghcr.io/cdjepeno/ecom-mcp:${TAG}" \
+            "ghcr.io/cdjepeno/ecom-mcp:${TAG}" \ do
             # "ghcr.io/cdjepeno/ecom-nextjs:${TAG}"; do
             
             echo -n "Checking $image ... "
