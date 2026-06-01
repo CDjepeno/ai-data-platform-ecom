@@ -1,0 +1,51 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: ecom-ingress
+  namespace: ecom-local
+spec:
+  ingressClassName: nginx
+  rules:
+  - host: api.ecom.local
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: fastapi
+            port:
+              number: 8000
+
+  - host: trino.ecom.local
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: trino
+            port:
+              number: 8080
+
+  - host: semantic.ecom.local
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: semantic-layer
+            port:
+              number: 8001
+
+  - host: qdrant.ecom.local
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: qdrant
+            port:
+              number: 6333

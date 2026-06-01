@@ -15,11 +15,6 @@ package-mode = false
 [tool.poetry.dependencies]
 python = ">=3.11,<3.13"
 
-# ─────────────────────────────────────
-# ENV
-# ─────────────────────────────────────
-
-python-dotenv = ">=1.2.2,<2.0.0"
 
 # ─────────────────────────────────────
 # DATABASE
@@ -66,6 +61,12 @@ pyyaml = ">=6.0.3,<7.0.0"
 
 httpx = ">=0.28.1,<0.29.0"
 
+pydantic = "^2.11.7"
+
+pydantic-settings = "^2.10.1"
+
+python-dotenv = ">=1.2.2,<2.0.0"
+
 # ─────────────────────────────────────
 # DEV
 # ─────────────────────────────────────
@@ -87,3 +88,4 @@ sqlfluff = ">=4.1.0,<5.0.0"
 requires = ["poetry-core>=2.0.0,<3.0.0"]
 
 build-backend = "poetry.core.masonry.api"
+

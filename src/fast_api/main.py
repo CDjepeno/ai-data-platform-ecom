@@ -1,9 +1,13 @@
 from fastapi import FastAPI
 from prometheus_fastapi_instrumentator import Instrumentator
-from fast_api.routes.ask import router
+from routes.ask import router
 from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI()
+
+@app.get("/health")
+def health():
+    return {"status": "ok"}
 
 
 app.add_middleware(

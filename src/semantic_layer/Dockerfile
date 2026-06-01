@@ -1,31 +1,51 @@
-FROM python:3.11-slim
+# ==============================================================================
+# Stage 1 — builder
+# ==============================================================================
+FROM python:3.11-slim AS builder
 
-WORKDIR /app
+WORKDIR /build
 
 RUN apt-get update && apt-get install -y \
     gcc \
     g++ \
     curl \
+    git \
     && rm -rf /var/lib/apt/lists/*
 
-ENV PYTHONDONTWRITEBYTECODE=1
-ENV PYTHONUNBUFFERED=1
-ENV PYTHONPATH=/app
-ENV POETRY_VIRTUALENVS_CREATE=false
-ENV POETRY_NO_INTERACTION=1
+ENV POETRY_VIRTUALENVS_CREATE=false \
+    POETRY_NO_INTERACTION=1 \
+    PIP_NO_CACHE_DIR=1 \
+    PIP_DISABLE_PIP_VERSION_CHECK=1
 
-RUN pip install --upgrade pip && pip install poetry
+RUN pip install poetry==2.3.4
+
+# -- torch removed: embeddings are served by OpenAI API, no local model needed
 
 COPY pyproject.toml poetry.lock* ./
-RUN poetry install --no-root
+RUN poetry install --no-root --no-cache
 
-# 2. Then download the model (sentence_transformers is now installed)
-ARG HF_TOKEN
-RUN HUGGING_FACE_HUB_TOKEN=${HF_TOKEN} python -c \
-    "from sentence_transformers import SentenceTransformer; \
-    SentenceTransformer('sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2')"
+# ==============================================================================
+# Stage 2 — runtime
+# ==============================================================================
+FROM python:3.11-slim AS runtime
 
-# 3. Finally copy the application code
+WORKDIR /app
+
+RUN apt-get update && apt-get install -y \
+    curl \
+    && rm -rf /var/lib/apt/lists/* \
+    && apt-get clean
+
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PYTHONPATH=/app
+# HF_HOME removed: no HuggingFace models loaded at runtime
+
+COPY --from=builder /usr/local/lib/python3.11/site-packages /usr/local/lib/python3.11/site-packages
+COPY --from=builder /usr/local/bin /usr/local/bin
+
 COPY . .
+RUN cd /app/transformations && dbt parse --profiles-dir /app/.dbt
+EXPOSE 8001
 
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8001", "--reload"]
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8001"]

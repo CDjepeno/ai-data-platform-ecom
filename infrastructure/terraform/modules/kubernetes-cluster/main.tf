@@ -16,7 +16,7 @@ resource "ovh_cloud_project_network_private" "main" {
   service_name = var.service_name
   name         = "${var.cluster_name}-${var.environment}-network"
   regions      = [var.region]
-  vlan_id      = var.environment == "prod" ? 100 : 200
+  vlan_id      = var.vlan_id
 }
 
 resource "ovh_cloud_project_network_private_subnet" "main" {

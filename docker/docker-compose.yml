@@ -86,7 +86,7 @@ services:
       - etl_ecom
   
   qdrant:
-    image: qdrant/qdrant
+    image: qdrant/qdrant:v1.11.5 
     container_name: qdrant
 
     ports:
@@ -129,7 +129,7 @@ services:
       - .env
 
     volumes:
-    - ../src/fast_api:/app/fast_api
+    - ../src/fast_api:/app
 
     depends_on:
       - semantic_layer

@@ -1,7 +1,8 @@
 import trino
 
 from utils.logger import get_logger
-from config_env import Config
+from config_env import settings
+
 
 logger = get_logger(__name__)
 
@@ -11,11 +12,11 @@ def get_trino_connection():
     try:
 
         conn = trino.dbapi.connect(
-            host=Config.TRINO_HOST,
-            port=Config.TRINO_PORT,
-            user=Config.TRINO_USER,
-            catalog=Config.TRINO_CATALOG,
-            schema=Config.TRINO_SCHEMA,
+            host=settings.trino_host,
+            port=settings.trino_port,
+            user=settings.trino_user,
+            catalog=settings.trino_catalog,
+            schema=settings.trino_schema,
         )
 
         logger.info("✅ Trino connection established")

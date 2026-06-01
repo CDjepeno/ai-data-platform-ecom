@@ -5,7 +5,7 @@ import time
 
 from duckdb import DuckDBPyConnection
 from sqlalchemy.exc import NoSuchTableError
-from etl_ecom.db.engine import get_duckdb_connection, configure_duckdb_s3
+from etl_ecom.db.engine import  configure_duckdb_s3
 from etl_ecom.scripts.iceberg.iceberg import get_iceberg_catalog
 from etl_ecom.db.mapper.arrow_iceberg_mapper import arrow_to_iceberg_schema
 from etl_ecom.ingestion.config.table_config import TABLE_CONFIG

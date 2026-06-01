@@ -1,0 +1,60 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ecom-config
+
+data:
+  # -- Trino
+  TRINO_HOST: "trino"
+  TRINO_PORT: "8080"
+  TRINO_USER: "trino"
+  TRINO_CATALOG: "iceberg"
+  TRINO_SCHEMA: "mart"
+
+  # -- Nessie
+  NESSIE_URI: "http://nessie:19120"
+  ICEBERG_WAREHOUSE: "s3://ecom-etl/warehouse"
+
+  # -- Nessie S3/catalog config (moved from statefulset hardcoded values)
+  NESSIE_CATALOG_DEFAULT_WAREHOUSE: "warehouse"
+  NESSIE_CATALOG_WAREHOUSES_WAREHOUSE_LOCATION: "s3://ecom-etl/warehouse"
+  NESSIE_CATALOG_SERVICE_S3_DEFAULT_OPTIONS_ENDPOINT: "http://minio.ecom-local.svc.cluster.local:9000"
+  NESSIE_CATALOG_SERVICE_S3_DEFAULT_OPTIONS_PATH_STYLE_ACCESS: "true"
+  NESSIE_CATALOG_SERVICE_S3_DEFAULT_OPTIONS_REGION: "us-east-1"
+  NESSIE_CATALOG_SERVICE_S3_DEFAULT_OPTIONS_AUTH_TYPE: "APPLICATION_GLOBAL"
+  NESSIE_VERSION_STORE_TYPE: "ROCKSDB"
+  NESSIE_VERSION_STORE_PERSIST_ROCKSDB_DATABASE_PATH: "/nessie-data"
+  AWS_REGION: "us-east-1"
+
+  # -- Qdrant
+  QDRANT_HOST: "qdrant"
+  QDRANT_PORT: "6333"
+  QDRANT_COLLECTION: "semantic_models"
+  QDRANT_SIZE: "1536"
+
+  # -- Embedding model
+  MODEL_EMBEDDING: "text-embedding-3-small"
+
+  # -- Valkey
+  VALKEY_HOST: "valkey"
+  VALKEY_PORT: "6379"
+  VALKEY_TTL: "3600"
+
+  # -- MinIO
+  MINIO_ENDPOINT: "http://minio:9000"
+  MINIO_BUCKET: "ecom-etl"              
+
+  # -- Postgres
+  POSTGRES_HOST: "postgres"
+  POSTGRES_PORT: "5432"
+  POSTGRES_DB: "ecom_db"
+
+  # -- App config
+  LOG_LEVEL: "WARNING"
+  JSON_LOGS: "true"
+  MCP_HTTP_TIMEOUT: "60.0"
+  NEXT_PUBLIC_API_URL: "http://chat.local:8080/api"
+  QUARKUS_HTTP_PORT: "19120"
+
+  SEMANTIC_MODELS_PATH: "/app/transformations/models/mart/semantic_models"
+  METRICS_PATH: "/app/transformations/models/metrics"

@@ -1,0 +1,127 @@
+# overlays/pre-prod/kustomization.yml
+# Pre-prod overlay — mirrors prod topology with reduced resources.
+# Images are pinned to CI-built SHA tags, never :latest.
+# Secrets are injected via CI pipeline (GitHub Actions Secrets).
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: ecom-pre-prod
+
+resources:
+  - namespace.yml
+  - configmap-env.yml
+  - ../../base/valkey/
+  - ../../base/qdrant/
+  - ../../base/nessie/
+  - ../../base/trino/
+  - ../../base/semantic-layer/
+  - ../../base/fastapi/
+  - ../../base/nextjs/
+  - ../../base/etl-pipeline/
+  - ../../base/mcp/
+  # [NOTE] NO postgres/ — using OVH Managed PostgreSQL (Terraform)
+  # [NOTE] NO minio/ — using OVH Object Storage S3 (Terraform)
+
+# Tags updated automatically by GitHub Actions on every deploy
+# NEVER edit these manually — CI owns these values
+images:
+  - name: ghcr.io/cdjepeno/ecom-fastapi
+    newTag: "placeholder"
+  - name: ghcr.io/cdjepeno/ecom-semantic-layer
+    newTag: "placeholder"
+  - name: ghcr.io/cdjepeno/ecom-nextjs
+    newTag: "placeholder"
+  - name: ghcr.io/cdjepeno/ecom-mcp
+    newTag: "placeholder"
+  - name: ecom-etl
+    newTag: "placeholder"
+
+patches:
+  # [PRE-PROD] Always pull from ghcr.io — never use cached local image
+  - patch: |-
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata:
+        name: fastapi
+      spec:
+        template:
+          spec:
+            imagePullSecrets:
+              - name: ghcr-secret
+            containers:
+              - name: fastapi
+                imagePullPolicy: Always
+    target:
+      kind: Deployment
+      name: fastapi
+
+  - patch: |-
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata:
+        name: semantic-layer
+      spec:
+        template:
+          spec:
+            imagePullSecrets:
+              - name: ghcr-secret
+            containers:
+              - name: semantic-layer
+                imagePullPolicy: Always
+    target:
+      kind: Deployment
+      name: semantic-layer
+
+  - patch: |-
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata:
+        name: nextjs
+      spec:
+        template:
+          spec:
+            imagePullSecrets:
+              - name: ghcr-secret
+            containers:
+              - name: nextjs
+                imagePullPolicy: Always
+    target:
+      kind: Deployment
+      name: nextjs
+
+  - patch: |-
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata:
+        name: mcp
+      spec:
+        template:
+          spec:
+            imagePullSecrets:
+              - name: ghcr-secret
+            containers:
+              - name: mcp
+                imagePullPolicy: Always
+    target:
+      kind: Deployment
+      name: mcp
+
+secretGenerator:
+  - name: openai-secret
+    envs:
+      - env-pre-prod/.env.openai
+  - name: minio-secret
+    envs:
+      - env-pre-prod/.env.minio
+  - name: etl-secret
+    envs:
+      - env-pre-prod/.env.etl
+  - name: postgres-secret
+    envs:
+      - env-pre-prod/.env.postgres
+  - name: mcp-slack-secret
+    envs:
+      - env-pre-prod/.env.slack
+
+generatorOptions:
+  disableNameSuffixHash: true

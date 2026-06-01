@@ -2,7 +2,6 @@ import uuid
 import yaml
 from pathlib import Path
 
-from config_env import Config
 from shared.dto.semantic_payload_dto import (
     SemanticModelPayloadDTO,
     MetricPayloadDTO,
@@ -12,6 +11,8 @@ from shared.dto.semantic_payload_dto import (
     metric_to_embedding_text,
 )
 from utils.logger import get_logger
+from config_env import settings
+
 
 logger = get_logger(__name__)
 
@@ -21,8 +22,8 @@ class SemanticModelsIndexer:
     def __init__(self, embedder, qdrant):
         self._embedder = embedder
         self._qdrant = qdrant
-        self._semantic_path: Path = Config.SEMANTIC_MODELS_PATH
-        self._metrics_path: Path = Config.METRICS_PATH
+        self._semantic_path: Path = settings.semantic_models_path 
+        self._metrics_path: Path = settings.metrics_path
 
     async def index_semantic_models(self) -> None:
         self._validate_paths()

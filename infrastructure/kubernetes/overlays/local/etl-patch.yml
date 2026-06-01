@@ -1,0 +1,14 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: etl-pipeline
+spec:
+  backoffLimit: 0
+  template:
+    spec:
+      enableServiceLinks: false
+      imagePullSecrets: []
+      containers:
+        - name: etl
+          image: ecom-etl:local
+          imagePullPolicy: Never

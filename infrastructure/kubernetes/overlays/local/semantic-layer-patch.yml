@@ -1,0 +1,18 @@
+# overlays/local/semantic-layer-patch.yml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: semantic-layer
+spec:
+  template:
+    spec:
+      containers:
+        - name: semantic-layer
+          volumeMounts:
+            - name: dbt-profiles
+              mountPath: /app/.dbt
+              readOnly: true
+      volumes:
+        - name: dbt-profiles
+          configMap:
+            name: dbt-profiles

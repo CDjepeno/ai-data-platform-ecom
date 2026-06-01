@@ -1,1 +1,0 @@
-{"Modules":[{"Key":"","Source":"","Dir":"."},{"Key":"kubernetes","Source":"../../modules/kubernetes-cluster","Dir":"../../modules/kubernetes-cluster"},{"Key":"postgres","Source":"../../modules/managed-postgres","Dir":"../../modules/managed-postgres"},{"Key":"warehouse_storage","Source":"../../modules/object-storage","Dir":"../../modules/object-storage"}]}

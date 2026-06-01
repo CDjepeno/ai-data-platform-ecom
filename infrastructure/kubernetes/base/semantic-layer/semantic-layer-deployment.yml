@@ -1,0 +1,89 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: semantic-layer
+  labels:
+    app: semantic-layer
+    component: ai-inference
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: semantic-layer
+  template:
+    metadata:
+      labels:
+        app: semantic-layer
+        component: ai-inference
+    spec:
+      imagePullSecrets:
+        - name: ghcr-pull-secret
+
+      containers:
+      - name: semantic-layer
+        image: ghcr.io/cdjepeno/ecom-semantic-layer:latest
+        ports:
+          - containerPort: 8001
+            name: http
+
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "250m"
+          limits:
+            memory: "1Gi"
+            cpu: "500m"
+
+        # Inject all non-sensitive config in one shot
+        envFrom:
+          - configMapRef:
+              name: ecom-config
+
+        # Inject only sensitive values explicitly
+        env:
+          - name: OPENAI_API_KEY
+            valueFrom:
+              secretKeyRef:
+                name: openai-secret
+                key: OPENAI_API_KEY
+          - name: DEEP_SEEK_API
+            valueFrom:
+              secretKeyRef:
+                name: deepseek-secret
+                key: DEEP_SEEK_API
+          - name: BASE_URL_DEEP_SEEK_API
+            valueFrom:
+              secretKeyRef:
+                name: deepseek-secret
+                key: BASE_URL_DEEP_SEEK_API
+          - name: MODEL_DEEP_SEEK
+            valueFrom:
+              secretKeyRef:
+                name: deepseek-secret
+                key: MODEL_DEEP_SEEK
+
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8001
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          failureThreshold: 3
+
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8001
+          initialDelaySeconds: 60
+          periodSeconds: 20
+          failureThreshold: 3
+
+        volumeMounts:
+          - name: dbt-profiles
+            mountPath: /app/.dbt
+            readOnly: true
+
+    volumes:
+      - name: dbt-profiles
+        configMap:
+          name: dbt-profiles

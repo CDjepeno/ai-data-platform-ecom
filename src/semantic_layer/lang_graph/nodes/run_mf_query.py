@@ -3,7 +3,8 @@ import os
 
 from lang_graph.typing.analytics_state import AnalyticsState, ComparisonResult, PeriodResult
 from lang_graph.utils.timer import async_timed_node
-from config_env import Config
+from config_env import settings
+
 from utils.logger import get_logger
 
 logger = get_logger(__name__)
@@ -29,8 +30,8 @@ async def _run_mf_query(
 
     process = await asyncio.create_subprocess_exec(
         *cmd,
-        cwd=str(Config.DBT_PROJECT_DIR),
-        env={**os.environ, "DBT_PROFILES_DIR": str(Config.DBT_PROFILES_DIR)},
+        cwd=str(settings.dbt_project_dir),
+        env={**os.environ, "DBT_PROFILES_DIR": str(settings.dbt_profiles_dir)},
         stdout=asyncio.subprocess.PIPE,
         stderr=asyncio.subprocess.PIPE,
     )

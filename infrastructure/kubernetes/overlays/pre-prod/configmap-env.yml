@@ -1,0 +1,60 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ecom-config
+  namespace: ecom-pre-prod
+data:
+  # -- Trino
+  TRINO_HOST: "trino"
+  TRINO_PORT: "8080"
+  TRINO_USER: "trino"
+  TRINO_CATALOG: "iceberg"
+  TRINO_SCHEMA: "mart"
+
+  # -- Nessie
+  NESSIE_URI: "http://nessie:19120"
+  QUARKUS_HTTP_PORT: "19120"
+  NESSIE_VERSION_STORE_TYPE: "ROCKSDB"
+  NESSIE_VERSION_STORE_PERSIST_ROCKSDB_DATABASE_PATH: "/nessie-data"
+
+  # -- Iceberg / OVH Object Storage
+  # [PRE-PROD] uses OVH S3-compatible object storage instead of MinIO
+  ICEBERG_WAREHOUSE: "s3://ecom-platform-warehouse-pre-prod/warehouse"
+  NESSIE_CATALOG_DEFAULT_WAREHOUSE: "warehouse"
+  NESSIE_CATALOG_WAREHOUSES_WAREHOUSE_LOCATION: "s3://ecom-platform-warehouse-pre-prod/warehouse"
+  NESSIE_CATALOG_SERVICE_S3_DEFAULT_OPTIONS_ENDPOINT: "https://s3.eu-west-par.io.cloud.ovh.net"
+  NESSIE_CATALOG_SERVICE_S3_DEFAULT_OPTIONS_PATH_STYLE_ACCESS: "true"
+  NESSIE_CATALOG_SERVICE_S3_DEFAULT_OPTIONS_REGION: "eu-west-par"
+  NESSIE_CATALOG_SERVICE_S3_DEFAULT_OPTIONS_AUTH_TYPE: "APPLICATION_GLOBAL"
+  AWS_REGION: "eu-west-par"
+
+  # -- Qdrant
+  QDRANT_HOST: "qdrant"
+  QDRANT_PORT: "6333"
+  QDRANT_COLLECTION: "semantic_models"
+  QDRANT_SIZE: "1536"
+
+  # -- Embedding model
+  MODEL_EMBEDDING: "text-embedding-3-small"
+
+  # -- Valkey
+  VALKEY_HOST: "valkey"
+  VALKEY_PORT: "6379"
+  VALKEY_TTL: "3600"
+
+  # -- Postgres — [PRE-PROD] OVH Managed PostgreSQL
+  # Host injected from Terraform output via CI/CD
+  # Do NOT hardcode here — use secretGenerator for credentials
+  POSTGRES_PORT: "5432"
+  POSTGRES_DB: "ecom_db"
+
+  # -- App config
+  LOG_LEVEL: "WARNING"
+  JSON_LOGS: "true"
+  MCP_HTTP_TIMEOUT: "60.0"
+  SEMANTIC_MODELS_PATH: "/app/transformations/models/mart/semantic_models"
+  METRICS_PATH: "/app/transformations/models/metrics"
+
+  # -- Frontend — [PRE-PROD] real public URL
+  # Update with your actual OVHCloud domain
+  NEXT_PUBLIC_API_URL: "https://api.ecom-preprod.yourdomain.com/api"

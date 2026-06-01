@@ -65,3 +65,8 @@ variable "network_region" {
   type        = string
   default     = "GRA9"
 }
+
+variable "vlan_id" {
+  type        = number
+  description = "VLAN ID for the private network. Must be unique per environment across the entire OVHCloud project."
+}

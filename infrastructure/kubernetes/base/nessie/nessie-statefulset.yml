@@ -23,40 +23,24 @@ spec:
           ports:
             - containerPort: 19120
               name: http
+
+          envFrom:
+            - configMapRef:
+                name: ecom-config   
+
           env:
-            - name: QUARKUS_HTTP_PORT
-              value: "19120"
-            - name: nessie.catalog.default-warehouse
-              value: "warehouse"
-            - name: nessie.catalog.warehouses.warehouse.location
-              value: "s3://ecom-platform-warehouse-dev/warehouse"
-            - name: nessie.catalog.service.s3.default-options.endpoint
-              valueFrom:
-                secretKeyRef:
-                  name: warehouse-s3-secret
-                  key: endpoint
-            - name: nessie.catalog.service.s3.default-options.path-style-access
-              value: "true"
-            - name: nessie.catalog.service.s3.default-options.region
-              value: "gra"
-            - name: nessie.catalog.service.s3.default-options.auth-type
-              value: "application-global"
             - name: AWS_ACCESS_KEY_ID
               valueFrom:
                 secretKeyRef:
-                  name: warehouse-s3-secret
-                  key: access_key
+                  name: minio-secret
+                  key: AWS_ACCESS_KEY_ID
+
             - name: AWS_SECRET_ACCESS_KEY
               valueFrom:
                 secretKeyRef:
-                  name: warehouse-s3-secret
-                  key: secret_key
-            - name: AWS_REGION
-              value: "gra"
-            - name: nessie.version.store.type
-              value: "ROCKSDB"
-            - name: nessie.version.store.persist.rocksdb.database-path
-              value: "/nessie-data"
+                  name: minio-secret
+                  key: AWS_SECRET_ACCESS_KEY
+
           resources:
             requests:
               memory: "512Mi"

@@ -1,43 +1,20 @@
+# Environment
 .env
-target/
-dbt_packages/
-logs/
-.env
-.duckdb
+.env.*
+*.env
+**/env-local/
+**/env-preprod/
+**/env-prod/
+**/env-*/
 
-# =========================
-# PYTHON
-# =========================
-
+# Python
 __pycache__/
 *.py[cod]
-*.so
-
-# Virtual env
 .venv/
 venv/
-
-# Pytest
 .pytest_cache/
-
-# Ruff
 .ruff_cache/
-
-# Mypy
 .mypy_cache/
-
-# Coverage
-.coverage
-htmlcov/
-
-# Jupyter
-.ipynb_checkpoints/
-
-# MacOS
-.DS_Store
-
-# VSCode
-.vscode/
 
 # Logs
 *.log
@@ -46,7 +23,34 @@ htmlcov/
 *.duckdb
 *.wal
 
-# Env
-.env
+# dbt
+target/
+dbt_packages/
+logs/
 
-mcp-server.json
+# Node
+node_modules/
+.next/
+out/
+
+# IDE
+.vscode/
+.idea/
+
+# Terraform
+**/.terraform/
+*.tfstate
+*.tfstate.*
+.terraform.lock.hcl
+
+# OS
+.DS_Store
+
+# Prometheus
+prometheus/data/
+prometheus/*.log
+
+# Grafana
+grafana/data/
+grafana/logs/
+grafana/plugins/

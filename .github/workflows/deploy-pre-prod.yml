@@ -1,0 +1,159 @@
+name: Deploy to pre-prod
+
+on:
+  push:
+    branches: [pre-prod]
+
+jobs:
+  deploy:
+    name: Deploy to Kubernetes pre-prod
+    runs-on: ubuntu-latest
+    environment: pre-prod
+
+    permissions:
+      contents: write
+      packages: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push pre-prod images
+        run: |
+          SHA=${{ github.sha }}
+
+          # Semantic layer
+          docker build \
+            -t ghcr.io/cdjepeno/ecom-semantic-layer:${SHA} \
+            -t ghcr.io/cdjepeno/ecom-semantic-layer:pre-prod \
+            ./src/semantic_layer
+          docker push ghcr.io/cdjepeno/ecom-semantic-layer:${SHA}
+          docker push ghcr.io/cdjepeno/ecom-semantic-layer:pre-prod
+
+          # FastAPI
+          docker build \
+            -t ghcr.io/cdjepeno/ecom-fastapi:${SHA} \
+            -t ghcr.io/cdjepeno/ecom-fastapi:pre-prod \
+            ./src/fast_api
+          docker push ghcr.io/cdjepeno/ecom-fastapi:${SHA}
+          docker push ghcr.io/cdjepeno/ecom-fastapi:pre-prod
+
+          # ETL pipeline
+          docker build \
+            -t ghcr.io/cdjepeno/ecom-pipeline:${SHA} \
+            -t ghcr.io/cdjepeno/ecom-pipeline:pre-prod \
+            ./src/etl_ecom
+          docker push ghcr.io/cdjepeno/ecom-pipeline:${SHA}
+          docker push ghcr.io/cdjepeno/ecom-pipeline:pre-prod
+
+          # MCP
+          docker build \
+            -t ghcr.io/cdjepeno/ecom-mcp:${SHA} \
+            -t ghcr.io/cdjepeno/ecom-mcp:pre-prod \
+            ./src/mcp
+          docker push ghcr.io/cdjepeno/ecom-mcp:${SHA}
+          docker push ghcr.io/cdjepeno/ecom-mcp:pre-prod
+
+          # Next.js
+          docker build \
+            -t ghcr.io/cdjepeno/ecom-nextjs:${SHA} \
+            -t ghcr.io/cdjepeno/ecom-nextjs:pre-prod \
+            ./src/next_js
+          docker push ghcr.io/cdjepeno/ecom-nextjs:${SHA}
+          docker push ghcr.io/cdjepeno/ecom-nextjs:pre-prod
+
+      - name: Set up kubectl
+        uses: azure/setup-kubectl@v3
+        with:
+          version: "v1.31.0"
+
+      - name: Configure kubeconfig
+        run: |
+          mkdir -p ~/.kube
+          echo "${{ secrets.KUBECONFIG_PRE_PROD }}" | base64 -d > ~/.kube/config
+          chmod 600 ~/.kube/config
+
+      - name: Verify cluster connection
+        run: |
+          kubectl config current-context
+          kubectl get nodes
+
+      - name: Create namespace if not exists
+        run: |
+          kubectl create namespace ecom-pre-prod \
+            --dry-run=client -o yaml | kubectl apply -f -
+
+      - name: Provision Kubernetes secrets
+        run: |
+          # GHCR pull secret — name matches kustomization ghcr-secret
+          kubectl create secret docker-registry ghcr-secret \
+            --namespace ecom-pre-prod \
+            --docker-server=ghcr.io \
+            --docker-username=cdjepeno \
+            --docker-password=${{ secrets.GHCR_PAT }} \
+            --docker-email=djepenodev@gmail.com \
+            --dry-run=client -o yaml | kubectl apply -f -
+
+          # OpenAI
+          kubectl create secret generic openai-secret \
+            --namespace ecom-pre-prod \
+            --from-literal=OPENAI_API_KEY="${{ secrets.OPENAI_API_KEY }}" \
+            --dry-run=client -o yaml | kubectl apply -f -
+
+          # Postgres — OVH Managed PostgreSQL
+          kubectl create secret generic postgres-secret \
+            --namespace ecom-pre-prod \
+            --from-literal=POSTGRES_HOST="${{ secrets.POSTGRES_HOST }}" \
+            --from-literal=POSTGRES_PASSWORD="${{ secrets.POSTGRES_PASSWORD }}" \
+            --from-literal=POSTGRES_URL="${{ secrets.POSTGRES_URL_PRE_PROD }}" \
+            --dry-run=client -o yaml | kubectl apply -f -
+
+          # ETL
+          kubectl create secret generic etl-secret \
+            --namespace ecom-pre-prod \
+            --from-literal=AWS_ACCESS_KEY_ID="${{ secrets.AWS_ACCESS_KEY_ID }}" \
+            --from-literal=AWS_SECRET_ACCESS_KEY="${{ secrets.AWS_SECRET_ACCESS_KEY }}" \
+            --dry-run=client -o yaml | kubectl apply -f -
+
+          # MCP Slack
+          kubectl create secret generic mcp-slack-secret \
+            --namespace ecom-pre-prod \
+            --from-literal=SLACK_BOT_TOKEN="${{ secrets.SLACK_BOT_TOKEN }}" \
+            --from-literal=SLACK_APP_TOKEN="${{ secrets.SLACK_APP_TOKEN }}" \
+            --dry-run=client -o yaml | kubectl apply -f -
+
+          # MinIO/S3 — OVH Object Storage
+          kubectl create secret generic minio-secret \
+            --namespace ecom-pre-prod \
+            --from-literal=AWS_ACCESS_KEY_ID="${{ secrets.AWS_ACCESS_KEY_ID }}" \
+            --from-literal=AWS_SECRET_ACCESS_KEY="${{ secrets.AWS_SECRET_ACCESS_KEY }}" \
+            --from-literal=WAREHOUSE_ENDPOINT="${{ secrets.WAREHOUSE_ENDPOINT }}" \
+            --dry-run=client -o yaml | kubectl apply -f -
+
+          # DeepSeek
+          kubectl create secret generic deepseek-secret \
+            --namespace ecom-pre-prod \
+            --from-literal=api_key="${{ secrets.DEEP_SEEK_API }}" \
+            --from-literal=base_url="${{ secrets.BASE_URL_DEEP_SEEK_API }}" \
+            --dry-run=client -o yaml | kubectl apply -f -
+
+          # HuggingFace
+          kubectl create secret generic hf-secret \
+            --namespace ecom-pre-prod \
+            --from-literal=token="${{ secrets.HF_TOKEN }}" \
+            --dry-run=client -o yaml | kubectl apply -f -
+
+      - name: Update image tags in Kustomize overlay
+        run: |
+          cd infrastructure/kubernetes/overlays/pre-prod
+          SHA=${{ github.sha }}
+
+          kustomize edit set image \
+            ghcr.io/cdjepeno/ecom-semantic-layer=ghcr.i

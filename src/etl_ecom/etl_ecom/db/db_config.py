@@ -1,69 +1,111 @@
+from __future__ import annotations
+
 from pathlib import Path
 
-from dotenv import load_dotenv
-import os
+from pydantic import Field, computed_field
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
+BASE_DIR = Path(__file__).resolve().parent
+ENV_FILE = BASE_DIR / ".env"
 
 
-load_dotenv()
+class Settings(BaseSettings):
+    """ETL E-commerce configuration."""
 
-def get_env(var: str) -> str:
-    value = os.getenv(var)
-    if not value:
-        raise ValueError(f"{var} is not set")
-    return value
-
-
-class Config:
-    # =========================
-    # SOURCE (Postgres)
-    # =========================
-    SOURCE_URL = (
-        f"postgresql://{get_env('POSTGRES_USER')}:"
-        f"{get_env('POSTGRES_PASSWORD')}@"
-        f"{get_env('POSTGRES_HOST')}:"
-        f"{get_env('POSTGRES_PORT')}/"
-        f"{get_env('POSTGRES_DB')}"
+    model_config = SettingsConfigDict(
+        env_file=ENV_FILE,
+        env_file_encoding="utf-8",
+        case_sensitive=False,
+        extra="ignore",
     )
-    
-      
-    POSTGRES_DB= os.getenv("POSTGRES_DB")
-    POSTGRES_USER = os.getenv("POSTGRES_USER")
-    POSTGRES_PASSWORD = os.getenv("POSTGRES_PASSWORD")
-    POSTGRES_HOST = os.getenv("POSTGRES_HOST")
-    POSTGRES_PORT = os.getenv("POSTGRES_PORT")
 
-    # =========================
-    # WAREHOUSE (DuckDB local)
-    # =========================
-    DBT_DUCKDB_PATH_DEV = os.getenv("DBT_DUCKDB_PATH_DEV", "/app/warehouse/dev.duckdb")
-    DBT_DUCKDB_PATH_PROD = os.getenv("DBT_DUCKDB_PATH_PROD", "/app/warehouse/prod.duckdb")
+    # ── PostgreSQL Source ───────────────────────────────────
 
-    # =========================
-    # Iceberg / Nessie
-    # =========================
+    postgres_db: str = Field(
+        description="PostgreSQL database name.",
+    )
 
-    NESSIE_URI = get_env("NESSIE_URI")
-    ICEBERG_WAREHOUSE = get_env("ICEBERG_WAREHOUSE")
+    postgres_user: str = Field(
+        description="PostgreSQL username.",
+    )
 
-    # =========================
-    # MINIO (S3 compatible)
-    # =========================
-    MINIO_ENDPOINT = get_env("MINIO_ENDPOINT")  
-    MINIO_ROOT_USER = get_env("MINIO_ROOT_USER")
-    MINIO_ROOT_PASSWORD = get_env("MINIO_ROOT_PASSWORD")
-    MINIO_BUCKET = get_env("MINIO_BUCKET")
+    postgres_password: str = Field(
+        description="PostgreSQL password.",
+    )
 
-    # optional but useful
-    MINIO_SECURE = os.getenv("MINIO_SECURE", "false").lower() == "true"
+    postgres_host: str = Field(
+        description="PostgreSQL hostname.",
+    )
 
-    
-    
-    
-    
-    
-# Debug (optional)
-# print("SOURCE_URL:", Config.SOURCE_URL)
-# print("DBT_DUCKDB_PATH_DEV:", Config.DBT_DUCKDB_PATH_DEV)
-# print("MINIO_ENDPOINT:", Config.MINIO_ENDPOINT)
+    postgres_port: int = Field(
+        default=5432,
+        gt=0,
+        alias="PG_PORT",
+        description="PostgreSQL port.",
+    )
+
+    @computed_field
+    @property
+    def source_url(self) -> str:
+        """
+        PostgreSQL connection URL.
+        """
+
+        return (
+            f"postgresql://{self.postgres_user}:"
+            f"{self.postgres_password}@"
+            f"{self.postgres_host}:"
+            f"{self.postgres_port}/"
+            f"{self.postgres_db}"
+        )
+
+    # ── DuckDB Warehouse ────────────────────────────────────
+
+    dbt_duckdb_path_dev: Path = Field(
+        default=Path("/app/warehouse/dev.duckdb"),
+        description="DuckDB development database path.",
+    )
+
+    dbt_duckdb_path_prod: Path = Field(
+        default=Path("/app/warehouse/prod.duckdb"),
+        description="DuckDB production database path.",
+    )
+
+    # ── Iceberg / Nessie ────────────────────────────────────
+
+    nessie_uri: str = Field(
+        description="Nessie catalog URI.",
+    )
+
+    iceberg_warehouse: str = Field(
+        description="Iceberg warehouse location.",
+    )
+
+    # ── MinIO / S3 ──────────────────────────────────────────
+
+    minio_endpoint: str = Field(
+        description="MinIO endpoint URL.",
+    )
+
+    minio_root_user: str = Field(
+        description="MinIO root username.",
+    )
+
+    minio_root_password: str = Field(
+        description="MinIO root password.",
+    )
+
+    minio_bucket: str = Field(
+        description="MinIO bucket name.",
+    )
+
+    minio_secure: bool = Field(
+        default=False,
+        description="Enable HTTPS connection to MinIO.",
+    )
+
+
+# ── Singleton ───────────────────────────────────────────────
+
+settings = Settings()  # type: ignore[call-arg]

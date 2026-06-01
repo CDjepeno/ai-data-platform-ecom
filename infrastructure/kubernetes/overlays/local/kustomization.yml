@@ -1,0 +1,159 @@
+# overlays/local/kustomization.yml
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: ecom-local
+
+resources:
+  - namespace.yml
+  - configmap-env.yml
+  - ../../base/postgres/
+  - ../../base/minio/
+  - ../../base/valkey/
+  - ../../base/qdrant/
+  - ../../base/nessie/
+  - ../../base/trino/
+  - ../../base/semantic-layer/
+  - ../../base/fastapi/
+  - ../../base/nextjs/
+  - ../../base/etl-pipeline/
+  - ../../base/mcp/
+  - trino-configmap.yml
+
+images:
+  - name: ghcr.io/cdjepeno/ecom-fastapi
+    newName: ecom-fastapi
+    newTag: local
+  - name: ghcr.io/cdjepeno/ecom-semantic-layer
+    newName: ecom-semantic-layer
+    newTag: local
+  - name: ghcr.io/cdjepeno/ecom-nextjs
+    newName: ecom-nextjs
+    newTag: local
+  - name: ecom-etl
+    newTag: local
+  - name: ghcr.io/cdjepeno/ecom-mcp
+    newName: ecom-mcp
+    newTag: local
+
+patches:
+  - patch: |-
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata:
+        name: fastapi
+      spec:
+        replicas: 1
+        template:
+          spec:
+            imagePullSecrets: []
+            containers:
+              - name: fastapi
+                imagePullPolicy: Never
+    target:
+      kind: Deployment
+      name: fastapi
+
+  - patch: |-
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata:
+        name: nextjs
+      spec:
+        replicas: 1
+        template:
+          spec:
+            imagePullSecrets: []
+            containers:
+              - name: nextjs
+                imagePullPolicy: Never
+    target:
+      kind: Deployment
+      name: nextjs
+
+  - patch: |-
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata:
+        name: semantic-layer
+      spec:
+        replicas: 1
+        template:
+          spec:
+            imagePullSecrets: []
+            containers:
+              - name: semantic-layer
+                imagePullPolicy: Never
+    target:
+      kind: Deployment
+      name: semantic-layer
+
+  - patch: |-
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata:
+        name: mcp
+      spec:
+        replicas: 1
+        template:
+          spec:
+            imagePullSecrets: []
+            containers:
+              - name: mcp
+                imagePullPolicy: Never
+    target:
+      kind: Deployment
+      name: mcp
+
+
+  - path: ingress-patch.yml
+    target:
+      kind: Service
+      name: ingress-nginx-controller
+      namespace: ingress-nginx
+
+
+  - path: etl-patch.yml
+    target: 
+      kind: Job
+      name: etl-pipeline
+
+  - path: nessie-patch.yml
+    target:
+      kind: StatefulSet
+      name: nessie
+        
+  - path: semantic-layer-patch.yml
+    target:
+      kind: Deployment
+      name: semantic-layer
+        
+
+secretGenerator:
+- name: deepseek-secret
+  envs:
+  - env-local/.env.deepseek
+
+- name: etl-secret
+  envs:
+  - env-local/.env.etl
+
+- name: minio-secret
+  envs:
+  - env-local/.env.minio
+
+- name: openai-secret
+  envs:
+  - env-local/.env.openai
+  
+- name: postgres-secret
+  envs:
+  - env-local/.env.postgres 
+
+- name: mcp-slack-secret
+  envs:
+    - env-local/.env.slack
+
+generatorOptions:
+ disableNameSuffixHash: true
+
