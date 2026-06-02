@@ -187,6 +187,11 @@ jobs:
             --namespace ecom-pre-prod \
             --ignore-not-found=true
 
+          # Delete immutable Job before applying
+          kubectl delete job etl-pipeline \
+            --namespace ecom-pre-prod \
+            --ignore-not-found=true
+
           cd $GITHUB_WORKSPACE/${OVERLAY}
           
           # Show current images before update

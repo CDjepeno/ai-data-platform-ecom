@@ -21,6 +21,7 @@ resources:
   - ../../base/etl-pipeline/
   - ../../base/mcp/
   - trino-configmap.yml
+  - dbt-profiles-configmap.yml
 
   # [NOTE] NO postgres/ — using OVH Managed PostgreSQL (Terraform)
   # [NOTE] NO minio/ — using OVH Object Storage S3 (Terraform)
