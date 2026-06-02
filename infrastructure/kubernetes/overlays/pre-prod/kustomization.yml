@@ -10,6 +10,7 @@ namespace: ecom-pre-prod
 resources:
   - namespace.yml
   - configmap-env.yml
+  - configmap-env.yml
   - ../../base/valkey/
   - ../../base/qdrant/
   - ../../base/nessie/
