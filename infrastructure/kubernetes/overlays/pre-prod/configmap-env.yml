@@ -45,8 +45,8 @@ data:
   # -- Postgres — [PRE-PROD] OVH Managed PostgreSQL
   # Host injected from Terraform output via CI/CD
   # Do NOT hardcode here — use secretGenerator for credentials
-  POSTGRES_PORT: "5432"
-  POSTGRES_DB: "ecom_db"
+  POSTGRES_PORT: "20184"
+  POSTGRES_DB: "defaultdb"
 
   # -- App config
   LOG_LEVEL: "WARNING"
@@ -58,3 +58,5 @@ data:
   # -- Frontend — [PRE-PROD] real public URL
   # Update with your actual OVHCloud domain
   NEXT_PUBLIC_API_URL: "https://api.ecom-preprod.yourdomain.com/api"
+
+  MINIO_BUCKET: "ecom-platform-warehouse-pre-prod"

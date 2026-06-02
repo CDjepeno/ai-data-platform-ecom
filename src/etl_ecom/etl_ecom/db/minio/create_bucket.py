@@ -1,3 +1,4 @@
+from etl_ecom.db.db_config import settings
 from etl_ecom.db.engine import get_minio_client
 from etl_ecom.utils.logger import get_logger
 from botocore.exceptions import ClientError
@@ -7,7 +8,7 @@ logger = get_logger(__name__)
 
 def create_bucket():
     s3_client = get_minio_client()
-    bucket = "ecom-etl"
+    bucket = settings.minio_bucket
     try:
         s3_client.head_bucket(Bucket=bucket)
         logger.info(f"🪣 Bucket already exists: {bucket}")

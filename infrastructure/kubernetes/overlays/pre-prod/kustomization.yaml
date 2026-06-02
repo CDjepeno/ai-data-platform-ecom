@@ -10,7 +10,6 @@ namespace: ecom-pre-prod
 resources:
   - namespace.yml
   - configmap-env.yml
-  - configmap-env.yml
   - ../../base/valkey/
   - ../../base/qdrant/
   - ../../base/nessie/
@@ -110,6 +109,22 @@ patches:
       kind: Deployment
       name: mcp
 
+  - patch: |-
+      apiVersion: batch/v1
+      kind: Job
+      metadata:
+        name: etl-pipeline
+      spec:
+        template:
+          spec:
+            imagePullSecrets:
+              - name: ghcr-secret
+            containers:
+              - name: etl
+                imagePullPolicy: Always
+    target:
+      kind: Job
+      name: etl-pipeline
 
 generatorOptions:
   disableNameSuffixHash: true
