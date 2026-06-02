@@ -138,6 +138,7 @@ jobs:
           # Postgres
           kubectl create secret generic postgres-secret \
             --namespace ecom-pre-prod \
+            --from-literal=POSTGRES_USER="${{ secrets.POSTGRES_USER }}" \
             --from-literal=POSTGRES_HOST="${{ secrets.POSTGRES_HOST }}" \
             --from-literal=POSTGRES_PASSWORD="${{ secrets.POSTGRES_PASSWORD }}" \
             --from-literal=POSTGRES_URL="${{ secrets.POSTGRES_URL_PRE_PROD }}" \
