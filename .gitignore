@@ -60,3 +60,4 @@ grafana/plugins/
 *.tfstate.backup
 .terraform/
 bin/act
+.claude

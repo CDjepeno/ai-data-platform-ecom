@@ -20,9 +20,9 @@ spec:
         - name: ghcr-secret
       
       volumes:
-          - name: dbt-profiles
-            configMap:
-              name: dbt-profiles
+        - name: dbt-profiles
+          configMap:
+            name: dbt-profiles
 
       containers:
       - name: semantic-layer
