@@ -21,6 +21,8 @@ spec:
             - secretRef:
                 name: openai-secret
             - secretRef:
+                name: postgres-secret
+            - secretRef:
                 name: minio-secret
             - secretRef:
                 name: etl-secret
