@@ -6,6 +6,10 @@ on:
     branches: [pre-prod]
     types: [completed]
   workflow_dispatch:
+    inputs:
+      image_tag:
+        description: 'Image tag to deploy (required for manual runs)'
+        required: true
 
 jobs:
   deploy:
@@ -24,6 +28,8 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
 
       - name: Download CI metadata
         uses: actions/download-artifact@v4
@@ -36,15 +42,17 @@ jobs:
       - name: Read image tag
         id: read-tag
         run: |
-          if [[ -f "image-tag.txt" ]]; then
+          if [[ -n "${{ github.event.inputs.image_tag }}" ]]; then
+            IMAGE_TAG="${{ github.event.inputs.image_tag }}"
+            echo "image-tag=$IMAGE_TAG" >> $GITHUB_OUTPUT
+            echo "Using manual image tag: $IMAGE_TAG"
+          elif [[ -f "image-tag.txt" ]]; then
             IMAGE_TAG=$(cat image-tag.txt)
             echo "image-tag=$IMAGE_TAG" >> $GITHUB_OUTPUT
             echo "Using image tag from CI: $IMAGE_TAG"
           else
-            # Fallback to workflow_run head_sha if artifact not found
-            IMAGE_TAG="${{ github.event.workflow_run.head_sha }}"
-            echo "image-tag=$IMAGE_TAG" >> $GITHUB_OUTPUT
-            echo "⚠️  Artifact not found, using workflow_run.head_sha: $IMAGE_TAG"
+            echo "❌ No image tag found — artifact missing and no manual input provided"
+            exit 1
           fi
 
       - name: Log in to GitHub Container Registry
@@ -136,6 +144,7 @@ jobs:
           # Postgres
           kubectl create secret generic postgres-secret \
             --namespace ecom-pre-prod \
+            --from-literal=POSTGRES_USER="${{ secrets.POSTGRES_USER }}" \
             --from-literal=POSTGRES_HOST="${{ secrets.POSTGRES_HOST }}" \
             --from-literal=POSTGRES_PASSWORD="${{ secrets.POSTGRES_PASSWORD }}" \
             --from-literal=POSTGRES_URL="${{ secrets.POSTGRES_URL_PRE_PROD }}" \
@@ -161,6 +170,7 @@ jobs:
             --from-literal=AWS_ACCESS_KEY_ID="${{ secrets.AWS_ACCESS_KEY_ID }}" \
             --from-literal=AWS_SECRET_ACCESS_KEY="${{ secrets.AWS_SECRET_ACCESS_KEY }}" \
             --from-literal=WAREHOUSE_ENDPOINT="${{ secrets.WAREHOUSE_ENDPOINT }}" \
+            --from-literal=MINIO_BUCKET="${{ secrets.MINIO_BUCKET }}" \
             --dry-run=client -o yaml | kubectl apply -f -
 
           # DeepSeek
@@ -196,6 +206,8 @@ jobs:
           kubectl delete job etl-pipeline \
             --namespace ecom-pre-prod \
             --ignore-not-found=true
+
+          cd $GITHUB_WORKSPACE/${OVERLAY}
 
           kustomize edit set image \
             ghcr.io/cdjepeno/ecom-fastapi=ghcr.io/cdjepeno/ecom-fastapi:${TAG} \

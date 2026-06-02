@@ -61,3 +61,4 @@ grafana/plugins/
 .terraform/
 bin/act
 .claude
+CLAUDE.md

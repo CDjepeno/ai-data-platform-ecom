@@ -29,6 +29,9 @@ COPY pyproject.toml poetry.lock /app/
 # Install dependencies
 RUN poetry install --no-root
 
+# Create required directories
+RUN mkdir -p /app/warehouse
+
 # Copy source code
 COPY . .
 
