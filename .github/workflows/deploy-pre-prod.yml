@@ -188,7 +188,12 @@ jobs:
             --ignore-not-found=true
 
           cd $GITHUB_WORKSPACE/${OVERLAY}
-
+          
+          # Show current images before update
+          echo "Current images in kustomization:"
+          grep -A5 "images:" kustomization.yml || echo "No images section found"
+          
+          # Update images
           kustomize edit set image \
             ghcr.io/cdjepeno/ecom-fastapi=ghcr.io/cdjepeno/ecom-fastapi:${TAG} \
             ghcr.io/cdjepeno/ecom-semantic-layer=ghcr.io/cdjepeno/ecom-semantic-layer:${TAG} \
@@ -198,7 +203,8 @@ jobs:
 
           cd $GITHUB_WORKSPACE
           kubectl apply -k ${OVERLAY}
-
+          
+          # Wait for rollout
           kubectl rollout status deployment \
             --namespace ecom-pre-prod \
             --timeout=300s
