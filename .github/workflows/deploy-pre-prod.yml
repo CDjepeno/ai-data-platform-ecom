@@ -24,6 +24,8 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
 
       - name: Download CI metadata
         uses: actions/download-artifact@v4
@@ -196,6 +198,8 @@ jobs:
           kubectl delete job etl-pipeline \
             --namespace ecom-pre-prod \
             --ignore-not-found=true
+
+          cd $GITHUB_WORKSPACE/${OVERLAY}
 
           kustomize edit set image \
             ghcr.io/cdjepeno/ecom-fastapi=ghcr.io/cdjepeno/ecom-fastapi:${TAG} \
