@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: trino-catalog
+  # No namespace — Kustomize injects it
+data:
+  iceberg.properties: |
+    connector.name=iceberg
+    iceberg.catalog.type=nessie
+    iceberg.nessie-catalog.uri=http://nessie:19120/api/v1
+    iceberg.nessie-catalog.ref=main
+    iceberg.nessie-catalog.default-warehouse-dir=s3://ecom-platform-warehouse-pre-prod/warehouse
+    fs.native-s3.enabled=true
+    s3.endpoint=https://s3.gra.io.cloud.ovh.net
+    s3.path-style-access=true
+    s3.region=gra

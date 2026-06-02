@@ -181,9 +181,12 @@ jobs:
         run: |
           TAG="${{ steps.read-tag.outputs.image-tag }}"
           OVERLAY="infrastructure/kubernetes/overlays/pre-prod"
-          
-          echo "📦 Deploying with image tag: $TAG"
-          
+
+          # Delete immutable Job before applying
+          kubectl delete job etl-pipeline \
+            --namespace ecom-pre-prod \
+            --ignore-not-found=true
+
           cd $GITHUB_WORKSPACE/${OVERLAY}
           
           # Show current images before update
@@ -194,15 +197,10 @@ jobs:
           kustomize edit set image \
             ghcr.io/cdjepeno/ecom-fastapi=ghcr.io/cdjepeno/ecom-fastapi:${TAG} \
             ghcr.io/cdjepeno/ecom-semantic-layer=ghcr.io/cdjepeno/ecom-semantic-layer:${TAG} \
+            ghcr.io/cdjepeno/ecom-nextjs=ghcr.io/cdjepeno/ecom-nextjs:${TAG} \
             ghcr.io/cdjepeno/ecom-mcp=ghcr.io/cdjepeno/ecom-mcp:${TAG} \
             ghcr.io/cdjepeno/ecom-pipeline=ghcr.io/cdjepeno/ecom-pipeline:${TAG}
-          
-          # Verify mutation
-          echo ""
-          echo "Updated images in kustomization:"
-          grep -A5 "images:" kustomization.yml
-          
-          # Apply
+
           cd $GITHUB_WORKSPACE
           kubectl apply -k ${OVERLAY}
           
@@ -210,6 +208,8 @@ jobs:
           kubectl rollout status deployment \
             --namespace ecom-pre-prod \
             --timeout=300s
+
+
 
       - name: Notify Slack on success
         if: success()
