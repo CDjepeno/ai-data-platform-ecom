@@ -142,6 +142,11 @@ jobs:
           tags: |
             ghcr.io/cdjepeno/ecom-mcp:${{ steps.set-tag.outputs.image-tag }}
             ghcr.io/cdjepeno/ecom-mcp:latest
+      
+      - name: Create image tag file
+        run: |
+          echo "${{ steps.set-tag.outputs.image-tag }}" > ${{ github.workspace }}/image-tag.txt
+          echo "${{ github.run_id }}" > ${{ github.workspace }}/ci-run-id.txt
 
       - name: Save image metadata as artifact
         uses: actions/upload-artifact@v4
@@ -150,11 +155,6 @@ jobs:
           path: |
             ${{ github.workspace }}/image-tag.txt
           retention-days: 1
-      
-      - name: Create image tag file
-        run: |
-          echo "${{ steps.set-tag.outputs.image-tag }}" > ${{ github.workspace }}/image-tag.txt
-          echo "${{ github.run_id }}" > ${{ github.workspace }}/ci-run-id.txt
 
       - name: Notify Slack on success
         if: success() && github.ref == 'refs/heads/pre-prod'
