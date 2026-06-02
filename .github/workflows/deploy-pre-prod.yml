@@ -192,6 +192,11 @@ jobs:
             --namespace ecom-pre-prod \
             --ignore-not-found=true
 
+          # Delete immutable Job before applying
+          kubectl delete job etl-pipeline \
+            --namespace ecom-pre-prod \
+            --ignore-not-found=true
+
           kustomize edit set image \
             ghcr.io/cdjepeno/ecom-fastapi=ghcr.io/cdjepeno/ecom-fastapi:${TAG} \
             ghcr.io/cdjepeno/ecom-semantic-layer=ghcr.io/cdjepeno/ecom-semantic-layer:${TAG} \
