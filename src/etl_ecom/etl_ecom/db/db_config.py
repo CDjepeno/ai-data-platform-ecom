@@ -39,7 +39,6 @@ class Settings(BaseSettings):
     )
 
     postgres_port: int = Field(
-        default=5432,
         gt=0,
         alias="PG_PORT",
         description="PostgreSQL port.",
@@ -85,19 +84,18 @@ class Settings(BaseSettings):
     # ── MinIO / S3 ──────────────────────────────────────────
 
     minio_endpoint: str = Field(
+        validation_alias="WAREHOUSE_ENDPOINT",
         description="MinIO endpoint URL.",
     )
 
     minio_root_user: str = Field(
+        validation_alias="AWS_ACCESS_KEY_ID",
         description="MinIO root username.",
     )
 
     minio_root_password: str = Field(
+        validation_alias="AWS_SECRET_ACCESS_KEY",
         description="MinIO root password.",
-    )
-
-    minio_bucket: str = Field(
-        description="MinIO bucket name.",
     )
 
     minio_secure: bool = Field(
