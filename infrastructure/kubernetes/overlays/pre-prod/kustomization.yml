@@ -10,6 +10,7 @@ namespace: ecom-pre-prod
 resources:
   - namespace.yml
   - configmap-env.yml
+  - configmap-env.yml
   - ../../base/valkey/
   - ../../base/qdrant/
   - ../../base/nessie/
@@ -19,6 +20,8 @@ resources:
   - ../../base/nextjs/
   - ../../base/etl-pipeline/
   - ../../base/mcp/
+  - trino-configmap.yml
+
   # [NOTE] NO postgres/ — using OVH Managed PostgreSQL (Terraform)
   # [NOTE] NO minio/ — using OVH Object Storage S3 (Terraform)
 
