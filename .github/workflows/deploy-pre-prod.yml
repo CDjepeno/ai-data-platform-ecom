@@ -24,6 +24,8 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
 
       - name: Download CI metadata
         uses: actions/download-artifact@v4
@@ -136,6 +138,7 @@ jobs:
           # Postgres
           kubectl create secret generic postgres-secret \
             --namespace ecom-pre-prod \
+            --from-literal=POSTGRES_USER="${{ secrets.POSTGRES_USER }}" \
             --from-literal=POSTGRES_HOST="${{ secrets.POSTGRES_HOST }}" \
             --from-literal=POSTGRES_PASSWORD="${{ secrets.POSTGRES_PASSWORD }}" \
             --from-literal=POSTGRES_URL="${{ secrets.POSTGRES_URL_PRE_PROD }}" \
@@ -161,6 +164,7 @@ jobs:
             --from-literal=AWS_ACCESS_KEY_ID="${{ secrets.AWS_ACCESS_KEY_ID }}" \
             --from-literal=AWS_SECRET_ACCESS_KEY="${{ secrets.AWS_SECRET_ACCESS_KEY }}" \
             --from-literal=WAREHOUSE_ENDPOINT="${{ secrets.WAREHOUSE_ENDPOINT }}" \
+            --from-literal=MINIO_BUCKET="${{ secrets.MINIO_BUCKET }}" \
             --dry-run=client -o yaml | kubectl apply -f -
 
           # DeepSeek
@@ -196,6 +200,8 @@ jobs:
           kubectl delete job etl-pipeline \
             --namespace ecom-pre-prod \
             --ignore-not-found=true
+
+          cd $GITHUB_WORKSPACE/${OVERLAY}
 
           kustomize edit set image \
             ghcr.io/cdjepeno/ecom-fastapi=ghcr.io/cdjepeno/ecom-fastapi:${TAG} \
