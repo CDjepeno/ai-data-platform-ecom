@@ -45,7 +45,7 @@ data:
   # -- Postgres — [PRE-PROD] OVH Managed PostgreSQL
   # Host injected from Terraform output via CI/CD
   # Do NOT hardcode here — use secretGenerator for credentials
-  PG_PORT: "20184"
+  POSTGRES_PORT: "20184"
   POSTGRES_DB: "defaultdb"
 
   # -- App config
