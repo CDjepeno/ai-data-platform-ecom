@@ -126,6 +126,5 @@ patches:
       kind: Job
       name: etl-pipeline
 
-
 generatorOptions:
   disableNameSuffixHash: true
