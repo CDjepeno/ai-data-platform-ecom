@@ -8,11 +8,11 @@ spec:
     spec:
       restartPolicy: Never
       imagePullSecrets:
-        - name: ghcr-pull-secret
+        - name: ghcr-secret
       containers:
         - name: etl
           image: ghcr.io/cdjepeno/ecom-pipeline
-          imagePullPolicy: Never 
+          imagePullPolicy: IfNotPresent
           command: ["python", "-m", "etl_ecom.pipeline"]
 
           envFrom:
