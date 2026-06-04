@@ -98,6 +98,10 @@ class Settings(BaseSettings):
         description="MinIO root password.",
     )
 
+    minio_bucket: str = Field(
+        description="MinIO bucket name.",
+    )
+
     minio_secure: bool = Field(
         default=False,
         description="Enable HTTPS connection to MinIO.",
