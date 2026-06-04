@@ -102,6 +102,11 @@ class Settings(BaseSettings):
         description="MinIO bucket name.",
     )
 
+    minio_region: str = Field(
+        default="gra",
+        description="S3-compatible storage region.",
+    )
+
     minio_secure: bool = Field(
         default=False,
         description="Enable HTTPS connection to MinIO.",

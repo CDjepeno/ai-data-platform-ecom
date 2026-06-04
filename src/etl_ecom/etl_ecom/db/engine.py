@@ -17,6 +17,7 @@ def get_minio_client():
         endpoint_url=settings.minio_endpoint,
         aws_access_key_id=settings.minio_root_user,
         aws_secret_access_key=settings.minio_root_password,
+        region_name=settings.minio_region,
     )
 
 
