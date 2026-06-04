@@ -60,3 +60,4 @@ data:
   NEXT_PUBLIC_API_URL: "https://api.ecom-preprod.yourdomain.com/api"
 
   MINIO_BUCKET: "ecom-platform-warehouse-pre-prod"
+  MINIO_REGION: "gra"
