@@ -27,6 +27,11 @@ spec:
             - secretRef:
                 name: etl-secret
 
+          volumeMounts:
+            - name: ovh-cert
+              mountPath: /app/certs
+              readOnly: true
+
           resources:
             requests:
               memory: "256Mi"
@@ -34,3 +39,8 @@ spec:
             limits:
               memory: "512Mi"
               cpu: "500m"
+
+      volumes:
+        - name: ovh-cert
+          secret:
+            secretName: ovh-postgres-cert
