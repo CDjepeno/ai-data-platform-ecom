@@ -27,7 +27,8 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
-          git checkout pre-prod
+          git fetch origin pre-prod || true
+          git checkout -B pre-prod origin/pre-prod 2>/dev/null || git checkout -b pre-prod
           git reset --hard origin/dev
           # No [skip ci] — CI must run and build images for this SHA
           git push origin pre-prod --force-with-lease
