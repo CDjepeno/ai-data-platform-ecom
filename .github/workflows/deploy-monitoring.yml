@@ -1,13 +1,10 @@
 name: Deploy Monitoring
 
 on:
-  push:
-    branches:
-      - pre-prod
-    paths:
-      - 'infrastructure/kubernetes/base/monitoring/**'
-      - '.github/workflows/deploy-monitoring.yml'
-      - 'infrastructure/kubernetes/**/monitoring/**'
+  workflow_run:
+    workflows: ["Deploy to pre-prod"]
+    branches: [pre-prod]
+    types: [completed]
   
   workflow_dispatch:
     inputs:
@@ -19,6 +16,11 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+
+     # Same guard pattern as your deploy-pre-prod — only run on success
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      github.event.workflow_run.conclusion == 'success'
 
     steps:
       - uses: actions/checkout@v4
