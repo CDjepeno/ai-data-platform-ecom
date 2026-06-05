@@ -19,14 +19,17 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
 
+     # Same guard pattern as your deploy-pre-prod — only run on success
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      github.event.workflow_run.conclusion == 'success'
+
     steps:
       - uses: actions/checkout@v4
 
       - uses: azure/setup-kubectl@v4
 
       - uses: azure/setup-helm@v4
-
-      
 
       - name: Configure kubeconfig
         run: |
@@ -50,6 +53,15 @@ jobs:
         run: |
           kubectl create namespace monitoring \
             --dry-run=client -o yaml | kubectl apply -f -
+      
+      - name: Provision Grafana credentials
+        run: |
+          kubectl create secret generic grafana-admin-credentials \
+            --namespace monitoring \
+            --from-literal=admin-user=admin \
+            --from-literal=admin-password="${{ secrets.GRAFANA_ADMIN_PASSWORD }}" \
+            --dry-run=client -o yaml | kubectl apply -f -
+
 
       - name: Add Helm repo
         run: |
@@ -65,9 +77,13 @@ jobs:
             --create-namespace \
             -f infrastructure/kubernetes/base/monitoring/helm-values/prometheus-values.yml
 
-      - name: Apply Grafana ingress
+      - name: Install Gateway API CRDs
         run: |
-          kubectl apply -f infrastructure/kubernetes/base/monitoring/
+          kubectl apply -f https://github.com/kubernetes-sigs/gateway-api/releases/download/v1.2.0/standard-install.yaml
+
+      - name: Apply monitoring manifests
+        run: |
+          kubectl apply -k infrastructure/kubernetes/base/monitoring
 
       - name: Check pods
         run: |
