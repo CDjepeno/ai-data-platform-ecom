@@ -2,10 +2,12 @@ name: Deploy Monitoring
 
 on:
   workflow_run:
-    workflows: ["Deploy to pre-prod"]
+    workflows: ["CI"]
     branches: [pre-prod]
     types: [completed]
-  
+    paths:
+      - 'infrastructure/kubernetes/base/monitoring/**'
+
   workflow_dispatch:
     inputs:
       reason:
@@ -16,11 +18,6 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
-
-     # Same guard pattern as your deploy-pre-prod — only run on success
-    if: >-
-      github.event_name == 'workflow_dispatch' ||
-      github.event.workflow_run.conclusion == 'success'
 
     steps:
       - uses: actions/checkout@v4
@@ -48,7 +45,6 @@ jobs:
         run: |
           helm repo add prometheus-community \
             https://prometheus-community.github.io/helm-charts
-
           helm repo update
 
       - name: Deploy monitoring
@@ -58,6 +54,10 @@ jobs:
             --namespace monitoring \
             --create-namespace \
             -f infrastructure/kubernetes/base/monitoring/prometheus-values.yml
+
+      - name: Apply Grafana ingress
+        run: |
+          kubectl apply -f infrastructure/kubernetes/base/monitoring/monitoring-ingress.yml
 
       - name: Check pods
         run: |
