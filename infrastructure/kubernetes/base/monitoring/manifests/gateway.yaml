@@ -2,23 +2,27 @@ apiVersion: gateway.networking.k8s.io/v1
 kind: Gateway
 metadata:
   name: preprod
+  namespace: networking
 spec:
   gatewayClassName: traefik
-
-
   listeners:
-  - name: http
-    protocol: HTTP
-    port: 8000
-    hostname: "*.preprod.djepenodev.ink"
+    - name: http
+      protocol: HTTP
+      port: 8000
+      hostname: "*.preprod.djepenodev.ink"
+      allowedRoutes:
+        namespaces:
+          from: All
 
-  - name: https
-    protocol: HTTPS
-    port: 8443
-    hostname: "*.preprod.djepenodev.ink"
-
-    tls:
-      mode: Terminate
-      certificateRefs:
-      - kind: Secret
-        name: preprod-wildcard-tls
+    - name: https
+      protocol: HTTPS
+      port: 8443
+      hostname: "*.preprod.djepenodev.ink"
+      allowedRoutes:
+        namespaces:
+          from: All
+      tls:
+        mode: Terminate
+        certificateRefs:
+          - kind: Secret
+            name: preprod-wildcard-tls

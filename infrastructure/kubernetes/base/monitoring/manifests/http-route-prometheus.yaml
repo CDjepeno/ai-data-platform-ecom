@@ -1,19 +1,19 @@
 apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
 metadata:
-  name: grafana
+  name: prometheus
   namespace: monitoring
 spec:
   parentRefs:
     - name: preprod
       namespace: networking
   hostnames:
-    - grafana.preprod.djepenodev.ink
+    - prometheus.preprod.djepenodev.ink
   rules:
     - matches:
         - path:
             type: PathPrefix
             value: /
       backendRefs:
-        - name: monitoring-grafana
-          port: 80
+        - name: monitoring-kube-prometheus-prometheus
+          port: 9090
