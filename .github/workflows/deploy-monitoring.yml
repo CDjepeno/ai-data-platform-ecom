@@ -1,11 +1,26 @@
 name: Deploy Monitoring
 
 on:
+  workflow_run:
+    workflows: ["Deploy to pre-prod"]
+    branches: [pre-prod]
+    types: [completed]
+  
   workflow_dispatch:
+    inputs:
+      reason:
+        description: 'Reason for manual deploy'
+        required: false
+        default: 'Manual trigger'
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
+
+     # Same guard pattern as your deploy-pre-prod — only run on success
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      github.event.workflow_run.conclusion == 'success'
 
     steps:
       - uses: actions/checkout@v4
