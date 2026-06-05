@@ -1,2 +1,10 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
+resources:
+  - clusterissuer.yaml
+  - gateway-class.yaml
+  - gateway.yaml
+  - http-route.yaml
+  - traefik-config.yaml
+  - monitoring-ingress.yml
+  - prometheus-values.yml 
