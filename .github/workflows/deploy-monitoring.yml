@@ -1,7 +1,13 @@
 name: Deploy Monitoring
 
 on:
-  workflow_dispatch:
+ push:
+   branches:
+     - pre-prod
+   paths:
+      - 'infrastructure/kubernetes/base/monitoring/**'
+      - '.github/workflows/deploy-monitoring.yml'
+
 
 jobs:
   deploy:
