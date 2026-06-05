@@ -31,18 +31,20 @@ jobs:
 
       - uses: azure/setup-helm@v4
 
+      
+
+      - name: Configure kubeconfig
+        run: |
+          mkdir -p ~/.kube
+          echo "${{ secrets.KUBECONFIG_PRE_PROD }}" | base64 -d > ~/.kube/config
+
       - name: Provision Kubernetes secrets
         run: |
           # Cloudflare API token for cert-manager DNS-01 challenge
           kubectl create secret generic cloudflare-api-token \
             --namespace cert-manager \
             --from-literal=api-token="${{ secrets.CLOUDFLARE_API_TOKEN }}" \
-            --dry-run=client -o yaml | kubectl apply -f 
-
-      - name: Configure kubeconfig
-        run: |
-          mkdir -p ~/.kube
-          echo "${{ secrets.KUBECONFIG_PRE_PROD }}" | base64 -d > ~/.kube/config
+            --dry-run=client -o yaml | kubectl apply -f -
 
       - name: Verify cluster
         run: |
