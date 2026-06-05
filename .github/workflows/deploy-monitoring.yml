@@ -1,11 +1,11 @@
 name: Deploy Monitoring
 
 on:
-  workflow_run:
-    workflows: ["Deploy to pre-prod"]
+  push:
     branches: [pre-prod]
-    types: [completed]
-  
+    paths:
+      - 'infrastructure/kubernetes/base/monitoring/**'
+
   workflow_dispatch:
     inputs:
       reason:
@@ -48,7 +48,6 @@ jobs:
         run: |
           helm repo add prometheus-community \
             https://prometheus-community.github.io/helm-charts
-
           helm repo update
 
       - name: Deploy monitoring
@@ -58,6 +57,10 @@ jobs:
             --namespace monitoring \
             --create-namespace \
             -f infrastructure/kubernetes/base/monitoring/prometheus-values.yml
+
+      - name: Apply Grafana ingress
+        run: |
+          kubectl apply -f infrastructure/kubernetes/base/monitoring/monitoring-ingress.yml
 
       - name: Check pods
         run: |
