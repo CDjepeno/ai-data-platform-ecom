@@ -31,8 +31,6 @@ jobs:
 
       - uses: azure/setup-helm@v4
 
-      
-
       - name: Configure kubeconfig
         run: |
           mkdir -p ~/.kube
@@ -55,6 +53,15 @@ jobs:
         run: |
           kubectl create namespace monitoring \
             --dry-run=client -o yaml | kubectl apply -f -
+      
+      - name: Provision Grafana credentials
+        run: |
+          kubectl create secret generic grafana-admin-credentials \
+            --namespace monitoring \
+            --from-literal=admin-user=admin \
+            --from-literal=admin-password="${{ secrets.GRAFANA_ADMIN_PASSWORD }}" \
+            --dry-run=client -o yaml | kubectl apply -f -
+
 
       - name: Add Helm repo
         run: |
