@@ -68,7 +68,11 @@ jobs:
             prometheus-community/kube-prometheus-stack \
             --namespace monitoring \
             --create-namespace \
-            -f infrastructure/kubernetes/base/monitoring/prometheus-values.yml
+            -f infrastructure/kubernetes/base/monitoring/helm-values/prometheus-values.yml
+
+      - name: Apply Grafana ingress
+        run: |
+          kubectl apply -f infrastructure/kubernetes/base/monitoring/
 
       - name: Apply Grafana ingress
         run: |
