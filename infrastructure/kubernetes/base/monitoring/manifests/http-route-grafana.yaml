@@ -5,8 +5,8 @@ metadata:
   namespace: monitoring
 spec:
   parentRefs:
-    - name: traefik-gateway
-      namespace: monitoring
+    - name: preprod
+      namespace: networking
   hostnames:
     - grafana.preprod.djepenodev.ink
   rules:
