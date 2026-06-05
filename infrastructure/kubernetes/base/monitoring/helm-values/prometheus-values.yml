@@ -1,6 +1,6 @@
 grafana:
   admin:
-    existingSecret: grafana-admin        # Secret holding the credentials.
+    existingSecret: grafana-admin-credentials        # Secret holding the credentials.
     userKey: admin-user
     passwordKey: admin-password
 
