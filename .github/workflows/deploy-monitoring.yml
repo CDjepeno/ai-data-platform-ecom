@@ -26,6 +26,14 @@ jobs:
 
       - uses: azure/setup-helm@v4
 
+      - name: Provision Kubernetes secrets
+        run: |
+          # Cloudflare API token for cert-manager DNS-01 challenge
+          kubectl create secret generic cloudflare-api-token \
+            --namespace cert-manager \
+            --from-literal=api-token="${{ secrets.CLOUDFLARE_API_TOKEN }}" \
+            --dry-run=client -o yaml | kubectl apply -f 
+
       - name: Configure kubeconfig
         run: |
           mkdir -p ~/.kube
@@ -57,7 +65,7 @@ jobs:
 
       - name: Apply Grafana ingress
         run: |
-          kubectl apply -f infrastructure/kubernetes/base/monitoring/monitoring-ingress.yml
+          kubectl apply -f infrastructure/kubernetes/base/monitoring/
 
       - name: Check pods
         run: |
