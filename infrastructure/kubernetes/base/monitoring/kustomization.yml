@@ -7,4 +7,5 @@ resources:
   - manifests/gateway.yaml
   - manifests/http-route-nginx.yaml
   - manifests/http-route-grafana.yaml
+  - manifests/http-route-prometheus.yaml
   - manifests/traefik-config.yaml
