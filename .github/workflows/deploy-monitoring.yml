@@ -17,6 +17,11 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
 
+     # Same guard pattern as your deploy-pre-prod — only run on success
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      github.event.workflow_run.conclusion == 'success'
+
     steps:
       - uses: actions/checkout@v4
 
