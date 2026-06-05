@@ -1,69 +1,44 @@
-
 grafana:
   enabled: true
-  adminPassword: "admin"          # override via Secret in prod
+
+  adminPassword: admin
+
   service:
     type: ClusterIP
-  ingress:
-    enabled: true
-    ingressClassName: nginx
-    hosts:
-      - grafana.ecom.local
-  # Preload dashboards automatically
-  dashboardProviders:
-    dashboardproviders.yaml:
-      apiVersion: 1
-      providers:
-        - name: default
-          folder: "Ecom Platform"
-          type: file
-          options:
-            path: /var/lib/grafana/dashboards/default
 
 prometheus:
   enabled: true
+
   prometheusSpec:
-    # Scrape interval — 15s is standard
     scrapeInterval: 15s
     evaluationInterval: 15s
-    # Allow scraping from all namespaces
+
     serviceMonitorSelectorNilUsesHelmValues: false
     podMonitorSelectorNilUsesHelmValues: false
+
     storageSpec:
       volumeClaimTemplate:
         spec:
-          accessModes: ["ReadWriteOnce"]
+          accessModes:
+            - ReadWriteOnce
           resources:
             requests:
               storage: 2Gi
 
 alertmanager:
   enabled: true
-  config:
-    global:
-      resolve_timeout: 5m
-    route:
-      group_by: ["alertname", "namespace"]
-      receiver: slack-data-alert
-    receivers:
-      - name: slack-data-alert
-        slack_configs:
-          - api_url: "${SLACK_WEBHOOK_URL}"   # injected from secret
-            channel: "#data-alert"
-            title: "{{ .GroupLabels.alertname }}"
-            text: "{{ range .Alerts }}{{ .Annotations.description }}{{ end }}"
 
-# Reduce resource usage for local Kind
 kubeStateMetrics:
   enabled: true
 
 nodeExporter:
   enabled: true
 
-# Disable components not needed locally
 kubeControllerManager:
   enabled: false
+
 kubeScheduler:
   enabled: false
+
 kubeEtcd:
   enabled: false
