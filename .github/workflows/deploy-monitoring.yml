@@ -70,13 +70,13 @@ jobs:
             --create-namespace \
             -f infrastructure/kubernetes/base/monitoring/helm-values/prometheus-values.yml
 
-      - name: Apply Grafana ingress
+      - name: Install Gateway API CRDs
         run: |
-          kubectl apply -f infrastructure/kubernetes/base/monitoring/
+          kubectl apply -f https://github.com/kubernetes-sigs/gateway-api/releases/download/v1.2.0/standard-install.yaml
 
-      - name: Apply Grafana ingress
+      - name: Apply monitoring manifests
         run: |
-          kubectl apply -f infrastructure/kubernetes/base/monitoring/
+          kubectl apply -k infrastructure/kubernetes/base/monitoring
 
       - name: Check pods
         run: |
