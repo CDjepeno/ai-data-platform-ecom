@@ -1,0 +1,51 @@
+# infrastructure/kubernetes/preprod/postgres-cluster.yaml
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: postgres-source
+  namespace: postgres
+spec:
+  # 3 instances = 1 primary + 2 replicas with automatic failover.
+  # WHY 3 for preprod: minimum viable HA. The operator runs a leader-election
+  # algorithm; with 2 replicas, you survive losing any single node.
+  instances: 3
+
+  # Pin the Postgres image. WHY pin: reproducible bootstrap; ":latest" can
+  # introduce a major-version upgrade silently on a pod reschedule (disaster).
+  imageName: ghcr.io/cloudnative-pg/postgresql:16.4
+
+  # --- Bootstrap: initial state of a brand-new cluster ---
+  bootstrap:
+    initdb:
+      database: ecom              # Application database created at bootstrap.
+      owner: ecom_app             # Owner role; matches the Secret username.
+      secret:
+        name: postgres-source-credentials   # From step 2.
+      dataChecksums: true         # Silently detects I/O corruption. Cannot be
+                                  # changed later — must enable at bootstrap.
+      encoding: UTF8
+
+      # Run your SQL at bootstrap, in lexical order, as ecom_app on the ecom db.
+      # WHY postInitApplicationSQLRefs vs postInitSQL: "Application" runs on
+      # YOUR db as the app user (correct for schema/seed). Plain postInitSQL
+      # runs as superuser on the 'postgres' db (wrong scope here).
+      postInitApplicationSQLRefs:
+        configMapRefs:
+          - name: postgres-source-init-sql
+            key: 01_init.sql
+          - name: postgres-source-init-sql
+            key: 02_seed.sql
+
+  # --- Storage: operator creates one PVC per instance ---
+  storage:
+    size: 5Gi
+    # storageClassName omitted -> uses k3s default (local-path on Hetzner).
+
+  # --- Resources: realistic floor for a preprod DB ---
+  # WHY explicit limits: predictable scheduling + no noisy-neighbor surprises.
+  resources:
+    requests:
+      memory: "512Mi"
+      cpu: "200m"
+    limits:
+      memory: "1Gi"
