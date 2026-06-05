@@ -1,7 +1,20 @@
 name: Deploy Monitoring
 
 on:
+  push:
+    branches:
+      - pre-prod
+    paths:
+      - 'infrastructure/kubernetes/base/monitoring/**'
+      - '.github/workflows/deploy-monitoring.yml'
+      - 'infrastructure/kubernetes/**/monitoring/**'
+  
   workflow_dispatch:
+    inputs:
+      reason:
+        description: 'Reason for manual deploy'
+        required: false
+        default: 'Manual trigger'
 
 jobs:
   deploy:
