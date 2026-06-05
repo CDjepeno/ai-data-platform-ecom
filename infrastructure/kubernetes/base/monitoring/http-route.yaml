@@ -11,7 +11,7 @@ spec:
     - preprod.djepenodev.ink
 
   rules:
-    - matches
+    - matches:
       - path:
         type: PathPrefix
         value: /

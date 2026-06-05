@@ -8,4 +8,3 @@ resources:
   - http-route.yaml
   - traefik-config.yaml
   - monitoring-ingress.yml
-  - prometheus-values.yml 
