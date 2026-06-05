@@ -1,0 +1,49 @@
+name: Deploy Monitoring
+
+on:
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: azure/setup-kubectl@v4
+
+      - uses: azure/setup-helm@v4
+
+      - name: Configure kubeconfig
+        run: |
+          mkdir -p ~/.kube
+          echo "${{ secrets.KUBECONFIG_PRE_PROD }}" | base64 -d > ~/.kube/config
+
+      - name: Verify cluster
+        run: |
+          kubectl get nodes
+          kubectl get pods -A
+
+      - name: Create monitoring namespace
+        run: |
+          kubectl create namespace monitoring \
+            --dry-run=client -o yaml | kubectl apply -f -
+
+      - name: Add Helm repo
+        run: |
+          helm repo add prometheus-community \
+            https://prometheus-community.github.io/helm-charts
+
+          helm repo update
+
+      - name: Deploy monitoring
+        run: |
+          helm upgrade --install monitoring \
+            prometheus-community/kube-prometheus-stack \
+            --namespace monitoring \
+            --create-namespace \
+            -f infrastructure/kubernetes/base/monitoring/prometheus-values.yml
+
+      - name: Check pods
+        run: |
+          kubectl get pods -n monitoring
