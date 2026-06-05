@@ -21,4 +21,4 @@ spec:
       mode: Terminate
       certificateRefs:
       - kind: Secret
-        name: preprod-tls
+        name: preprod-wildcard-tls
