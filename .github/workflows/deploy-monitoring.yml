@@ -19,6 +19,11 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
 
+     # Same guard pattern as your deploy-pre-prod — only run on success
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      github.event.workflow_run.conclusion == 'success'
+
     steps:
       - uses: actions/checkout@v4
 
@@ -64,6 +69,10 @@ jobs:
             --namespace monitoring \
             --create-namespace \
             -f infrastructure/kubernetes/base/monitoring/helm-values/prometheus-values.yml
+
+      - name: Apply Grafana ingress
+        run: |
+          kubectl apply -f infrastructure/kubernetes/base/monitoring/
 
       - name: Apply Grafana ingress
         run: |
