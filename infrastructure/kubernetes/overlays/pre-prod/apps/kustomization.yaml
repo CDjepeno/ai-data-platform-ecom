@@ -11,7 +11,7 @@ resources:
   - ../../../base/mcp/
   - dbt-profiles-configmap.yml
   - http-route-fastapi.yaml
-  - http-route-mcp.yaml
+  - http-route-nextjs.yaml
 
 # Tags updated automatically by GitHub Actions on every deploy.
 # NEVER edit these manually — CI owns these values.
