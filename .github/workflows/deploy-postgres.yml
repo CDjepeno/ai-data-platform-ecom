@@ -1,24 +1,44 @@
-
 ---
 name: Deploy PostgreSQL
 
-on:
+"on":
   push:
     branches:
       - pre-prod
+      # Temporary: enables iteration on the feature branch. Remove before merge.
+      - feat/kubernetes-terraform-deployment
     paths:
       - 'infrastructure/kubernetes/overlays/pre-prod/postgres-cluster.yaml'
       - 'infrastructure/kubernetes/base/postgres/**'
-
+      # Trigger when the workflow itself changes — useful for iteration:
+      - '.github/workflows/deploy-postgres.yml'
   workflow_dispatch:
+
+# Cancel in-flight runs when a new push arrives. WHY: a slower previous run
+# could overwrite changes from a newer one. concurrency:cancel-in-progress
+# is the GitHub-idiomatic way to enforce "only the latest run matters."
+concurrency:
+  group: deploy-postgres-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   deploy:
     name: Deploy PostgreSQL Cluster
     runs-on: ubuntu-latest
 
+    # Pin the runtime environment. WHY: GitHub treats "environment" as a
+    # protected scope with its own secrets, deployment history, and (optional)
+    # required reviewers. Tier 2 (stateful infra) deserves this guardrail.
+    environment: pre-prod
+
     permissions:
       contents: read
+
+    # Path used in multiple steps — declared once at job level for DRY.
+    # WHY env at job scope: same value, multiple steps, single source of truth.
+    # Change the path here and every step picks it up automatically.
+    env:
+      CLUSTER_MANIFEST: infrastructure/kubernetes/overlays/pre-prod/postgres-cluster.yaml
 
     steps:
       - name: Checkout repository
@@ -26,9 +46,16 @@ jobs:
 
       - name: Setup kubectl
         uses: azure/setup-kubectl@v4
+        # WHY pin a version: matrix-skew between kubectl client and server
+        # versions can produce subtle bugs. Pin within +/- 1 minor of k3s.
+        with:
+          version: 'v1.35.5'
 
       - name: Configure kubeconfig
         run: |
+          # Decode the base64-encoded kubeconfig stored as a repo secret.
+          # WHY base64: GitHub secrets are single-line strings; kubeconfig has
+          # newlines and YAML structure. Base64 makes it transit-safe.
           mkdir -p ~/.kube
           echo "${{ secrets.KUBECONFIG_PRE_PROD }}" | base64 -d > ~/.kube/config
           chmod 600 ~/.kube/config
@@ -39,20 +66,36 @@ jobs:
           kubectl get nodes
           kubectl get ns
 
-      - name: Verify CloudNativePG operator
+      - name: Verify CloudNativePG operator is healthy
         run: |
-          kubectl get pods -n cnpg-system
+          # Fail fast if the operator isn't ready — applying a Cluster CR
+          # against a missing operator would just hang the workflow timeout.
+          kubectl wait --for=condition=Available \
+            -n cnpg-system deployment/cnpg-controller-manager \
+            --timeout=60s
 
-      - name: Verify PostgreSQL namespace
+      - name: Verify postgres namespace and credentials
         run: |
+          # Sanity-check the Tier-1 bootstrap resources exist. If either is
+          # missing, the Cluster CR will fail with a confusing error — better
+          # to fail here with a clear message.
           kubectl get namespace postgres
+          kubectl get secret -n postgres postgres-source-credentials
+
+      - name: Show diff before applying
+        run: |
+          # WHY a dry-run diff: in Tier 2 (stateful infra), seeing what's
+          # about to change is invaluable. This step doesn't change anything
+          # but shows you exactly what apply would do.
+          # NOTE: kubectl diff exits non-zero when there ARE differences (by
+          # design), so "|| true" prevents failing the workflow here.
+          kubectl diff -f "$CLUSTER_MANIFEST" || true
 
       - name: Deploy PostgreSQL cluster
         run: |
-          kubectl apply \
-            -f infrastructure/kubernetes/overlays/pre-prod/postgres-cluster.yaml
+          kubectl apply -f "$CLUSTER_MANIFEST"
 
-      - name: Wait for PostgreSQL cluster
+      - name: Wait for PostgreSQL cluster to be Ready
         run: |
           kubectl wait \
             --for=condition=Ready \
@@ -61,15 +104,18 @@ jobs:
             --timeout=600s
 
       - name: Show PostgreSQL status
+        # WHY always(): we want the status output even if a previous step
+        # failed — that's exactly when we most need to see what's going on.
+        if: always()
         run: |
+          echo "=== Cluster ==="
           kubectl get cluster -n postgres
-
-          kubectl get pods \
-            -n postgres \
-            -o wide
-
-          kubectl get pvc \
-            -n postgres
-
-          kubectl get svc \
-            -n postgres
+          echo ""
+          echo "=== Pods ==="
+          kubectl get pods -n postgres -o wide
+          echo ""
+          echo "=== PVCs ==="
+          kubectl get pvc -n postgres
+          echo ""
+          echo "=== Services ==="
+          kubectl get svc -n postgres
