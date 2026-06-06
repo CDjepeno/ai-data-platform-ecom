@@ -1,32 +1,18 @@
-# overlays/pre-prod/kustomization.yml
-# Pre-prod overlay — mirrors prod topology with reduced resources.
-# Images are pinned to CI-built SHA tags, never :latest.
-# Secrets are injected via CI pipeline (GitHub Actions Secrets).
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 
-namespace: ecom-pre-prod
+namespace: ecom-preprod
 
 resources:
-  - namespace.yml
-  - configmap-env.yml
-  - ../../base/valkey/
-  - ../../base/qdrant/
-  - ../../base/nessie/
-  - ../../base/trino/
-  - ../../base/semantic-layer/
-  - ../../base/fastapi/
-  - ../../base/nextjs/
-  - ../../base/etl-pipeline/
-  - ../../base/mcp/
-  - trino-configmap.yml
+  - ../../../base/semantic-layer/
+  - ../../../base/fastapi/
+  - ../../../base/nextjs/
+  - ../../../base/etl-pipeline/
+  - ../../../base/mcp/
   - dbt-profiles-configmap.yml
 
-  # [NOTE] NO postgres/ — using OVH Managed PostgreSQL (Terraform)
-  # [NOTE] NO minio/ — using OVH Object Storage S3 (Terraform)
-
-# Tags updated automatically by GitHub Actions on every deploy
-# NEVER edit these manually — CI owns these values
+# Tags updated automatically by GitHub Actions on every deploy.
+# NEVER edit these manually — CI owns these values.
 images:
   - name: ghcr.io/cdjepeno/ecom-fastapi
     newTag: ci-managed
@@ -36,11 +22,10 @@ images:
     newTag: ci-managed
   - name: ghcr.io/cdjepeno/ecom-mcp
     newTag: ci-managed
-  - name: ghcr.io/cdjepeno/ecom-pipeline          # fix: was ecom-etl
+  - name: ghcr.io/cdjepeno/ecom-pipeline
     newTag: ci-managed
 
 patches:
-  # [PRE-PROD] Always pull from ghcr.io — never use cached local image
   - patch: |-
       apiVersion: apps/v1
       kind: Deployment
