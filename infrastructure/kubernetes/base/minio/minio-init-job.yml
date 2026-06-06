@@ -1,0 +1,41 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: minio-init
+spec:
+  # WHY ttlSecondsAfterFinished: Kubernetes Jobs are immutable — kubectl apply
+  # errors if the Job already exists. Auto-deleting 60s after completion means
+  # the next deploy finds nothing and recreates the Job cleanly.
+  ttlSecondsAfterFinished: 60
+  backoffLimit: 5
+  template:
+    spec:
+      restartPolicy: OnFailure
+      containers:
+        - name: mc
+          # Pin mc to match the MinIO server version.
+          # Check https://hub.docker.com/r/minio/mc/tags for latest RELEASE tag.
+          image: minio/mc:RELEASE.2025-04-22T22-12-26Z
+          command:
+            - /bin/sh
+            - -c
+            - |
+              # Retry until MinIO accepts connections. The Job and StatefulSet
+              # start in parallel — MinIO may not be ready immediately.
+              until mc alias set local http://minio:9000 \
+                    "$MINIO_ROOT_USER" "$MINIO_ROOT_PASSWORD"; do
+                echo "MinIO not ready, retrying in 3s..."
+                sleep 3
+              done
+              mc mb --ignore-existing local/ecom-etl
+          env:
+            - name: MINIO_ROOT_USER
+              valueFrom:
+                secretKeyRef:
+                  name: minio-secret
+                  key: AWS_ACCESS_KEY_ID
+            - name: MINIO_ROOT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: minio-secret
+                  key: AWS_SECRET_ACCESS_KEY
