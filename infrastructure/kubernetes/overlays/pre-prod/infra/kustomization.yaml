@@ -12,4 +12,7 @@ resources:
   - ../../../base/nessie/
   - ../../../base/trino/
   - trino-configmap.yml
+  - http-route-minio.yaml
+  - http-route-qdrant.yaml
+  - http-route-trino.yaml
 
