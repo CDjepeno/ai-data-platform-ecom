@@ -84,18 +84,30 @@ class Settings(BaseSettings):
     # ── MinIO / S3 ──────────────────────────────────────────
 
     minio_endpoint: str = Field(
-        validation_alias="WAREHOUSE_ENDPOINT",
+        validation_alias="MINIO_ENDPOINT",
         description="MinIO endpoint URL.",
     )
 
     minio_root_user: str = Field(
-        validation_alias="AWS_ACCESS_KEY_ID",
+        validation_alias="MINIO_ROOT_USER",
         description="MinIO root username.",
     )
 
     minio_root_password: str = Field(
-        validation_alias="AWS_SECRET_ACCESS_KEY",
+        validation_alias="MINIO_ROOT_PASSWORD",
         description="MinIO root password.",
+    )
+
+    # Bucket-user credentials used by Nessie / pyiceberg for catalog S3 access.
+    # These are distinct from the MinIO admin credentials above.
+    aws_access_key_id: str = Field(
+        validation_alias="AWS_ACCESS_KEY_ID",
+        description="S3 access key for Iceberg catalog (Nessie → MinIO).",
+    )
+
+    aws_secret_access_key: str = Field(
+        validation_alias="AWS_SECRET_ACCESS_KEY",
+        description="S3 secret key for Iceberg catalog (Nessie → MinIO).",
     )
 
     minio_bucket: str = Field(
@@ -103,7 +115,7 @@ class Settings(BaseSettings):
     )
 
     minio_region: str = Field(
-        default="gra",
+        default="us-east-1",
         description="S3-compatible storage region.",
     )
 

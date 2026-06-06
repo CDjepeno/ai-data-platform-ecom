@@ -17,8 +17,8 @@ spec:
   # --- Bootstrap: initial state of a brand-new cluster ---
   bootstrap:
     initdb:
-      database: ecom              # Application database created at bootstrap.
-      owner: ecom_app             # Owner role; matches the Secret username.
+      database: ecom_db              # Application database created at bootstrap.
+      owner: ecom_user             # Owner role; matches the Secret username.
       secret:
         name: postgres-source-credentials   # From step 2.
       dataChecksums: true         # Silently detects I/O corruption. Cannot be

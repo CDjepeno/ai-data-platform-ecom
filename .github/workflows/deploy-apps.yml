@@ -9,7 +9,7 @@ on:
   workflow_dispatch:
     inputs:
       image_tag:
-        description: 'Image tag to deploy (leave empty to use latest CI tag)'
+        description: "Image tag to deploy (leave empty to use latest CI tag)"
         required: false
 
 concurrency:
@@ -51,7 +51,7 @@ jobs:
       - name: Setup kubectl
         uses: azure/setup-kubectl@v4
         with:
-          version: 'v1.35.5'
+          version: "v1.35.5"
 
       - name: Setup kustomize
         uses: imranismail/setup-kustomize@v2

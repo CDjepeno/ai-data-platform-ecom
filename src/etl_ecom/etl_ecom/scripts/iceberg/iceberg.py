@@ -1,5 +1,6 @@
 from pyiceberg.catalog import load_catalog
 
+from etl_ecom.db.db_config import settings
 from etl_ecom.utils.logger import get_logger
 
 logger = get_logger(__name__)
@@ -16,8 +17,8 @@ def get_iceberg_catalog():
                 "warehouse": "s3://ecom-etl/warehouse",
                 "s3.endpoint": "http://minio:9000",
                 "s3.endpoint-override": "http://minio:9000",
-                "s3.access-key-id": "minioadmin",
-                "s3.secret-access-key": "minioadmin",
+                "s3.access-key-id": settings.aws_access_key_id,
+                "s3.secret-access-key": settings.aws_secret_access_key,
                 "s3.region": "us-east-1",
                 "client.region": "us-east-1",
                 # BOOLS
