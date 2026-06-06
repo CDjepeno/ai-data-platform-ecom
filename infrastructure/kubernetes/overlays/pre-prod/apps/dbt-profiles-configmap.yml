@@ -2,7 +2,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: dbt-profiles
-  # No namespace — kustomize injects ecom-pre-prod
+  # No namespace — kustomize injects ecom-preprod
 data:
   profiles.yml: |
     transformation:

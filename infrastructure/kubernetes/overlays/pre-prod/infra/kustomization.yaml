@@ -1,0 +1,15 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: ecom-preprod
+
+resources:
+  - namespace.yml
+  - configmap-env.yml
+  - ../../../base/minio/
+  - ../../../base/valkey/
+  - ../../../base/qdrant/
+  - ../../../base/nessie/
+  - ../../../base/trino/
+  - trino-configmap.yml
+
