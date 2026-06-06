@@ -12,6 +12,7 @@ resources:
   - ../../../base/nessie/
   - ../../../base/trino/
   - trino-configmap.yml
+  - trino-server-configmap.yml
   - http-route-minio.yaml
   - http-route-qdrant.yaml
   - http-route-trino.yaml
@@ -34,7 +35,7 @@ patches:
             volumes:
               - name: trino-server-config
                 configMap:
-                  name: trino-catalog
+                  name: trino-server-config
     target:
       kind: Deployment
       name: trino
