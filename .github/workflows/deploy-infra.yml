@@ -85,11 +85,20 @@ jobs:
         run: |
           kubectl apply -k infrastructure/kubernetes/overlays/pre-prod/infra/
 
-      - name: Wait for MinIO to be ready
+      - name: Restart configmap-dependent deployments
+        run: |
+          # WHY: ConfigMap changes alone don't trigger pod restarts in Kubernetes.
+          # Explicitly restarting ensures pods always pick up the latest config.
+          kubectl rollout restart deployment/trino -n ecom-preprod
+
+      - name: Wait for deployments to be ready
         run: |
           kubectl rollout status statefulset/minio \
             -n ecom-preprod \
             --timeout=120s
+          kubectl rollout status deployment/trino \
+            -n ecom-preprod \
+            --timeout=300s
 
       - name: Show infra status
         if: always()

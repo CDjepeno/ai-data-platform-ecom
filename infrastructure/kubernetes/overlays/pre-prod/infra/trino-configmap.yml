@@ -4,13 +4,6 @@ metadata:
   name: trino-catalog
   # No namespace — Kustomize injects it
 data:
-  config.properties: |
-    #single node install config
-    coordinator=true
-    node-scheduler.include-coordinator=true
-    http-server.http.port=8080
-    discovery.uri=http://localhost:8080
-    http-server.process-forwarded=true
   iceberg.properties: |
     connector.name=iceberg
     iceberg.catalog.type=nessie
