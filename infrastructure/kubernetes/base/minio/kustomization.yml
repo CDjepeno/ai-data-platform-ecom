@@ -4,3 +4,4 @@ resources:
   - minio-statefulset.yml
   - minio-service.yml
   - minio-init-job.yml
+  - http-route-minio.yaml
