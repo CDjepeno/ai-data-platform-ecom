@@ -3,7 +3,7 @@ kind: Ingress
 
 metadata:
   name: nextjs
-  namespace: ecom-pre-prod
+  namespace: ecom-preprod
 
 spec:
   ingressClassName: nginx

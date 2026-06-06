@@ -2,7 +2,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: ecom-config
-  namespace: ecom-pre-prod
+  namespace: ecom-preprod
 data:
   # -- Trino
   TRINO_HOST: "trino"
@@ -17,16 +17,15 @@ data:
   NESSIE_VERSION_STORE_TYPE: "ROCKSDB"
   NESSIE_VERSION_STORE_PERSIST_ROCKSDB_DATABASE_PATH: "/nessie-data"
 
-  # -- Iceberg / OVH Object Storage
-  # [PRE-PROD] uses OVH S3-compatible object storage instead of MinIO
-  ICEBERG_WAREHOUSE: "s3://ecom-platform-warehouse-pre-prod/warehouse"
+  # -- Iceberg / MinIO
+  ICEBERG_WAREHOUSE: "s3://ecom-etl/warehouse"
   NESSIE_CATALOG_DEFAULT_WAREHOUSE: "warehouse"
-  NESSIE_CATALOG_WAREHOUSES_WAREHOUSE_LOCATION: "s3://ecom-platform-warehouse-pre-prod/warehouse"
-  NESSIE_CATALOG_SERVICE_S3_DEFAULT_OPTIONS_ENDPOINT: "https://s3.eu-west-par.io.cloud.ovh.net"
+  NESSIE_CATALOG_WAREHOUSES_WAREHOUSE_LOCATION: "s3://ecom-etl/warehouse"
+  NESSIE_CATALOG_SERVICE_S3_DEFAULT_OPTIONS_ENDPOINT: "http://minio:9000"
   NESSIE_CATALOG_SERVICE_S3_DEFAULT_OPTIONS_PATH_STYLE_ACCESS: "true"
-  NESSIE_CATALOG_SERVICE_S3_DEFAULT_OPTIONS_REGION: "eu-west-par"
+  NESSIE_CATALOG_SERVICE_S3_DEFAULT_OPTIONS_REGION: "us-east-1"
   NESSIE_CATALOG_SERVICE_S3_DEFAULT_OPTIONS_AUTH_TYPE: "APPLICATION_GLOBAL"
-  AWS_REGION: "eu-west-par"
+  AWS_REGION: "us-east-1"
 
   # -- Qdrant
   QDRANT_HOST: "qdrant"
@@ -59,5 +58,6 @@ data:
   # Update with your actual OVHCloud domain
   NEXT_PUBLIC_API_URL: "https://api.ecom-preprod.yourdomain.com/api"
 
-  MINIO_BUCKET: "ecom-platform-warehouse-pre-prod"
-  MINIO_REGION: "gra"
+  MINIO_ENDPOINT: "http://minio:9000"
+  MINIO_BUCKET: "ecom-etl"
+  MINIO_REGION: "us-east-1"
