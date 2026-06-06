@@ -24,8 +24,7 @@ spec:
                 name: postgres-secret
             - secretRef:
                 name: minio-secret
-            - secretRef:
-                name: etl-secret
+            
 
           resources:
             requests:
