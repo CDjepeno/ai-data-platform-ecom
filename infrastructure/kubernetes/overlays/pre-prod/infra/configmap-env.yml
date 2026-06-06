@@ -45,7 +45,7 @@ data:
   # Host injected from Terraform output via CI/CD
   # Do NOT hardcode here — use secretGenerator for credentials
   POSTGRES_PORT: "20184"
-  POSTGRES_DB: "defaultdb"
+  POSTGRES_DB: "ecom_db"
 
   # -- App config
   LOG_LEVEL: "WARNING"

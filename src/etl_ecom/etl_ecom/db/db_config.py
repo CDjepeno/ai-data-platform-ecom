@@ -84,17 +84,17 @@ class Settings(BaseSettings):
     # ── MinIO / S3 ──────────────────────────────────────────
 
     minio_endpoint: str = Field(
-        validation_alias="WAREHOUSE_ENDPOINT",
+        validation_alias="MINIO_ENDPOINT",
         description="MinIO endpoint URL.",
     )
 
     minio_root_user: str = Field(
-        validation_alias="AWS_ACCESS_KEY_ID",
+        validation_alias="MINIO_ROOT_USER",
         description="MinIO root username.",
     )
 
     minio_root_password: str = Field(
-        validation_alias="AWS_SECRET_ACCESS_KEY",
+        validation_alias="MINIO_ROOT_PASSWORD",
         description="MinIO root password.",
     )
 
