@@ -24,13 +24,7 @@ spec:
                 name: postgres-secret
             - secretRef:
                 name: minio-secret
-            - secretRef:
-                name: etl-secret
-
-          volumeMounts:
-            - name: ovh-cert
-              mountPath: /app/certs
-              readOnly: true
+            
 
           resources:
             requests:
@@ -40,7 +34,3 @@ spec:
               memory: "512Mi"
               cpu: "500m"
 
-      volumes:
-        - name: ovh-cert
-          secret:
-            secretName: ovh-postgres-cert

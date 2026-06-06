@@ -15,7 +15,7 @@ spec:
         - name: mc
           # Pin mc to match the MinIO server version.
           # Check https://hub.docker.com/r/minio/mc/tags for latest RELEASE tag.
-          image: minio/mc:RELEASE.2025-04-22T22-12-26Z
+          image: minio/mc@sha256:a7fe349ef4bd8521fb8497f55c6042871b2ae640607cf99d9bede5e9bdf11727
           command:
             - /bin/sh
             - -c
