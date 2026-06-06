@@ -1,10 +1,19 @@
+
+---
 name: Deploy PostgreSQL
 
 on:
+  push:
+    branches:
+      - pre-prod
+    paths:
+      - 'infrastructure/kubernetes/overlays/pre-prod/postgres-cluster.yaml'
+      - 'infrastructure/kubernetes/base/postgres/**'
+
   workflow_dispatch:
 
 jobs:
-  deploy-postgres:
+  deploy:
     name: Deploy PostgreSQL Cluster
     runs-on: ubuntu-latest
 
@@ -15,33 +24,35 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Setup kubectl
+        uses: azure/setup-kubectl@v4
+
       - name: Configure kubeconfig
-        shell: bash
         run: |
           mkdir -p ~/.kube
-          echo "${{ secrets.KUBECONFIG_PREPROD }}" > ~/.kube/config
+          echo "${{ secrets.KUBECONFIG_PRE_PROD }}" | base64 -d > ~/.kube/config
           chmod 600 ~/.kube/config
 
       - name: Verify cluster connectivity
-        shell: bash
         run: |
           kubectl cluster-info
           kubectl get nodes
           kubectl get ns
 
       - name: Verify CloudNativePG operator
-        shell: bash
         run: |
           kubectl get pods -n cnpg-system
 
+      - name: Verify PostgreSQL namespace
+        run: |
+          kubectl get namespace postgres
+
       - name: Deploy PostgreSQL cluster
-        shell: bash
         run: |
           kubectl apply \
             -f infrastructure/kubernetes/overlays/pre-prod/postgres-cluster.yaml
 
       - name: Wait for PostgreSQL cluster
-        shell: bash
         run: |
           kubectl wait \
             --for=condition=Ready \
@@ -49,22 +60,16 @@ jobs:
             -n postgres \
             --timeout=600s
 
-      - name: Show cluster status
-        shell: bash
+      - name: Show PostgreSQL status
         run: |
           kubectl get cluster -n postgres
 
-      - name: Show pod status
-        shell: bash
-        run: |
-          kubectl get pods -n postgres -o wide
+          kubectl get pods \
+            -n postgres \
+            -o wide
 
-      - name: Show PVC status
-        shell: bash
-        run: |
-          kubectl get pvc -n postgres
+          kubectl get pvc \
+            -n postgres
 
-      - name: Show service status
-        shell: bash
-        run: |
-          kubectl get svc -n postgres
+          kubectl get svc \
+            -n postgres
