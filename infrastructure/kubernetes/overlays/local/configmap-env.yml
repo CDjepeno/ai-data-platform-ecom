@@ -49,6 +49,10 @@ data:
   POSTGRES_PORT: "5432"
   POSTGRES_DB: "ecom_db"
 
+  # -- MCP
+  FASTAPI_BASE_URL: "https://api.preprod.djepenodev.ink"
+  # FASTAPI_BASE_URL: "http://fastapi.ecom-local.svc.cluster.local:8000"
+
   # -- App config
   LOG_LEVEL: "WARNING"
   JSON_LOGS: "true"
