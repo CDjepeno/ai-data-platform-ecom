@@ -61,3 +61,6 @@ data:
   MINIO_ENDPOINT: "http://minio:9000"
   MINIO_BUCKET: "ecom-etl"
   MINIO_REGION: "us-east-1"
+
+  # -- MCP
+  FASTAPI_BASE_URL: "http://fastapi.ecom-preprod.svc.cluster.local:8000"
