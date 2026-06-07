@@ -1,0 +1,106 @@
+---
+name: Deploy MinIO
+
+on:
+  push:
+    branches:
+      - pre-prod
+      - feat/kubernetes-terraform-deployment
+    paths:
+      - 'infrastructure/kubernetes/base/minio/**'
+      - 'infrastructure/kubernetes/overlays/pre-prod/infra/kustomization.yaml'
+      - '.github/workflows/deploy-minio.yml'
+  workflow_dispatch:
+
+# Cancel in-flight runs when a new push arrives. A slower previous run
+# could overwrite changes from a newer one.
+concurrency:
+  group: deploy-minio-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    name: Deploy MinIO
+    runs-on: ubuntu-latest
+
+    environment: pre-prod
+
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup kubectl
+        uses: azure/setup-kubectl@v4
+        with:
+          version: 'v1.35.5'
+
+      - name: Configure kubeconfig
+        run: |
+          mkdir -p ~/.kube
+          echo "${{ secrets.KUBECONFIG_PRE_PROD }}" | base64 -d > ~/.kube/config
+          chmod 600 ~/.kube/config
+
+      - name: Verify cluster connectivity
+        run: |
+          kubectl cluster-info
+          kubectl get nodes
+
+      - name: Ensure namespace exists
+        run: |
+          # WHY dry-run + apply: idempotent namespace creation.
+          # "kubectl create namespace" fails if it already exists;
+          # this pattern is safe to run on every deploy.
+          kubectl create namespace ecom-preprod \
+            --dry-run=client -o yaml | kubectl apply -f -
+
+      - name: Create minio-secret
+        run: |
+          # WHY --dry-run + apply: idempotent secret creation.
+          # Recreates the secret with updated credentials on every deploy
+          # without failing if it already exists.
+          kubectl create secret generic minio-secret \
+            --from-literal=AWS_ACCESS_KEY_ID=${{ secrets.MINIO_ACCESS_KEY_ID }} \
+            --from-literal=AWS_SECRET_ACCESS_KEY=${{ secrets.MINIO_SECRET_ACCESS_KEY }} \
+            --from-literal=MINIO_ROOT_USER=${{ secrets.MINIO_ACCESS_KEY_ID }} \
+            --from-literal=MINIO_ROOT_PASSWORD=${{ secrets.MINIO_SECRET_ACCESS_KEY }} \
+            --from-literal=MINIO_ENDPOINT=http://minio:9000 \
+            -n ecom-preprod \
+            --dry-run=client -o yaml | kubectl apply -f -
+
+      - name: Show diff before applying
+        run: |
+          # Shows exactly what will change without touching the cluster.
+          # kubectl diff exits non-zero when differences exist — "|| true" prevents
+          # failing the workflow on a legitimate diff.
+          kubectl diff -k infrastructure/kubernetes/overlays/pre-prod/infra/ || true
+
+      - name: Deploy infra (MinIO + supporting services)
+        run: |
+          kubectl apply -k infrastructure/kubernetes/overlays/pre-prod/infra/
+
+      - name: Wait for MinIO to be ready
+        run: |
+          kubectl rollout status statefulset/minio \
+            -n ecom-preprod \
+            --timeout=120s
+
+      - name: Show MinIO status
+        if: always()
+        run: |
+          echo "=== StatefulSet ==="
+          kubectl get statefulset minio -n ecom-preprod
+
+          echo ""
+          echo "=== Pod ==="
+          kubectl get pods -l app=minio -n ecom-preprod -o wide
+
+          echo ""
+          echo "=== PVC ==="
+          kubectl get pvc -n ecom-preprod
+
+          echo ""
+          echo "=== Service ==="
+          kubectl get svc minio -n ecom-preprod
