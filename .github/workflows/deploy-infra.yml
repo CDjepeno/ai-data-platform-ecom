@@ -66,8 +66,8 @@ jobs:
           # Recreates the secret with updated credentials on every deploy
           # without failing if it already exists.
           kubectl create secret generic minio-secret \
-            --from-literal=AWS_ACCESS_KEY_ID=${{ secrets.MINIO_ACCESS_KEY_ID }} \
-            --from-literal=AWS_SECRET_ACCESS_KEY=${{ secrets.MINIO_SECRET_ACCESS_KEY }} \
+            --from-literal=AWS_ACCESS_KEY_ID=${{ secrets.MINIO_ROOT_USER }} \
+            --from-literal=AWS_SECRET_ACCESS_KEY=${{ secrets.MINIO_ROOT_PASSWORD }} \
             --from-literal=MINIO_ROOT_USER=${{ secrets.MINIO_ROOT_USER }} \
             --from-literal=MINIO_ROOT_PASSWORD=${{ secrets.MINIO_ROOT_PASSWORD }} \
             --from-literal=MINIO_ENDPOINT=http://minio:9000 \
