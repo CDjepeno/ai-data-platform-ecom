@@ -64,3 +64,4 @@ data:
 
   # -- MCP
   FASTAPI_BASE_URL: "http://fastapi.ecom-preprod.svc.cluster.local:8000"
+  MCP_TRANSPORT: "sse"
