@@ -1,0 +1,70 @@
+name: Deploy PostgreSQL
+
+on:
+  workflow_dispatch:
+
+jobs:
+  deploy-postgres:
+    name: Deploy PostgreSQL Cluster
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Configure kubeconfig
+        shell: bash
+        run: |
+          mkdir -p ~/.kube
+          echo "${{ secrets.KUBECONFIG_PREPROD }}" > ~/.kube/config
+          chmod 600 ~/.kube/config
+
+      - name: Verify cluster connectivity
+        shell: bash
+        run: |
+          kubectl cluster-info
+          kubectl get nodes
+          kubectl get ns
+
+      - name: Verify CloudNativePG operator
+        shell: bash
+        run: |
+          kubectl get pods -n cnpg-system
+
+      - name: Deploy PostgreSQL cluster
+        shell: bash
+        run: |
+          kubectl apply \
+            -f infrastructure/kubernetes/overlays/pre-prod/postgres-cluster.yaml
+
+      - name: Wait for PostgreSQL cluster
+        shell: bash
+        run: |
+          kubectl wait \
+            --for=condition=Ready \
+            cluster/postgres-source \
+            -n postgres \
+            --timeout=600s
+
+      - name: Show cluster status
+        shell: bash
+        run: |
+          kubectl get cluster -n postgres
+
+      - name: Show pod status
+        shell: bash
+        run: |
+          kubectl get pods -n postgres -o wide
+
+      - name: Show PVC status
+        shell: bash
+        run: |
+          kubectl get pvc -n postgres
+
+      - name: Show service status
+        shell: bash
+        run: |
+          kubectl get svc -n postgres
