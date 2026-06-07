@@ -17,12 +17,11 @@ class Settings(BaseSettings):
     # ── FastAPI target ─────────────────────────────────────────────────────────
 
     fastapi_base_url: str = Field(
-        default="http://fastapi.ecom-local.svc.cluster.local:8000",
         description=(
             "Base URL of the FastAPI /ask service. "
             "In Docker Compose: use service name (http://fast_api:8000)."
             "In kubernetes: use service namme (http://api.ecom-local.svc.cluster.local:8000)"
-            "Pre-prod:     http://fastapi.ecom-preprod.svc.cluster.local:8000 "
+            "Pre-prod:     https://api.preprod.djepenodev.ink"
             "Production:   http://fastapi.ecom-prod.svc.cluster.local:8000"
         ),
     )
