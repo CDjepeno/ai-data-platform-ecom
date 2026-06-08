@@ -49,3 +49,25 @@ spec:
             name: qdrant
             port:
               number: 6333
+
+  - host: minio.ecom.local
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: minio
+            port:
+              number: 9001
+  
+  - host: chat.ecom.local
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: nextjs
+            port:
+              number: 3000

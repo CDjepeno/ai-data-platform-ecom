@@ -2,7 +2,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: ecom-config
-
+  namespace: ecom-preprod
 data:
   # -- Trino
   TRINO_HOST: "trino"
@@ -13,17 +13,18 @@ data:
 
   # -- Nessie
   NESSIE_URI: "http://nessie:19120"
-  ICEBERG_WAREHOUSE: "s3://ecom-etl/warehouse"
+  QUARKUS_HTTP_PORT: "19120"
+  NESSIE_VERSION_STORE_TYPE: "ROCKSDB"
+  NESSIE_VERSION_STORE_PERSIST_ROCKSDB_DATABASE_PATH: "/nessie-data"
 
-  # -- Nessie S3/catalog config (moved from statefulset hardcoded values)
+  # -- Iceberg / MinIO
+  ICEBERG_WAREHOUSE: "s3://ecom-etl/warehouse"
   NESSIE_CATALOG_DEFAULT_WAREHOUSE: "warehouse"
   NESSIE_CATALOG_WAREHOUSES_WAREHOUSE_LOCATION: "s3://ecom-etl/warehouse"
-  NESSIE_CATALOG_SERVICE_S3_DEFAULT_OPTIONS_ENDPOINT: "http://minio.ecom-local.svc.cluster.local:9000"
+  NESSIE_CATALOG_SERVICE_S3_DEFAULT_OPTIONS_ENDPOINT: "http://minio:9000"
   NESSIE_CATALOG_SERVICE_S3_DEFAULT_OPTIONS_PATH_STYLE_ACCESS: "true"
   NESSIE_CATALOG_SERVICE_S3_DEFAULT_OPTIONS_REGION: "us-east-1"
   NESSIE_CATALOG_SERVICE_S3_DEFAULT_OPTIONS_AUTH_TYPE: "APPLICATION_GLOBAL"
-  NESSIE_VERSION_STORE_TYPE: "ROCKSDB"
-  NESSIE_VERSION_STORE_PERSIST_ROCKSDB_DATABASE_PATH: "/nessie-data"
   AWS_REGION: "us-east-1"
 
   # -- Qdrant
@@ -40,26 +41,27 @@ data:
   VALKEY_PORT: "6379"
   VALKEY_TTL: "3600"
 
-  # -- MinIO
-  MINIO_ENDPOINT: "http://minio:9000"
-  MINIO_BUCKET: "ecom-etl"              
-
-  # -- Postgres
-  POSTGRES_HOST: "postgres"
+  # -- Postgres — [PRE-PROD] OVH Managed PostgreSQL
+  # Host injected from Terraform output via CI/CD
+  # Do NOT hardcode here — use secretGenerator for credentials
   POSTGRES_PORT: "5432"
-  POSTGRES_DB: "ecom_db"
-
-  # -- MCP
-  # FASTAPI_BASE_URL: "https://api.preprod.djepenodev.ink"
-  MCP_TRANSPORT: "sse"
-  FASTAPI_BASE_URL: "http://fastapi.ecom-local.svc.cluster.local:8000"
+  POSTGRES_DB: "ecom"
 
   # -- App config
   LOG_LEVEL: "WARNING"
   JSON_LOGS: "true"
   MCP_HTTP_TIMEOUT: "60.0"
-  NEXT_PUBLIC_API_URL: "http://chat.local:8080/api"
-  QUARKUS_HTTP_PORT: "19120"
-
   SEMANTIC_MODELS_PATH: "/app/transformations/models/mart/semantic_models"
   METRICS_PATH: "/app/transformations/models/metrics"
+
+  # -- Frontend — [PRE-PROD] real public URL
+  # Update with your actual OVHCloud domain
+  NEXT_PUBLIC_API_URL: "https://api.ecom-preprod.yourdomain.com/api"
+
+  MINIO_ENDPOINT: "http://minio:9000"
+  MINIO_BUCKET: "ecom-etl"
+  MINIO_REGION: "us-east-1"
+
+  # -- MCP
+  FASTAPI_BASE_URL: "http://fastapi.ecom-preprod.svc.cluster.local:8000"
+  MCP_TRANSPORT: "sse"

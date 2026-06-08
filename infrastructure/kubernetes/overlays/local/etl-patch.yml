@@ -6,6 +6,7 @@ spec:
   backoffLimit: 0
   template:
     spec:
+      restartPolicy: OnFailure    # ← add this line
       enableServiceLinks: false
       imagePullSecrets: []
       containers:

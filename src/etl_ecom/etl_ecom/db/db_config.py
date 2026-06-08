@@ -44,6 +44,11 @@ class Settings(BaseSettings):
         description="PostgreSQL port.",
     )
 
+    postgres_sslmode: str = Field(
+        default="disable",
+        description="PostgreSQL SSL mode (disable for local, require for preprod).",
+    )
+
     @computed_field
     @property
     def source_url(self) -> str:

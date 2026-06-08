@@ -1,0 +1,50 @@
+apiVersion: v1
+data:
+  AWS_REGION: us-east-1
+  FASTAPI_BASE_URL: http://fastapi.ecom-local.svc.cluster.local:8000
+  ICEBERG_WAREHOUSE: s3://ecom-etl/warehouse
+  JSON_LOGS: "true"
+  LOG_LEVEL: WARNING
+  MCP_HTTP_TIMEOUT: "60.0"
+  MCP_TRANSPORT: sse
+  METRICS_PATH: /app/transformations/models/metrics
+  MINIO_BUCKET: ecom-etl
+  MINIO_ENDPOINT: http://minio:9000
+  MODEL_EMBEDDING: text-embedding-3-small
+  NESSIE_CATALOG_DEFAULT_WAREHOUSE: warehouse
+  NESSIE_CATALOG_SERVICE_S3_DEFAULT_OPTIONS_AUTH_TYPE: APPLICATION_GLOBAL
+  NESSIE_CATALOG_SERVICE_S3_DEFAULT_OPTIONS_ENDPOINT: http://minio.ecom-local.svc.cluster.local:9000
+  NESSIE_CATALOG_SERVICE_S3_DEFAULT_OPTIONS_PATH_STYLE_ACCESS: "true"
+  NESSIE_CATALOG_SERVICE_S3_DEFAULT_OPTIONS_REGION: us-east-1
+  NESSIE_CATALOG_WAREHOUSES_WAREHOUSE_LOCATION: s3://ecom-etl/warehouse
+  NESSIE_URI: http://nessie:19120
+  NESSIE_VERSION_STORE_PERSIST_ROCKSDB_DATABASE_PATH: /nessie-data
+  NESSIE_VERSION_STORE_TYPE: ROCKSDB
+  NEXT_PUBLIC_API_URL: http://chat.local:8080/api
+  POSTGRES_DB: ecom_db
+  POSTGRES_HOST: postgres
+  POSTGRES_PORT: "5432"
+  QDRANT_COLLECTION: semantic_models
+  QDRANT_HOST: qdrant
+  QDRANT_PORT: "6333"
+  QDRANT_SIZE: "1536"
+  QUARKUS_HTTP_PORT: "19120"
+  SEMANTIC_MODELS_PATH: /app/transformations/models/mart/semantic_models
+  TRINO_CATALOG: iceberg
+  TRINO_HOST: trino
+  TRINO_PORT: "8080"
+  TRINO_SCHEMA: mart
+  TRINO_USER: trino
+  VALKEY_HOST: valkey
+  VALKEY_PORT: "6379"
+  VALKEY_TTL: "3600"
+kind: ConfigMap
+metadata:
+  annotations:
+    kubectl.kubernetes.io/last-applied-configuration: |
+      {"apiVersion":"v1","data":{"AWS_REGION":"us-east-1","FASTAPI_BASE_URL":"http://fastapi.ecom-local.svc.cluster.local:8000","ICEBERG_WAREHOUSE":"s3://ecom-etl/warehouse","JSON_LOGS":"true","LOG_LEVEL":"WARNING","MCP_HTTP_TIMEOUT":"60.0","MCP_TRANSPORT":"sse","METRICS_PATH":"/app/transformations/models/metrics","MINIO_BUCKET":"ecom-etl","MINIO_ENDPOINT":"http://minio:9000","MODEL_EMBEDDING":"text-embedding-3-small","NESSIE_CATALOG_DEFAULT_WAREHOUSE":"warehouse","NESSIE_CATALOG_SERVICE_S3_DEFAULT_OPTIONS_AUTH_TYPE":"APPLICATION_GLOBAL","NESSIE_CATALOG_SERVICE_S3_DEFAULT_OPTIONS_ENDPOINT":"http://minio.ecom-local.svc.cluster.local:9000","NESSIE_CATALOG_SERVICE_S3_DEFAULT_OPTIONS_PATH_STYLE_ACCESS":"true","NESSIE_CATALOG_SERVICE_S3_DEFAULT_OPTIONS_REGION":"us-east-1","NESSIE_CATALOG_WAREHOUSES_WAREHOUSE_LOCATION":"s3://ecom-etl/warehouse","NESSIE_URI":"http://nessie:19120","NESSIE_VERSION_STORE_PERSIST_ROCKSDB_DATABASE_PATH":"/nessie-data","NESSIE_VERSION_STORE_TYPE":"ROCKSDB","NEXT_PUBLIC_API_URL":"http://chat.local:8080/api","POSTGRES_DB":"ecom_db","POSTGRES_HOST":"postgres","POSTGRES_PORT":"5432","QDRANT_COLLECTION":"semantic_models","QDRANT_HOST":"qdrant","QDRANT_PORT":"6333","QDRANT_SIZE":"1536","QUARKUS_HTTP_PORT":"19120","SEMANTIC_MODELS_PATH":"/app/transformations/models/mart/semantic_models","TRINO_CATALOG":"iceberg","TRINO_HOST":"trino","TRINO_PORT":"8080","TRINO_SCHEMA":"mart","TRINO_USER":"trino","VALKEY_HOST":"valkey","VALKEY_PORT":"6379","VALKEY_TTL":"3600"},"kind":"ConfigMap","metadata":{"annotations":{},"name":"ecom-config","namespace":"ecom-local"}}
+  creationTimestamp: "2026-05-28T21:42:32Z"
+  name: ecom-config
+  namespace: ecom-local
+  resourceVersion: "907808"
+  uid: 52279d1a-7c93-4e57-821c-07ccf6bfe21d

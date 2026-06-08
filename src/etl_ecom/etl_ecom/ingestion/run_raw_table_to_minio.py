@@ -30,6 +30,26 @@ def ingest_raw_table_to_minio(table: str, run_id: str | None = None):
 
         query = build_query(table, con)
 
+        result = con.execute(f"SELECT COUNT(*) FROM ({query})").fetchone()
+        row_count = result[0] if result else 0
+
+        logger.info(f"📊 {table} → {row_count} rows")
+
+        if row_count == 0:
+            logger.warning(f"⚠️ {table} has 0 rows — skipping Parquet write")
+            log_row_metrics(
+                con=con,
+                run_id=run_id,
+                table_name=table,
+                processed_at=datetime.now(),
+                records_failed=0,
+                rows_inserted=0,
+                rows_updated=0,
+                rows_deleted=0,
+                rows_unchanged=0,
+            )
+            return
+
         today = datetime.now().strftime("%Y-%m-%d")
 
         parquet_path = (
@@ -49,15 +69,6 @@ def ingest_raw_table_to_minio(table: str, run_id: str | None = None):
                 COMPRESSION ZSTD
             );
         """)
-
-        result = con.execute(f"""
-            SELECT COUNT(*)
-            FROM ({query})
-        """).fetchone()
-
-        row_count = result[0] if result else 0
-
-        logger.info(f"📊 {table} → {row_count} rows")
 
         # 📊 metrics
         log_row_metrics(
