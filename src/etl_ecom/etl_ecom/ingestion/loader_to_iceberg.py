@@ -4,8 +4,7 @@ from pathlib import Path
 import time
 
 from duckdb import DuckDBPyConnection
-from sqlalchemy.exc import NoSuchTableError
-from etl_ecom.db.engine import  configure_duckdb_s3
+from etl_ecom.db.engine import configure_duckdb_s3
 from etl_ecom.scripts.iceberg.iceberg import get_iceberg_catalog
 from etl_ecom.db.mapper.arrow_iceberg_mapper import arrow_to_iceberg_schema
 from etl_ecom.ingestion.config.table_config import TABLE_CONFIG
@@ -27,18 +26,24 @@ def load_single_table_to_iceberg(
 
     try:
 
-        # 1. Read from MinIO via DuckDB
-        df = conn.execute(f"""
-            SELECT
-                *,
-                CAST(NOW() AS TIMESTAMP) AS ingested_at,
-                '{run_id}' AS run_id
+        # 1. Read from MinIO via DuckDB — target the exact date partition written
+        # by stage 1 in this run to avoid reading stale files from previous runs.
+        run_date = f"{run_id[:4]}-{run_id[4:6]}-{run_id[6:8]}"
+        parquet_glob = f"s3://{BUCKET}/raw/postgres/{table_name}/ingestion_date={run_date}/*.parquet"
+        try:
+            df = conn.execute(f"""
+                SELECT
+                    *,
+                    CAST(NOW() AS TIMESTAMP) AS ingested_at,
+                    '{run_id}' AS run_id
 
-            FROM read_parquet(
-                's3://{BUCKET}/raw/postgres/{table_name}/*/*.parquet',
-                union_by_name = true
-            )
-        """).fetch_arrow_table()
+                FROM read_parquet('{parquet_glob}', union_by_name = true)
+            """).fetch_arrow_table()
+        except Exception as e:
+            if "No files found" in str(e):
+                logger.warning(f"⚠️ No Parquet files for {table_name} — table was empty during extraction, skipping")
+                return 0
+            raise
 
         row_count = len(df)
         if row_count == 0:
@@ -49,31 +54,23 @@ def load_single_table_to_iceberg(
         catalog = get_iceberg_catalog()
         full_table_name = f"raw.{table_name}"
 
-        # 3. Create the table if it does not exist
+        # 3. Drop if exists — always recreate for a full reload so that stale
+        # snapshot metadata from a previous partial run never breaks the append.
         try:
-            table = catalog.load_table(full_table_name)
-        except NoSuchTableError:
-            logger.info(f"🆕 Creating table {full_table_name}")
+            catalog.drop_table(full_table_name)
+            logger.info(f"🗑️ Dropped existing table {full_table_name}")
+        except Exception:
+            pass
 
-            # Infer schema from the PyArrow DataFrame
-            schema = arrow_to_iceberg_schema(df.schema)
-
-            table = catalog.create_table(identifier=full_table_name, schema=schema)
+        schema = arrow_to_iceberg_schema(df.schema)
+        table = catalog.create_table(identifier=full_table_name, schema=schema)
 
         logger.info(f"🧊 Appending {row_count} rows into {full_table_name}")
 
         # 4. Write to Iceberg
         table.append(df)
 
-        # 5. Verify
-        latest = table.scan().to_arrow()
-        total_rows = latest.num_rows
-        logger.info(f"✅ {table_name} loaded: {row_count} rows (total: {len(latest)})")
-
-        logger.info(
-            f"✅ {table_name}: appended {row_count} rows "
-            f"(total iceberg rows: {total_rows})"
-        )
+        logger.info(f"✅ {table_name}: appended {row_count} rows")
 
         duration = round(time.time() - start, 2)
 

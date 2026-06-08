@@ -62,7 +62,7 @@ def get_duckdb_connection() -> duckdb.DuckDBPyConnection:
                     password={settings.postgres_password}
                     host={settings.postgres_host}
                     port={settings.postgres_port}
-                    sslmode=require
+                    sslmode={settings.postgres_sslmode}
                 '
                 AS postgres_db
                 (TYPE postgres);
