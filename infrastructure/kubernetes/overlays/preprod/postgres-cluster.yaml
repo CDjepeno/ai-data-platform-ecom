@@ -5,13 +5,8 @@ metadata:
   name: postgres-source
   namespace: postgres
 spec:
-  # 3 instances = 1 primary + 2 replicas with automatic failover.
-  # WHY 3 for preprod: minimum viable HA. The operator runs a leader-election
-  # algorithm; with 2 replicas, you survive losing any single node.
   instances: 3
 
-  # Pin the Postgres image. WHY pin: reproducible bootstrap; ":latest" can
-  # introduce a major-version upgrade silently on a pod reschedule (disaster).
   imageName: ghcr.io/cloudnative-pg/postgresql:16.4
 
   # --- Bootstrap: initial state of a brand-new cluster ---
