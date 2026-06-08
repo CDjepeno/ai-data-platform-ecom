@@ -1,0 +1,20 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: dbt-profiles
+  # No namespace — kustomize injects ecom-preprod
+data:
+  profiles.yml: |
+    transformation:
+      target: pre-prod
+      outputs:
+        pre-prod:
+          type: trino
+          method: none
+          user: trino
+          password: ""
+          host: trino
+          port: 8080
+          database: iceberg
+          schema: "ecom"
+          threads: 4
