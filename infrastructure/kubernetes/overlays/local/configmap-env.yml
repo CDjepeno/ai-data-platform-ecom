@@ -50,9 +50,9 @@ data:
   POSTGRES_DB: "ecom_db"
 
   # -- MCP
-  FASTAPI_BASE_URL: "https://api.preprod.djepenodev.ink"
+  # FASTAPI_BASE_URL: "https://api.preprod.djepenodev.ink"
   MCP_TRANSPORT: "sse"
-  # FASTAPI_BASE_URL: "http://fastapi.ecom-local.svc.cluster.local:8000"
+  FASTAPI_BASE_URL: "http://fastapi.ecom-local.svc.cluster.local:8000"
 
   # -- App config
   LOG_LEVEL: "WARNING"

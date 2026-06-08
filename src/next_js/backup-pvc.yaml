@@ -1,0 +1,170 @@
+apiVersion: v1
+items:
+- apiVersion: v1
+  kind: PersistentVolumeClaim
+  metadata:
+    annotations:
+      pv.kubernetes.io/bind-completed: "yes"
+      pv.kubernetes.io/bound-by-controller: "yes"
+      volume.beta.kubernetes.io/storage-provisioner: rancher.io/local-path
+      volume.kubernetes.io/selected-node: ecom-local-worker2
+      volume.kubernetes.io/storage-provisioner: rancher.io/local-path
+    creationTimestamp: "2026-06-07T17:03:22Z"
+    finalizers:
+    - kubernetes.io/pvc-protection
+    labels:
+      app: minio
+    name: minio-data-minio-0
+    namespace: ecom-local
+    resourceVersion: "851753"
+    uid: b313cdad-c118-4f3f-b75c-ca32924933cc
+  spec:
+    accessModes:
+    - ReadWriteOnce
+    resources:
+      requests:
+        storage: 10Gi
+    storageClassName: standard
+    volumeMode: Filesystem
+    volumeName: pvc-b313cdad-c118-4f3f-b75c-ca32924933cc
+  status:
+    accessModes:
+    - ReadWriteOnce
+    capacity:
+      storage: 10Gi
+    phase: Bound
+- apiVersion: v1
+  kind: PersistentVolumeClaim
+  metadata:
+    annotations:
+      pv.kubernetes.io/bind-completed: "yes"
+      pv.kubernetes.io/bound-by-controller: "yes"
+      volume.beta.kubernetes.io/storage-provisioner: rancher.io/local-path
+      volume.kubernetes.io/selected-node: ecom-local-worker2
+      volume.kubernetes.io/storage-provisioner: rancher.io/local-path
+    creationTimestamp: "2026-06-08T00:21:27Z"
+    finalizers:
+    - kubernetes.io/pvc-protection
+    labels:
+      app: nessie
+    name: nessie-data-nessie-0
+    namespace: ecom-local
+    resourceVersion: "896792"
+    uid: a2881372-b691-4169-af95-423d8180d430
+  spec:
+    accessModes:
+    - ReadWriteOnce
+    resources:
+      requests:
+        storage: 5Gi
+    storageClassName: standard
+    volumeMode: Filesystem
+    volumeName: pvc-a2881372-b691-4169-af95-423d8180d430
+  status:
+    accessModes:
+    - ReadWriteOnce
+    capacity:
+      storage: 5Gi
+    phase: Bound
+- apiVersion: v1
+  kind: PersistentVolumeClaim
+  metadata:
+    annotations:
+      pv.kubernetes.io/bind-completed: "yes"
+      pv.kubernetes.io/bound-by-controller: "yes"
+      volume.beta.kubernetes.io/storage-provisioner: rancher.io/local-path
+      volume.kubernetes.io/selected-node: ecom-local-worker2
+      volume.kubernetes.io/storage-provisioner: rancher.io/local-path
+    creationTimestamp: "2026-05-29T00:00:19Z"
+    finalizers:
+    - kubernetes.io/pvc-protection
+    labels:
+      app: postgres
+    name: postgres-data-postgres-0
+    namespace: ecom-local
+    resourceVersion: "74354"
+    uid: 433d79ed-1ccf-4d3b-b602-b7031d7767f2
+  spec:
+    accessModes:
+    - ReadWriteOnce
+    resources:
+      requests:
+        storage: 5Gi
+    storageClassName: standard
+    volumeMode: Filesystem
+    volumeName: pvc-433d79ed-1ccf-4d3b-b602-b7031d7767f2
+  status:
+    accessModes:
+    - ReadWriteOnce
+    capacity:
+      storage: 5Gi
+    phase: Bound
+- apiVersion: v1
+  kind: PersistentVolumeClaim
+  metadata:
+    annotations:
+      pv.kubernetes.io/bind-completed: "yes"
+      pv.kubernetes.io/bound-by-controller: "yes"
+      volume.beta.kubernetes.io/storage-provisioner: rancher.io/local-path
+      volume.kubernetes.io/selected-node: ecom-local-worker2
+      volume.kubernetes.io/storage-provisioner: rancher.io/local-path
+    creationTimestamp: "2026-05-28T21:42:33Z"
+    finalizers:
+    - kubernetes.io/pvc-protection
+    labels:
+      app: qdrant
+    name: qdrant-storage-qdrant-0
+    namespace: ecom-local
+    resourceVersion: "60278"
+    uid: 55c13c58-7ab6-48a9-8af1-c27e38f10bc7
+  spec:
+    accessModes:
+    - ReadWriteOnce
+    resources:
+      requests:
+        storage: 5Gi
+    storageClassName: standard
+    volumeMode: Filesystem
+    volumeName: pvc-55c13c58-7ab6-48a9-8af1-c27e38f10bc7
+  status:
+    accessModes:
+    - ReadWriteOnce
+    capacity:
+      storage: 5Gi
+    phase: Bound
+- apiVersion: v1
+  kind: PersistentVolumeClaim
+  metadata:
+    annotations:
+      pv.kubernetes.io/bind-completed: "yes"
+      pv.kubernetes.io/bound-by-controller: "yes"
+      volume.beta.kubernetes.io/storage-provisioner: rancher.io/local-path
+      volume.kubernetes.io/selected-node: ecom-local-worker
+      volume.kubernetes.io/storage-provisioner: rancher.io/local-path
+    creationTimestamp: "2026-05-28T21:42:33Z"
+    finalizers:
+    - kubernetes.io/pvc-protection
+    labels:
+      app: valkey
+    name: valkey-data-valkey-0
+    namespace: ecom-local
+    resourceVersion: "60297"
+    uid: bb217de7-05a4-4ec3-a867-77f0a9335962
+  spec:
+    accessModes:
+    - ReadWriteOnce
+    resources:
+      requests:
+        storage: 1Gi
+    storageClassName: standard
+    volumeMode: Filesystem
+    volumeName: pvc-bb217de7-05a4-4ec3-a867-77f0a9335962
+  status:
+    accessModes:
+    - ReadWriteOnce
+    capacity:
+      storage: 1Gi
+    phase: Bound
+kind: List
+metadata:
+  resourceVersion: ""

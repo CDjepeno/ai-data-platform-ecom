@@ -109,7 +109,7 @@ def ensure_table_exists(catalog, table_name: str, schema) -> bool:
     try:
         catalog.load_table(table_name)
         return False
-    except NoSuchTableError:
+    except Exception:
         catalog.create_table(
             identifier=table_name,
             schema=schema,

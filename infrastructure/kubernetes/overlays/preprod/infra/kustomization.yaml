@@ -16,6 +16,7 @@ resources:
   - http-route-minio.yaml
   - http-route-qdrant.yaml
   - http-route-trino.yaml
+  - http-route-next.yaml
 
 patches:
   - patch: |-

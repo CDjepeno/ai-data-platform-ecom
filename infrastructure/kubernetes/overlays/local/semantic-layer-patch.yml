@@ -8,6 +8,7 @@ spec:
     spec:
       containers:
         - name: semantic-layer
+          imagePullPolicy: Never
           volumeMounts:
             - name: dbt-profiles
               mountPath: /app/.dbt
