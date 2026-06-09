@@ -1,6 +1,7 @@
 import asyncio
 from datetime import datetime
 from time import perf_counter
+from etl_ecom.db.db_config import settings
 
 from etl_ecom.db.engine import get_duckdb_connection
 from etl_ecom.warehouse.warehouse_initialized import warehouse_initialized
@@ -38,7 +39,7 @@ async def main():
 
             start = perf_counter()
             response = await client.post(
-                "http://semantic-layer:8001/build-dbt"
+                f"{settings.semantic_layer_url}/build-dbt"
             )
             duration_dbt = perf_counter() - start
 
@@ -50,7 +51,7 @@ async def main():
 
             duration_indexing = perf_counter() - start
             response = await client.post(
-                "http://semantic-layer:8001/index"
+                f"{settings.semantic_layer_url}/index"
             )
             
             logger.info(

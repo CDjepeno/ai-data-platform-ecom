@@ -5,10 +5,20 @@ from pathlib import Path
 from pydantic import Field, computed_field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
+BASE_DIR = Path(__file__).resolve().parents[4]
 
-BASE_DIR = Path(__file__).resolve().parent
-ENV_FILE = BASE_DIR / ".env"
 
+
+_env_local = BASE_DIR / "docker" / ".env.local"
+_env_default = BASE_DIR / "docker" / ".env"
+ENV_FILE = _env_local if _env_local.exists() else _env_default
+
+print(f"BASE_DIR: {BASE_DIR}")
+print(f"env_local: {_env_local}")
+print(f"env_local exists: {_env_local.exists()}")
+print(f"env_default: {_env_default}")
+print(f"env_default exists: {_env_default.exists()}")
+print(f"Using ENV_FILE: {ENV_FILE}")
 
 class Settings(BaseSettings):
     """ETL E-commerce configuration."""
@@ -76,7 +86,13 @@ class Settings(BaseSettings):
         description="DuckDB production database path.",
     )
 
+    # ── Semantic Layer ────────────────────────────────────
+    semantic_layer_url: str = Field(
+        description="Semantic layer base URL (e.g. http://semantic-layer:8001).",
+    )
+    
     # ── Iceberg / Nessie ────────────────────────────────────
+    
 
     nessie_uri: str = Field(
         description="Nessie catalog URI.",
@@ -120,7 +136,6 @@ class Settings(BaseSettings):
     )
 
     minio_region: str = Field(
-        default="us-east-1",
         description="S3-compatible storage region.",
     )
 

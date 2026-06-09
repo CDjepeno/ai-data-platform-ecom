@@ -37,7 +37,7 @@ def get_duckdb_connection() -> duckdb.DuckDBPyConnection:
         """)
 
         con.execute(f"""
-            SET s3_region = 'us-east-1';
+            SET s3_region = '{settings.minio_region}';
             SET s3_endpoint = '{settings.minio_endpoint.replace("http://", "")}';
             SET s3_access_key_id = '{settings.minio_root_user}';
             SET s3_secret_access_key = '{settings.minio_root_password}';
@@ -90,7 +90,7 @@ def get_source_engine():
 def configure_duckdb_s3(conn: duckdb.DuckDBPyConnection) -> None:
     try:
         conn.execute(f"""
-            SET s3_region = 'us-east-1';
+            SET s3_region = '{settings.minio_region}';
             SET s3_endpoint = '{settings.minio_endpoint.replace("http://", "")}';
             SET s3_access_key_id = '{settings.minio_root_user}';
             SET s3_secret_access_key = '{settings.minio_root_password}';

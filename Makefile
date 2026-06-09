@@ -1,4 +1,7 @@
 # ───────────────────────────────────── #  Variables # ───────────────────────────────────── m
+ETL_DIR := src/etl_ecom
+ENV_FILE := docker/.env.local
+
 DBT_DIR := $(ETL_DIR)/etl_ecom/transformation
 
 POETRY := poetry -C $(ETL_DIR)
@@ -242,7 +245,7 @@ reset-db-safe:
 
 run:
 	@echo "🚀 Launching ETL pipeline..."
-	$(PYTHON) -m etl_ecom.pipeline
+	poetry -C $(ETL_DIR) run python -m etl_ecom.pipeline
 
 daily-run: seed-daily run
 

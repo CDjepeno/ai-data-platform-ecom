@@ -1,25 +1,27 @@
-import s3fs as _s3fs
+import os
+
 
 from pyiceberg.catalog import load_catalog
+import s3fs
 
 from etl_ecom.db.db_config import settings
 from etl_ecom.utils.logger import get_logger
 
 logger = get_logger(__name__)
 
-# s3fs caches directory listings by default. pyiceberg writes a file then
-# immediately checks its size via s3fs — the stale cache causes FileNotFoundError.
-# Patching here disables the cache for all s3fs instances used by pyiceberg.
-_s3fs.S3FileSystem.clear_instance_cache()
-_orig_s3fs_init = _s3fs.S3FileSystem.__init__
+# This was doing THREE things at once — you just didn't realize it:
 
+os.environ["AWS_ACCESS_KEY_ID"] = settings.aws_access_key_id      # ← set credentials
+os.environ["AWS_SECRET_ACCESS_KEY"] = settings.aws_secret_access_key  # ← set credentials
+os.environ["AWS_ENDPOINT_URL"] = settings.minio_endpoint           # ← set endpoint
+os.environ["AWS_DEFAULT_REGION"] = settings.minio_region           # ← set region
 
-def _no_cache_s3fs_init(self, *args, **kwargs):
-    kwargs.setdefault("use_listings_cache", False)
-    _orig_s3fs_init(self, *args, **kwargs)
+print(f"DEBUG key: {settings.aws_access_key_id}")
+print(f"DEBUG endpoint: {settings.minio_endpoint}")
+print(f"DEBUG region: {settings.minio_region}")
 
-
-_s3fs.S3FileSystem.__init__ = _no_cache_s3fs_init
+s3fs.S3FileSystem.clear_instance_cache()   # ← clear cache
+# ... monkey-patch code ...
 
 
 def get_iceberg_catalog():
@@ -29,12 +31,12 @@ def get_iceberg_catalog():
             "nessie",
             **{
                 "type": "rest",
-                "uri": "http://nessie:19120/iceberg",
-                "warehouse": "s3://ecom-etl/warehouse",
-                "s3.endpoint": "http://minio:9000",
+                "uri": settings.nessie_uri,
+                "warehouse": settings.iceberg_warehouse,
+                "s3.endpoint": settings.minio_endpoint,
                 "s3.access-key-id": settings.aws_access_key_id,
                 "s3.secret-access-key": settings.aws_secret_access_key,
-                "s3.region": "us-east-1",
+                "s3.region": settings.minio_region,
                 "s3.path-style-access": "true",
                 "py-io-impl": "pyiceberg.io.pyarrow.PyArrowFileIO",
             },

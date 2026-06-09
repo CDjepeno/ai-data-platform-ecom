@@ -25,7 +25,13 @@ services:
       - "9000:9000"     
       - "9001:9001"     
     env_file:
-      - .env         
+      - .env
+    environment:
+    # Override MinIO image defaults — these point to Docker secret files
+    # that don't exist in our setup. Setting them empty forces MinIO
+    # to use MINIO_ROOT_USER and MINIO_ROOT_PASSWORD from .env instead.
+      - MINIO_ROOT_USER_FILE=
+      - MINIO_ROOT_PASSWORD_FILE=         
     volumes:
       - minio_data_dev:/data
     command: server /data --console-address ":9001"
@@ -38,7 +44,10 @@ services:
 
     ports:
       - "19120:19120"
-
+    
+    depends_on:
+      - minio
+    
     environment:
       - QUARKUS_HTTP_PORT=19120
 
@@ -66,7 +75,11 @@ services:
       - AWS_SECRET_ACCESS_KEY=${MINIO_ROOT_PASSWORD}
       - AWS_REGION=us-east-1
       - nessie.version.store.type=ROCKSDB
-      - nessie.version.store.persist.directory=/nessie-data   
+      - nessie.version.store.persist.directory=/nessie-data 
+
+    env_file:
+      - .env.local
+      
     volumes:
       - nessie_data:/nessie-data
     networks:
@@ -76,7 +89,7 @@ services:
     image: trinodb/trino:435
     container_name: trino
     ports:
-      - "8080:8080"
+      - "8081:8080"
     volumes:
       - ./trino/catalog:/etc/trino/catalog
     depends_on:
