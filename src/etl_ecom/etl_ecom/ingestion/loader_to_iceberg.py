@@ -29,7 +29,7 @@ def load_single_table_to_iceberg(
         # 1. Read from MinIO via DuckDB — target the exact date partition written
         # by stage 1 in this run to avoid reading stale files from previous runs.
         run_date = f"{run_id[:4]}-{run_id[4:6]}-{run_id[6:8]}"
-        parquet_glob = f"s3://{BUCKET}/raw/postgres/{table_name}/ingestion_date={run_date}/*.parquet"
+        parquet_glob = f"s3://{BUCKET}/raw/airbyte/public/{table_name}/**/*.parquet"
         try:
             df = conn.execute(f"""
                 SELECT

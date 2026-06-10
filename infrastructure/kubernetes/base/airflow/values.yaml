@@ -1,0 +1,49 @@
+# ─────────────────────────────────────
+# EXECUTOR
+# ─────────────────────────────────────
+executor: LocalExecutor
+
+# ─────────────────────────────────────
+# CUSTOM IMAGE — etl_ecom installed
+# ─────────────────────────────────────
+images:
+  airflow:
+    repository: airflow-ecom
+    tag: latest
+    pullPolicy: Never
+
+# ─────────────────────────────────────
+# DAGs — gitSync from GitHub
+# ─────────────────────────────────────
+dags:
+  gitSync:
+    enabled: true
+    repo: https://github.com/CDjepeno/ecom-data-platform.git
+    branch: main
+    subPath: src/airflow/dags
+    period: 60s
+    recommendedProbeSetting: true
+
+# ─────────────────────────────────────
+# WEBSERVER
+# ─────────────────────────────────────
+createUserJob:
+  defaultUser:
+    enabled: true
+    role: Admin
+    username: admin
+    email: djepenodev@gmail.com
+    password: admin
+
+# ─────────────────────────────────────
+# METADATA DB — bundled PostgreSQL
+# ─────────────────────────────────────
+postgresql:
+  enabled: true
+
+# ─────────────────────────────────────
+# MISC
+# ─────────────────────────────────────
+config:
+  core:
+    load_examples: "False"

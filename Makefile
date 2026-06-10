@@ -389,9 +389,37 @@ lint:
 	@echo "Linting Python with ruff..."
 	$(POETRY) run ruff check $(ETL_DIR)
 
-test:
+test-etl:
 	@echo "Running tests..."
-	$(POETRY) run pytest
+	cd $(ETL_DIR) && poetry run pytest tests/ -v
+
+# ─────────────────────────────────────
+#  Airflow
+# ─────────────────────────────────────
+
+AIRFLOW_NAMESPACE := airflow
+
+airflow-build:
+	@echo "🐳 Building custom Airflow image..."
+	docker build -f src/airflow/Dockerfile -t airflow-ecom:latest .
+	@echo "📦 Loading image into Kind cluster..."
+	kind load docker-image airflow-ecom:latest --name ecom-local
+
+airflow-apply:
+	@echo "🚀 Applying Airflow via Kustomize..."
+	kubectl create namespace $(AIRFLOW_NAMESPACE) || true
+	kustomize build --enable-helm infrastructure/kubernetes/overlays/local/airflow | kubectl apply -n $(AIRFLOW_NAMESPACE) -f -
+
+airflow-ui:
+	@echo "🌐 Airflow UI → http://localhost:8082"
+	kubectl port-forward svc/airflow-api-server 8082:8080 -n $(AIRFLOW_NAMESPACE)
+
+airflow-logs:
+	kubectl logs -f deployment/airflow-scheduler -n $(AIRFLOW_NAMESPACE)
+
+airflow-uninstall:
+	helm uninstall airflow --namespace $(AIRFLOW_NAMESPACE)
+	kubectl delete namespace $(AIRFLOW_NAMESPACE)
 
 
 # ─────────────────────────────────────
@@ -488,5 +516,12 @@ help:
 	@echo ""
 	@echo "⏩ fastAPI"
 	@echo "  make run-api                             → Dev server with reload"
+	@echo ""
+	@echo "✈️  AIRFLOW"
+	@echo "  make airflow-build         → Build custom image + load into Kind"
+	@echo "  make airflow-apply         → Deploy/update Airflow via Kustomize"
+	@echo "  make airflow-ui            → Port-forward UI to localhost:8080"
+	@echo "  make airflow-logs          → Tail scheduler logs"
+	@echo "  make airflow-uninstall     → Remove Airflow from the cluster"
 	@echo "══════════════════════════════════════════"
 	@echo ""

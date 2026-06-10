@@ -1,0 +1,17 @@
+# overlays/local/airflow/kustomization.yml
+# Separate kustomization for Airflow — isolated from global namespace override
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: airflow
+
+resources:
+  - airflow-ingress.yml
+
+helmCharts:
+  - name: airflow
+    repo: https://airflow.apache.org
+    version: "1.22.0"
+    releaseName: airflow
+    namespace: airflow
+    valuesFile: airflow-values.yaml

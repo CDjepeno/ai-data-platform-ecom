@@ -127,7 +127,6 @@ services:
       - etl_ecom
     volumes:
       - ../src/etl_ecom:/app
-      - ../src/semantic_layer:/app/semantic_layer
 
   api:
     build:
