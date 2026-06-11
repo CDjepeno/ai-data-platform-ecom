@@ -17,7 +17,13 @@ images:
 # ─────────────────────────────────────
 dags:
   gitSync:
-    enabled: false 
+    enabled: true
+    repo: https://github.com/CDjepeno/ai-data-platform-ecom.git
+    branch: feat/add-airbyte-and-marketing-source
+    subPath: src/airflow/dags
+    period: 60s
+    recommendedProbeSetting: true
+    credentialsSecret: airflow-git-secret 
 
 # ─────────────────────────────────────
 # WEBSERVER

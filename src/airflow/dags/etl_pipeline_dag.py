@@ -1,7 +1,10 @@
 from datetime import datetime
 
-from airflow.decorators import dag, task
-from etl_ecom.factory.pipeline_factory import PipelineFactory
+from airflow.sdk import dag, task
+from airflow.providers.airbyte.operators.airbyte import AirbyteTriggerSyncOperator
+
+AIRBYTE_CONN_ID = "airbyte_default"
+AIRBYTE_CONNECTION_ID = "45efdbc6-79a4-4444-96e1-882f7f440619"
 
 
 @dag(
@@ -9,16 +12,53 @@ from etl_ecom.factory.pipeline_factory import PipelineFactory
     schedule="@daily",
     start_date=datetime(2024, 1, 1),
     catchup=False,
-    tags=["etl", "iceberg"],
+    tags=["airbyte", "etl", "iceberg"],
 )
-def etl_pipeline():
+def etl_pipeline() -> None:
 
-    @task
-    def run_pipeline_task():
+    # Task 1 — Airbyte: PostgreSQL → MinIO (raw Parquet)
+    sync = AirbyteTriggerSyncOperator(
+        task_id="sync_postgres_to_minio",
+        airbyte_conn_id=AIRBYTE_CONN_ID,
+        connection_id=AIRBYTE_CONNECTION_ID,
+        asynchronous=False,
+    )
+
+    @task(task_id="initialize_warehouse")
+    def initialize_warehouse() -> None:
+        from etl_ecom.configuration.pipeline_factory import PipelineFactory
+        PipelineFactory.create_step_service().infra_initializer.initialize()
+
+    @task(task_id="validate_schema")
+    def validate_schema() -> None:
+        from etl_ecom.configuration.pipeline_factory import PipelineFactory
+        PipelineFactory.create_step_service().schema_validator.validate()
+
+    @task(task_id="load_to_iceberg")
+    def load_to_iceberg() -> None:
+        from etl_ecom.configuration.pipeline_factory import PipelineFactory
         run_id = datetime.now().strftime("%Y%m%d_%H%M%S")
-        PipelineFactory.create().execute(run_id)
+        PipelineFactory.create_step_service().iceberg_loader.load(run_id)
 
-    run_pipeline_task()
+    @task(task_id="build_dbt")
+    def build_dbt() -> None:
+        from etl_ecom.configuration.pipeline_factory import PipelineFactory
+        PipelineFactory.create_step_service().semantic_layer.build_dbt()
+
+    @task(task_id="index_semantic_layer")
+    def index_semantic_layer() -> None:
+        from etl_ecom.configuration.pipeline_factory import PipelineFactory
+        PipelineFactory.create_step_service().semantic_layer.index()
+
+    # Explicit dependency chain — readable, auditable
+    (
+        initialize_warehouse()
+        >> sync # type: ignore[operator]
+        >> validate_schema()
+        >> load_to_iceberg()
+        >> build_dbt()
+        >> index_semantic_layer()
+    )
 
 
-etl_pipeline()
+    etl_pipeline()

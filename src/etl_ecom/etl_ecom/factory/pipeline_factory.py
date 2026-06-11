@@ -14,8 +14,13 @@ class PipelineFactory:
     @staticmethod
     def create_use_case() -> RunPipelineUseCase:
         """Full pipeline — used by scripts and tests."""
+        conn = get_duckdb_connection()
         return RunPipelineUseCase(
-            step_service=PipelineFactory.create_step_service()
+            warehouse_state=DuckDbWarehouseStateAdapter(conn),
+            infra_initializer=DefaultInfraInitializerAdapter(),
+            schema_validator=DuckDbSchemaValidatorAdapter(conn),
+            iceberg_loader=MinioIcebergLoaderAdapter(conn),
+            semantic_layer=HttpSemanticLayerAdapter(settings.semantic_layer_url),
         )
     
     @staticmethod
