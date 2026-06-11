@@ -1,7 +1,7 @@
 [project]
 name = "etl-ecom-dags"
 version = "0.1.0"
-description = "Airflow DAGs for the ecom-data-platform pipeline"
+description = "Airflow DAGs for the ai-data-platform-ecom pipeline"
 
 requires-python = ">=3.11,<3.12"
 
