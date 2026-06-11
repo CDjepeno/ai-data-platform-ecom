@@ -60,6 +60,56 @@ scheduler:
         value: "300"  # increase from 60s to 300s
 
 # ─────────────────────────────────────
+# SECRETS 
+# ─────────────────────────────────────
+secret:
+  - envName: "POSTGRES_DB"
+    secretName: "postgres-secret"
+    secretKey: "POSTGRES_DB"
+  - envName: "POSTGRES_USER"
+    secretName: "postgres-secret"
+    secretKey: "POSTGRES_USER"
+  - envName: "POSTGRES_PASSWORD"
+    secretName: "postgres-secret"
+    secretKey: "POSTGRES_PASSWORD"
+  - envName: "POSTGRES_HOST"
+    secretName: "postgres-secret"
+    secretKey: "POSTGRES_HOST"
+  - envName: "POSTGRES_PORT"
+    secretName: "postgres-secret"
+    secretKey: "POSTGRES_PORT"
+  - envName: "MINIO_ENDPOINT"
+    secretName: "minio-secret"
+    secretKey: "MINIO_ENDPOINT"
+  - envName: "MINIO_ROOT_USER"
+    secretName: "minio-secret"
+    secretKey: "MINIO_ROOT_USER"
+  - envName: "MINIO_ROOT_PASSWORD"
+    secretName: "minio-secret"
+    secretKey: "MINIO_ROOT_PASSWORD"
+  - envName: "AWS_ACCESS_KEY_ID"
+    secretName: "minio-secret"
+    secretKey: "AWS_ACCESS_KEY_ID"
+  - envName: "AWS_SECRET_ACCESS_KEY"
+    secretName: "minio-secret"
+    secretKey: "AWS_SECRET_ACCESS_KEY"
+  - envName: "SEMANTIC_LAYER_URL"
+    secretName: "etl-extra-secret"
+    secretKey: "SEMANTIC_LAYER_URL"
+  - envName: "NESSIE_URI"
+    secretName: "etl-extra-secret"
+    secretKey: "NESSIE_URI"
+  - envName: "ICEBERG_WAREHOUSE"
+    secretName: "etl-extra-secret"
+    secretKey: "ICEBERG_WAREHOUSE"
+  - envName: "MINIO_BUCKET"
+    secretName: "minio-secret"
+    secretKey: "MINIO_BUCKET"
+  - envName: "MINIO_REGION"
+    secretName: "minio-secret"
+    secretKey: "MINIO_REGION"
+
+# ─────────────────────────────────────
 # TRIGGERER  
 # ─────────────────────────────────────
 triggerer:
@@ -75,3 +125,5 @@ triggerer:
 env:
   - name: AIRFLOW__DATABASE__MIGRATION_WAIT_TIMEOUT
     value: "300"
+  - name: PYTHONPATH
+    value: "/opt/etl_ecom"

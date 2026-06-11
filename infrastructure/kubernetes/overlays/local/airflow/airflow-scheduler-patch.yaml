@@ -1,0 +1,19 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: airflow-scheduler
+  namespace: airflow
+spec:
+  template:
+    spec:
+      containers:
+        - name: scheduler
+          envFrom:
+            - configMapRef:
+                name: ecom-config
+            - secretRef:
+                name: openai-secret
+            - secretRef:
+                name: postgres-secret
+            - secretRef:
+                name: minio-secret

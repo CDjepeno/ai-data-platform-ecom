@@ -15,3 +15,6 @@ helmCharts:
     releaseName: airflow
     namespace: airflow
     valuesFile: airflow-values.yaml
+
+patches:
+  - path: airflow-scheduler-patch.yaml

@@ -16,9 +16,6 @@ os.environ["AWS_SECRET_ACCESS_KEY"] = settings.aws_secret_access_key  # ← set 
 os.environ["AWS_ENDPOINT_URL"] = settings.minio_endpoint           # ← set endpoint
 os.environ["AWS_DEFAULT_REGION"] = settings.minio_region           # ← set region
 
-print(f"DEBUG key: {settings.aws_access_key_id}")
-print(f"DEBUG endpoint: {settings.minio_endpoint}")
-print(f"DEBUG region: {settings.minio_region}")
 
 s3fs.S3FileSystem.clear_instance_cache()   # ← clear cache
 # ... monkey-patch code ...

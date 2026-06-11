@@ -2,9 +2,11 @@ FROM apache/airflow:3.2.2-python3.12
 
 USER airflow
 
-COPY --chown=airflow:airflow src/etl_ecom/etl_ecom /opt/etl_ecom/etl_ecom
+# Copy the full etl_ecom project (pyproject.toml + package)
+COPY --chown=airflow:airflow src/etl_ecom /opt/etl_ecom
 
 RUN pip install --no-cache-dir \
+    "numpy<2"  \ 
     "apache-airflow-providers-airbyte>=4.0.0" \
     "duckdb>=1.5.2" \
     "pyarrow>=14.0.0,<15.0.0" \
@@ -17,6 +19,4 @@ RUN pip install --no-cache-dir \
     "httpx>=0.28.1,<0.29.0" \
     "trino>=0.337.0,<0.338.0" \
     "psycopg2-binary>=2.9.12" \
-    "pyyaml>=6.0.3"
-
-ENV PYTHONPATH=/opt/etl_ecom
+    "pyyaml>=6.0.3" \
