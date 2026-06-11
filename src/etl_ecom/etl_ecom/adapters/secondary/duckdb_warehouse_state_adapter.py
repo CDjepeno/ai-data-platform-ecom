@@ -4,7 +4,7 @@ from etl_ecom.application.ports.secondary.warehouse_state_port import WarehouseS
 from etl_ecom.warehouse.warehouse_initialized import warehouse_initialized
 
 
-class DuckDbWarehouseState(WarehouseStatePort):
+class DuckDbWarehouseStateAdapter(WarehouseStatePort):
     def __init__(self, conn: DuckDBPyConnection):
         self._conn = conn
 

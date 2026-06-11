@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from etl_ecom.configuration.pipeline_factory import PipelineFactory
+from etl_ecom.factory.pipeline_factory import PipelineFactory
 
 
 def main() -> None:

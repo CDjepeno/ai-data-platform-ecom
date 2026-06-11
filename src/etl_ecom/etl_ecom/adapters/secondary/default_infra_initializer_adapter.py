@@ -2,6 +2,6 @@ from etl_ecom.application.ports.secondary.infra_initializer_port import InfraIni
 from etl_ecom.ingestion.initialize_infra import initialize_infra
 
 
-class DefaultInfraInitializer(InfraInitializerPort):
+class DefaultInfraInitializerAdapter(InfraInitializerPort):
     def initialize(self) -> None:
         initialize_infra()

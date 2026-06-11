@@ -9,8 +9,14 @@ executor: LocalExecutor
 images:
   airflow:
     repository: airflow-ecom
-    tag: latest
+    tag: local
     pullPolicy: Never
+
+# ─────────────────────────────────────
+# DATABASE MIGRATION JOB
+# ─────────────────────────────────────
+migrateDatabaseJob:
+  enabled: true  
 
 # ─────────────────────────────────────
 # DAGs — gitSync from GitHub
@@ -18,11 +24,11 @@ images:
 dags:
   gitSync:
     enabled: true
-    repo: https://github.com/CDjepeno/ecom-data-platform.git
+    repo: https://github.com/CDjepeno/ecom-data_platform.git
     branch: main
     subPath: src/airflow/dags
     period: 60s
-    recommendedProbeSetting: true
+    credentialsSecret: airflow-git-secret
 
 # ─────────────────────────────────────
 # WEBSERVER

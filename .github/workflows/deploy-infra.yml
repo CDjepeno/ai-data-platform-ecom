@@ -12,6 +12,7 @@ on:
       - 'infrastructure/kubernetes/base/trino/**'
       - 'infrastructure/kubernetes/base/nessie/**'
       - 'infrastructure/kubernetes/base/valkey/**'
+      - 'infrastructure/kubernetes/base/airflow/**'
       - 'infrastructure/kubernetes/overlays/pre-prod/infra/**'
       - '.github/workflows/deploy-infra.yml'
   workflow_dispatch:
@@ -99,6 +100,15 @@ jobs:
           kubectl rollout status deployment/trino \
             -n ecom-preprod \
             --timeout=300s
+
+      - name: Create git-sync secret
+        run: |
+          kubectl create secret generic airflow-git-secret \
+            --from-literal=GIT_SYNC_USERNAME=CDjepeno \
+            --from-literal=GIT_SYNC_PASSWORD=${{ secrets.GHCR_PAT }} \
+            --namespace=airflow \
+            --dry-run=client -o yaml | kubectl apply -f -
+      
 
       - name: Show infra status
         if: always()

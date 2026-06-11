@@ -4,7 +4,7 @@ from etl_ecom.application.ports.secondary.iceberg_loader_port import IcebergLoad
 from etl_ecom.ingestion.loader_to_iceberg import load_all_tables_minio_to_iceberg
 
 
-class MinioIcebergLoader(IcebergLoaderPort):
+class MinioIcebergLoaderAdapter(IcebergLoaderPort):
     def __init__(self, conn: DuckDBPyConnection):
         self._conn = conn
 

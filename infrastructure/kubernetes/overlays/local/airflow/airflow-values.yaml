@@ -9,7 +9,7 @@ executor: LocalExecutor
 images:
   airflow:
     repository: airflow-ecom
-    tag: latest
+    tag: local
     pullPolicy: Never
 
 # ─────────────────────────────────────
@@ -18,11 +18,12 @@ images:
 dags:
   gitSync:
     enabled: true
-    repo: https://github.com/CDjepeno/ecom-data_plateform.git
-    branch: main
+    repo: https://github.com/CDjepeno/ecom-data-platform.git
+    branch: feat/add-airbyte-and-marketing-source
     subPath: src/airflow/dags
     period: 60s
     recommendedProbeSetting: true
+    credentialsSecret: airflow-git-secret 
 
 # ─────────────────────────────────────
 # WEBSERVER
@@ -47,3 +48,30 @@ postgresql:
 config:
   core:
     load_examples: "False"
+
+# ─────────────────────────────────────
+# SCHEDULER
+# ─────────────────────────────────────
+scheduler:
+  waitForMigrations:
+    enabled: true
+    env:
+      - name: AIRFLOW__DATABASE__MIGRATION_WAIT_TIMEOUT
+        value: "300"  # increase from 60s to 300s
+
+# ─────────────────────────────────────
+# TRIGGERER  
+# ─────────────────────────────────────
+triggerer:
+  waitForMigrations:
+    enabled: true
+    env:
+      - name: AIRFLOW__DATABASE__MIGRATION_WAIT_TIMEOUT
+        value: "300"
+
+# ─────────────────────────────────────
+# GLOBAL ENV
+# ─────────────────────────────────────
+env:
+  - name: AIRFLOW__DATABASE__MIGRATION_WAIT_TIMEOUT
+    value: "300"
