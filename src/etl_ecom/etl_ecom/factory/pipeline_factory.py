@@ -38,4 +38,5 @@ class PipelineFactory:
             schema_validator=DuckDbSchemaValidatorAdapter(conn),
             iceberg_loader=MinioIcebergLoaderAdapter(conn),
             semantic_layer=HttpSemanticLayerAdapter(settings.semantic_layer_url),
+            csv_ingestion=DuckdbCsvIngestionAdapter(conn, _CSV_DIR),
         )

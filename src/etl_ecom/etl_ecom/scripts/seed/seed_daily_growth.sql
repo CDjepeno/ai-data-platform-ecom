@@ -151,14 +151,37 @@ LIMIT 50;
 -- 🛍️ PRODUCTS (new)
 -- =========================================
 
+WITH daily_products AS (
+    SELECT
+        (ARRAY[
+            'Laptop Pro', 'Laptop Air', 'Mechanical Keyboard', 'Gaming Mouse',
+            'Wireless Headphones', 'Monitor 4K', 'HD Webcam', 'Ergonomic Chair',
+            'USB-C Hub', 'GPU RTX', 'Intel Core i7', 'RAM DDR5',
+            'SSD NVMe', 'Tablet Pro', 'Smart Watch Series',
+            'Tech Backpack', 'Bluetooth Speaker', 'USB-C Cable', 'Mouse Pad RGB'
+        ])[FLOOR(RANDOM() * 19 + 1)] AS base_name,
+
+        (ARRAY[
+            '14', '15', '16', '17', '20', 'v2', 'v3',
+            'Plus', 'Lite', 'Ultra', 'SE', 'Mini',
+            '2TB', '64GB', '6', 'Pro Max'
+        ])[FLOOR(RANDOM() * 16 + 1)] AS variant
+    FROM GENERATE_SERIES(1, 10)
+)
 INSERT INTO products (
+    product_sku,
     name,
+    description,
     price,
     created_at,
     updated_at
 )
 SELECT
-    'Daily Product ' || FLOOR(RANDOM() * 100000),
+    'SKU-' || UPPER(REPLACE(REPLACE(base_name || '-' || variant, ' ', '-'), '--', '-')),
+
+    base_name || ' ' || variant,
+
+    'Auto-generated daily product',
 
     CASE
         WHEN RANDOM() < 0.05 THEN -20
@@ -169,7 +192,7 @@ SELECT
     NOW(),
     NOW()
 
-FROM GENERATE_SERIES(1, 10);
+FROM daily_products;
 
 -- =========================================
 -- 🏷️ PRODUCT CATEGORIES

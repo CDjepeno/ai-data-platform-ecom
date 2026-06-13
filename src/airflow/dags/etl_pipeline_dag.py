@@ -94,6 +94,12 @@ def etl_pipeline() -> None:
         run_id = datetime.now().strftime("%Y%m%d_%H%M%S")
         PipelineFactory.create_step_service().load_to_iceberg(run_id)
 
+    @task(task_id="ingest_csv_campaigns")
+    def ingest_csv_campaigns() -> None:
+        from etl_ecom.factory.pipeline_factory import PipelineFactory
+        run_id = datetime.now().strftime("%Y%m%d_%H%M%S")
+        PipelineFactory.create_step_service().ingest_csv_campaigns(run_id)
+
     @task(task_id="build_dbt")
     def build_dbt() -> None:
         from etl_ecom.factory.pipeline_factory import PipelineFactory
@@ -108,6 +114,7 @@ def etl_pipeline() -> None:
     (
         initialize_warehouse()
         >> airbyte_sync() #type:ignore
+        >> ingest_csv_campaigns()
         >> validate_schema()
         >> load_to_iceberg()
         >> build_dbt()
