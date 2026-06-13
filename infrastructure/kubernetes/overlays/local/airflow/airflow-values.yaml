@@ -13,11 +13,45 @@ images:
     pullPolicy: Never
 
 # ─────────────────────────────────────
-# DAGs — gitSync from GitHub
+# DAGs — local PVC mount
 # ─────────────────────────────────────
 dags:
   gitSync:
-    enabled: false 
+    enabled: false
+    recommendedProbeSetting: false
+
+# ─────────────────────────────────────
+# SCHEDULER — mounts dags PVC
+# ─────────────────────────────────────
+scheduler:
+  waitForMigrations:
+    enabled: true
+  extraVolumes:
+    - name: local-dags
+      persistentVolumeClaim:
+        claimName: airflow-dags-pvc
+  extraVolumeMounts:
+    - name: local-dags
+      mountPath: /opt/airflow/dags
+
+# ─────────────────────────────────────
+# DAG PROCESSOR — scans and parses DAG files
+# ─────────────────────────────────────
+dagProcessor:
+  extraVolumes:
+    - name: local-dags
+      persistentVolumeClaim:
+        claimName: airflow-dags-pvc
+  extraVolumeMounts:
+    - name: local-dags
+      mountPath: /opt/airflow/dags
+
+# ─────────────────────────────────────
+# TRIGGERER
+# ─────────────────────────────────────
+triggerer:
+  waitForMigrations:
+    enabled: true
 
 # ─────────────────────────────────────
 # WEBSERVER
@@ -44,17 +78,7 @@ config:
     load_examples: "False"
 
 # ─────────────────────────────────────
-# SCHEDULER
-# ─────────────────────────────────────
-scheduler:
-  waitForMigrations:
-    enabled: true
-    env:
-      - name: AIRFLOW__DATABASE__MIGRATION_WAIT_TIMEOUT
-        value: "300"  # increase from 60s to 300s
-
-# ─────────────────────────────────────
-# SECRETS 
+# SECRETS
 # ─────────────────────────────────────
 secret:
   - envName: "POSTGRES_DB"
@@ -88,13 +112,13 @@ secret:
     secretName: "minio-secret"
     secretKey: "AWS_SECRET_ACCESS_KEY"
   - envName: "SEMANTIC_LAYER_URL"
-    secretName: "etl-extra-secret"
+    secretName: "etl-secret"
     secretKey: "SEMANTIC_LAYER_URL"
   - envName: "NESSIE_URI"
-    secretName: "etl-extra-secret"
+    secretName: "etl-secret"
     secretKey: "NESSIE_URI"
   - envName: "ICEBERG_WAREHOUSE"
-    secretName: "etl-extra-secret"
+    secretName: "etl-secret"
     secretKey: "ICEBERG_WAREHOUSE"
   - envName: "MINIO_BUCKET"
     secretName: "minio-secret"
@@ -104,16 +128,6 @@ secret:
     secretKey: "MINIO_REGION"
 
 # ─────────────────────────────────────
-# TRIGGERER  
-# ─────────────────────────────────────
-triggerer:
-  waitForMigrations:
-    enabled: true
-    env:
-      - name: AIRFLOW__DATABASE__MIGRATION_WAIT_TIMEOUT
-        value: "300"
-
-# ─────────────────────────────────────
 # GLOBAL ENV
 # ─────────────────────────────────────
 env:
@@ -121,3 +135,21 @@ env:
     value: "300"
   - name: PYTHONPATH
     value: "/opt/etl_ecom"
+
+# ─────────────────────────────────────
+# INGRESS
+# ─────────────────────────────────────
+ingress:
+  apiServer:
+    enabled: true
+    ingressClassName: nginx
+    hosts:
+      - name: airflow.ecom.local
+        tls:
+          enabled: false
+    pathType: Prefix
+
+extraHosts:
+  - ip: "172.18.0.1"  # replace with your actual gateway IP
+    hostnames:
+      - "host.docker.internal"

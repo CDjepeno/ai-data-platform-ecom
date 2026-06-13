@@ -16,3 +16,8 @@ spec:
       targetPort: 443
       nodePort: 30443
       protocol: TCP
+    - name: postgres
+      port: 5434
+      targetPort: 5434
+      nodePort: 30434
+      protocol: TCP

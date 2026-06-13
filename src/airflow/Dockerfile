@@ -1,5 +1,8 @@
 FROM apache/airflow:3.2.2-python3.12
 
+USER root
+RUN mkdir -p /app/warehouse && chown -R 50000 /app
+
 USER airflow
 
 # Copy the full etl_ecom project (pyproject.toml + package)
@@ -19,4 +22,4 @@ RUN pip install --no-cache-dir \
     "httpx>=0.28.1,<0.29.0" \
     "trino>=0.337.0,<0.338.0" \
     "psycopg2-binary>=2.9.12" \
-    "pyyaml>=6.0.3" \
+    "pyyaml>=6.0.3"

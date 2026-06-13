@@ -13,7 +13,7 @@ data:
           method: none
           user: trino
           password: ""
-          host: trino
+          host: trino.ecom-local.svc.cluster.local 
           port: 8080
           database: iceberg
           schema: "ecom"

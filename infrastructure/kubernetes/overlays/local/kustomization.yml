@@ -5,7 +5,7 @@ kind: Kustomization
 namespace: ecom-local
 
 resources:
-  - namespace.yml
+  - ecom-namespace.yml
   - configmap-env.yml
   - ecom-ingress.yml
   - ../../base/postgres/
@@ -106,6 +106,26 @@ patches:
     target:
       kind: Deployment
       name: mcp
+  
+  - patch: |-
+      apiVersion: v1
+      kind: Service
+      metadata:
+        name: minio
+      spec:
+        type: NodePort
+        ports:
+          - name: api
+            port: 9000
+            targetPort: 9000
+            nodePort: 30900
+          - name: console
+            port: 9001
+            targetPort: 9001
+            nodePort: 30901
+    target:
+      kind: Service
+      name: minio
 
 
   - path: ingress-patch.yml

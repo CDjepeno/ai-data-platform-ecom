@@ -61,6 +61,17 @@ spec:
             port:
               number: 9001
   
+  - host: minio-api.ecom.local
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: minio
+            port:
+              number: 9000
+  
   - host: chat.ecom.local
     http:
       paths:
@@ -71,3 +82,6 @@ spec:
             name: nextjs
             port:
               number: 3000
+
+
+  

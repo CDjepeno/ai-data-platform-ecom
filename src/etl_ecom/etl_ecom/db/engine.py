@@ -1,3 +1,5 @@
+import os
+
 from sqlalchemy import create_engine
 
 
@@ -23,7 +25,8 @@ def get_minio_client():
 
 def get_duckdb_connection() -> duckdb.DuckDBPyConnection:
 
-    con = duckdb.connect(settings.dbt_duckdb_path_dev)
+    path = os.getenv("DUCKDB_PATH_DEV", f"/tmp/duckdb_{os.getpid()}.db")
+    con = duckdb.connect(path)
 
     try:
 

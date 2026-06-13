@@ -63,7 +63,11 @@ def load_single_table_to_iceberg(
             pass
 
         schema = arrow_to_iceberg_schema(df.schema)
-        table = catalog.create_table(identifier=full_table_name, schema=schema)
+        
+        table = catalog.create_table(
+            identifier=full_table_name, 
+            schema=schema,
+            location=f"s3://{BUCKET}/warehouse/raw/{table_name}")
 
         logger.info(f"🧊 Appending {row_count} rows into {full_table_name}")
 
@@ -113,7 +117,7 @@ def ensure_table_exists(catalog, table_name: str, schema) -> bool:
         catalog.create_table(
             identifier=table_name,
             schema=schema,
-            location=f"s3://ecom-etl/warehouse/{table_name}",
+            location=f"s3://{BUCKET}/warehouse/raw/{table_name}",
         )
         logger.info(f"✅ Table '{table_name}' created")
         return True
