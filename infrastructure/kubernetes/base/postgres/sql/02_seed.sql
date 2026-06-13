@@ -148,37 +148,27 @@ FROM users;
 -- PRODUCTS
 -- ============================================
 
-INSERT INTO products (
-    name,
-    price,
-    created_at
-)
-SELECT
-    (
-        ARRAY[
-            'Laptop',
-            'Keyboard',
-            'Mouse',
-            'Headphones',
-            'Monitor',
-            'Chair',
-            'Desk',
-            'Shoes',
-            'Backpack',
-            'Watch',
-            'Phone',
-            'Tablet'
-        ]
-    )[floor(random() * 12 + 1)]
-    || ' '
-    || gs,
-    CASE
-        WHEN random() < 0.05 THEN -10
-        WHEN random() < 0.02 THEN 99999
-        ELSE round((random() * 300)::numeric, 2)
-    END,
-    now() - (random() * interval '365 days')
-FROM generate_series(1, 800) AS gs;
+INSERT INTO products (product_sku, name, description, price, created_at) VALUES
+('SKU-LAPTOP-PRO',    'Laptop Pro 15',        'High-end laptop for professionals',           1299.99, now() - interval '300 days'),
+('SKU-LAPTOP-AIR',    'Laptop Air 13',        'Lightweight everyday laptop',                  899.99, now() - interval '280 days'),
+('SKU-KEYBOARD-MECH', 'Mechanical Keyboard',  'RGB mechanical gaming keyboard',                89.99, now() - interval '260 days'),
+('SKU-MOUSE-GAMING',  'Gaming Mouse Pro',     'High DPI gaming mouse',                         59.99, now() - interval '250 days'),
+('SKU-HEADPHONES-BT', 'Wireless Headphones',  'Noise-cancelling Bluetooth headphones',        149.99, now() - interval '240 days'),
+('SKU-MONITOR-27',    '27in 4K Monitor',      '4K UHD IPS display',                           499.99, now() - interval '230 days'),
+('SKU-WEBCAM-HD',     'HD Webcam 1080p',      'Full HD webcam for streaming',                  79.99, now() - interval '220 days'),
+('SKU-CHAIR-ERGO',    'Ergonomic Chair',      'Lumbar support office chair',                  349.99, now() - interval '210 days'),
+('SKU-DESK-STAND',    'Monitor Desk Stand',   'Adjustable dual monitor arm',                   69.99, now() - interval '200 days'),
+('SKU-HUB-USBC',      'USB-C Hub 8-in-1',    'Multi-port USB-C docking station',              49.99, now() - interval '190 days'),
+('SKU-GPU-RTX4070',   'GPU RTX 4070',         'High-end gaming graphics card',                599.99, now() - interval '180 days'),
+('SKU-CPU-I9',        'Intel Core i9',        'High performance desktop CPU',                 399.99, now() - interval '170 days'),
+('SKU-RAM-32GB',      'RAM 32GB DDR5',        'High speed DDR5 memory kit',                   129.99, now() - interval '160 days'),
+('SKU-SSD-1TB',       'SSD NVMe 1TB',         'Ultra fast NVMe solid state drive',             99.99, now() - interval '150 days'),
+('SKU-TABLET-PRO',    'Tablet Pro 12',        'Professional drawing tablet',                  699.99, now() - interval '140 days'),
+('SKU-WATCH-SMART',   'Smart Watch Series 5', 'Fitness and notification smartwatch',           299.99, now() - interval '130 days'),
+('SKU-BACKPACK-TECH', 'Tech Backpack 30L',    'Waterproof laptop backpack',                    89.99, now() - interval '120 days'),
+('SKU-SPEAKER-BT',    'Bluetooth Speaker',    'Portable waterproof speaker',                   59.99, now() - interval '110 days'),
+('SKU-CABLE-USBC',    'USB-C Cable 2m',       'Fast charging braided cable',                   19.99, now() - interval '100 days'),
+('SKU-PAD-MOUSE-XL',  'XL Mouse Pad RGB',     'Extended desk mouse pad with RGB lighting',     29.99, now() - interval '90 days');
 
 -- ============================================
 -- PRODUCT CATEGORIES

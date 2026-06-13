@@ -1,0 +1,11 @@
+campaign_id,campaign_name,platform,owner,product_sku,start_date,end_date,budget_eur,impressions,clicks,conversions,spend_eur,revenue_eur,status
+META-001,Laptop Pro Launch Q1,meta,Alice Martin,SKU-LAPTOP-PRO,2026-01-05,2026-02-05,3000.00,245000,3920,78,2901.00,101399.22,completed
+META-002,Wireless Headphones Spring,meta,Lucas Dupont,SKU-HEADPHONES-BT,2026-03-01,2026-04-15,1500.00,198000,3168,95,1432.80,14249.05,completed
+META-003,Smart Watch Valentine Campaign,meta,Alice Martin,SKU-WATCH-SMART,2026-01-28,2026-02-14,2000.00,312000,4992,149,1876.40,44698.51,completed
+META-004,GPU Gaming Spring Push,meta,Thomas Girard,SKU-GPU-RTX4070,2026-03-15,2026-04-30,4000.00,187000,2992,44,3654.20,26399.56,completed
+META-005,Tablet Pro Creative Studio,meta,Sophie Bernard,SKU-TABLET-PRO,2026-04-01,2026-05-31,2500.00,276000,4140,82,2341.80,57399.18,completed
+META-006,Backpack Student Season,meta,Lucas Dupont,SKU-BACKPACK-TECH,2026-05-01,2026-06-30,800.00,143000,2288,91,743.60,8189.09,active
+META-007,Laptop Air Remote Work,meta,Alice Martin,SKU-LAPTOP-AIR,2026-05-15,2026-06-30,2200.00,167000,2672,53,1987.30,47699.47,active
+META-008,Speaker Summer Outdoor,meta,Thomas Girard,SKU-SPEAKER-BT,2026-05-20,2026-06-20,600.00,98000,1960,78,558.90,4679.22,completed
+META-009,Ergonomic Chair Work From Home,meta,Sophie Bernard,SKU-CHAIR-ERGO,2026-02-01,2026-03-31,1800.00,134000,2680,53,1654.40,18549.47,completed
+META-010,Monitor 4K Creator Edition,meta,Thomas Girard,SKU-MONITOR-27,2026-06-01,2026-06-30,3500.00,198000,3168,44,2890.10,21999.56,active

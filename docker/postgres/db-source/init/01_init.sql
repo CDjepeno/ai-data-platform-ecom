@@ -50,12 +50,13 @@ CREATE TABLE branches (
 -- PRODUCTS
 -- =============================
 CREATE TABLE products (
-    product_id serial PRIMARY KEY,
-    name text,
+    product_id  serial PRIMARY KEY,
+    product_sku text UNIQUE NOT NULL,
+    name        text,
     description text,
-    price numeric(10, 2),
-    created_at timestamp DEFAULT CURRENT_TIMESTAMP,
-    updated_at timestamp DEFAULT CURRENT_TIMESTAMP
+    price       numeric(10, 2),
+    created_at  timestamp DEFAULT CURRENT_TIMESTAMP,
+    updated_at  timestamp DEFAULT CURRENT_TIMESTAMP
 );
 
 -- =============================

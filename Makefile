@@ -25,7 +25,7 @@ MINIO_BUCKET ?= ecom-etl
 #  dbt commands
 # ─────────────────────────────────────
 
-.PHONY: dbt-init dbt-run dbt-test dbt-build dbt-docs dbt-debug dbt-seed dbt-parse
+.PHONY: dbt-init dbt-run dbt-test dbt-build dbt-docs dbt-debug dbt-seed dbt-parse test-etl
 
 dbt-init:
 	@echo "Initializing dbt in $(DBT_DIR)..."
@@ -390,8 +390,8 @@ lint:
 	$(POETRY) run ruff check $(ETL_DIR)
 
 test-etl:
-	@echo "Running tests..."
-	cd $(ETL_DIR) && poetry run pytest tests/ -v
+	@echo "🧪 Running etl_ecom tests..."
+	cd $(ETL_DIR) && poetry run python -m pytest tests/ -v --tb=short
 
 # ─────────────────────────────────────
 #  Airflow
