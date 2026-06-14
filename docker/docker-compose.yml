@@ -140,6 +140,10 @@ services:
     env_file:
       - .env
 
+    environment:
+      - OTEL_SERVICE_NAME=api
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4318
+
     volumes:
     - ../src/fast_api:/app
 
@@ -160,6 +164,9 @@ services:
     - "8001:8001"
     env_file:
       - .env
+    environment:
+      - OTEL_SERVICE_NAME=semantic_layer
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4318
     volumes:
       - ../src/semantic_layer:/app
       - ../src/etl_ecom:/app/etl_ecom
@@ -200,6 +207,33 @@ services:
    # ==============================
   # MONITORING
   # ==============================
+
+  tempo:
+    image: grafana/tempo:latest
+    container_name: tempo
+    ports:
+      - "3200:3200"
+    volumes:
+      - ./monitoring/tempo.yml:/etc/tempo.yml
+      - tempo_data:/var/tempo
+    command: ["-config.file=/etc/tempo.yml"]
+    networks:
+      - etl_ecom
+
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:latest
+    container_name: otel-collector
+    volumes:
+      - ./monitoring/otel-collector.yml:/etc/otel-collector.yml
+    command: ["--config=/etc/otel-collector.yml"]
+    ports:
+      - "4317:4317"
+      - "4318:4318"
+      - "8889:8889"
+    depends_on:
+      - tempo
+    networks:
+      - etl_ecom
 
   prometheus:
     image: prom/prometheus:latest
@@ -259,13 +293,14 @@ services:
       - etl_ecom
 
 volumes:
-  minio_data_dev: 
+  minio_data_dev:
   postgres_data_dev:
   qdrant_data:
   nessie_data:
   prometheus_data:
   grafana_data:
   valkey_data:
+  tempo_data:
 
 networks:
   etl_ecom:
