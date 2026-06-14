@@ -1,4 +1,4 @@
-"""Drop all Iceberg tables in dbt-managed namespaces (mart, ecom, snapshots).
+"""Drop all Iceberg tables in dbt-managed namespaces (mart, silver, snapshots).
 
 Use this when dbt reports ICEBERG_MISSING_METADATA or a snapshot is missing
 SCD columns (dbt_scd_id, dbt_valid_from, dbt_valid_to) — Nessie holds stale
@@ -11,7 +11,7 @@ not required — Airbyte Parquet files in MinIO are still valid.
 
 from etl_ecom.scripts.iceberg.iceberg import get_iceberg_catalog
 
-DBT_NAMESPACES = {"mart", "ecom", "snapshots"}
+DBT_NAMESPACES = {"mart", "silver", "snapshots"}
 
 catalog = get_iceberg_catalog()
 

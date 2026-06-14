@@ -39,6 +39,10 @@ SELECT
     COALESCE(c.customer_sk, -1) AS customer_sk,
     COALESCE(d.date_sk, -1) AS date_sk,
 
+    -- Degenerate dimensions
+    b.country AS branch_country,
+    b.city AS branch_city,
+
     -- Business measures
     o.total_amount,
     o.status,

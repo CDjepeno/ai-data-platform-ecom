@@ -237,25 +237,10 @@ INSERT INTO orders (
 SELECT
     CASE
         WHEN random() < 0.05 THEN NULL
-        WHEN random() < 0.7 THEN (
-            SELECT customer_id
-            FROM active_customers
-            ORDER BY random()
-            LIMIT 1
-        )
-        ELSE (
-            SELECT customer_id
-            FROM customers
-            ORDER BY random()
-            LIMIT 1
-        )
+        WHEN random() < 0.7 THEN ac.customer_id
+        ELSE c.customer_id
     END,
-    (
-        SELECT branch_id
-        FROM branches
-        ORDER BY random()
-        LIMIT 1
-    ),
+    b.branch_id,
     (
         ARRAY[
             'pending',
@@ -265,7 +250,16 @@ SELECT
     )[floor(random() * 3 + 1)]::order_status,
     now() - (random() * interval '60 days'),
     round((random() * 200 + 20)::numeric, 2)
-FROM generate_series(1, 5000);
+FROM generate_series(1, 5000) gs
+CROSS JOIN LATERAL (
+    SELECT branch_id FROM branches ORDER BY random() + gs * 0 LIMIT 1
+) b
+CROSS JOIN LATERAL (
+    SELECT customer_id FROM active_customers ORDER BY random() + gs * 0 LIMIT 1
+) ac
+CROSS JOIN LATERAL (
+    SELECT customer_id FROM customers ORDER BY random() + gs * 0 LIMIT 1
+) c;
 
 -- ============================================
 -- ORDER ITEMS

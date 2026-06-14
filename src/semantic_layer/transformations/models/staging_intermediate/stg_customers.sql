@@ -17,7 +17,15 @@ cleaned AS (
     phone,
     address,
     COALESCE(TRIM(city), 'Unknown') AS city,
-    COALESCE(TRIM(country), 'Unknown') AS country,
+    CASE COALESCE(TRIM(country), 'Unknown')
+        WHEN 'FR' THEN 'France'
+        WHEN 'DE' THEN 'Germany'
+        WHEN 'ES' THEN 'Spain'
+        WHEN 'US' THEN 'United States'
+        WHEN 'JP' THEN 'Japan'
+        WHEN 'AE' THEN 'United Arab Emirates'
+        ELSE COALESCE(TRIM(country), 'Unknown')
+    END AS country,
     created_at,
     updated_at,
     ingested_at,

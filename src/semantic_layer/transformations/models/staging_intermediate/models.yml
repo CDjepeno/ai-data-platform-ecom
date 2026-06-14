@@ -1,7 +1,22 @@
-# models/silver/models.yml
+# models/staging_intermediate/models.yml
 version: 2
 
 models:
+  - name: stg_order_items
+    description: "Cleaned order line items with computed line_total"
+    columns:
+      - name: order_item_id
+        tests:
+          - not_null
+          - unique
+
+  - name: int_campaigns
+    description: "Unified campaigns across Meta, TikTok, and Google — UNION ALL of stg_*_campaigns"
+    columns:
+      - name: campaign_id
+        tests:
+          - not_null
+
   - name: stg_branches
     description: "Cleaned and standardized branch data"
 

@@ -34,7 +34,9 @@ real_customers AS (
 
     SELECT
 
-        ROW_NUMBER() OVER () AS customer_sk,
+        ROW_NUMBER() OVER (
+            ORDER BY dbt_valid_from, customer_id
+        ) AS customer_sk,
 
         customer_id,
         first_name,

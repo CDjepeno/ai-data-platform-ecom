@@ -250,7 +250,7 @@ services:
     build:
       context: ../src/mcp          
       dockerfile: Dockerfile
-    restart: unless-stopped
+    restart: no
     env_file:
       - .env
     depends_on:

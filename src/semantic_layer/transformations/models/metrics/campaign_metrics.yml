@@ -1,0 +1,74 @@
+metrics:
+
+  - name: total_campaigns
+    label: Total Campaigns
+    description: Total number of campaigns across all platforms
+    type: simple
+    type_params:
+      measure: campaign_count
+
+  - name: total_campaign_spend
+    label: Total Campaign Spend (EUR)
+    description: Total ad spend across Meta, TikTok, and Google campaigns
+    type: simple
+    type_params:
+      measure: total_spend_eur
+
+  - name: total_campaign_revenue
+    label: Total Campaign Revenue (EUR)
+    description: Total revenue attributed to campaigns across all platforms
+    type: simple
+    type_params:
+      measure: total_revenue_eur
+
+  - name: total_campaign_budget
+    label: Total Campaign Budget (EUR)
+    description: Total budget allocated across all campaigns
+    type: simple
+    type_params:
+      measure: total_budget_eur
+
+  - name: total_impressions
+    label: Total Impressions
+    description: Total ad impressions across all campaigns
+    type: simple
+    type_params:
+      measure: total_impressions
+
+  - name: total_clicks
+    label: Total Clicks
+    description: Total clicks across all campaigns
+    type: simple
+    type_params:
+      measure: total_clicks
+
+  - name: total_conversions
+    label: Total Conversions
+    description: Total conversions across all campaigns
+    type: simple
+    type_params:
+      measure: total_conversions
+
+  - name: ctr
+    label: Click-Through Rate (%)
+    description: Percentage of impressions that resulted in a click
+    type: ratio
+    type_params:
+      numerator: total_clicks
+      denominator: total_impressions
+
+  - name: roas
+    label: Return on Ad Spend
+    description: Revenue generated per EUR spent on advertising
+    type: ratio
+    type_params:
+      numerator: total_campaign_revenue
+      denominator: total_campaign_spend
+
+  - name: cpc
+    label: Cost Per Click (EUR)
+    description: Average cost per click across all campaigns
+    type: ratio
+    type_params:
+      numerator: total_campaign_spend
+      denominator: total_clicks

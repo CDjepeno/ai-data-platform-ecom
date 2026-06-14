@@ -1,0 +1,23 @@
+metrics:
+
+  - name: total_quantity_sold
+    label: Total Quantity Sold
+    description: Total units sold across all order items
+    type: simple
+    type_params:
+      measure: total_quantity_sold
+
+  - name: total_order_items_revenue
+    label: Total Order Items Revenue (EUR)
+    description: Total revenue from order line items
+    type: simple
+    type_params:
+      measure: total_order_items_revenue
+
+  - name: average_unit_price
+    label: Average Unit Price (EUR)
+    description: Average price per unit sold
+    type: ratio
+    type_params:
+      numerator: total_order_items_revenue
+      denominator: total_quantity_sold
