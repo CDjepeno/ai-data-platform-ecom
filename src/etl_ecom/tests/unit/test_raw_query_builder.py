@@ -1,7 +1,7 @@
 import duckdb
 import pytest
 
-from etl_ecom.ingestion.raw_query_builder import build_query
+from etl_ecom.application.raw_query_builder import build_query
 
 
 class TestBuildQuery:

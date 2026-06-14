@@ -2,7 +2,7 @@ from pathlib import Path
 
 import duckdb
 
-from etl_ecom.application.ports.secondary.csv_ingestion_port import CsvIngestionPort
+from etl_ecom.ports.secondary.csv_ingestion_port import CsvIngestionPort
 from etl_ecom.ingestion.csv_to_minio import ingest_campaigns_to_minio
 
 

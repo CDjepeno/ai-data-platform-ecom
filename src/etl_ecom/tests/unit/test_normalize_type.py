@@ -1,6 +1,6 @@
 import pytest
 
-from etl_ecom.ingestion.schema_validation.validate_schema_drift import normalize_type
+from etl_ecom.application.schema_validation.validate_schema_drift import normalize_type
 
 
 class TestNormalizeType:

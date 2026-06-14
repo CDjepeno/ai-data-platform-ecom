@@ -4,7 +4,7 @@ from duckdb import DuckDBPyConnection
 
 
 from etl_ecom.db.engine import get_duckdb_connection
-from etl_ecom.ingestion.schema_validation.mapping import TYPE_MAPPING
+from etl_ecom.application.schema_validation.mapping import TYPE_MAPPING
 from etl_ecom.utils.load_sql_files import load_sql_file
 from etl_ecom.utils.logger import get_logger
 from etl_ecom.scripts.iceberg.iceberg import get_iceberg_catalog
@@ -54,7 +54,7 @@ def normalize_type(data_type: str) -> str:
 
 def main(conn: DuckDBPyConnection):
 
-    BASE_DIR = Path(__file__).resolve().parents[2]
+    BASE_DIR = Path(__file__).resolve().parents[3]
     sql_path = BASE_DIR / "sql/schema_validation/get_postgres_schema.sql"
 
     sql = load_sql_file(sql_path)

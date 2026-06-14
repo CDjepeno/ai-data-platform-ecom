@@ -1,27 +1,32 @@
 import pytest
+from unittest.mock import MagicMock
 
+from etl_ecom.ports.secondary.csv_ingestion_port import CsvIngestionPort
+from etl_ecom.ports.secondary.iceberg_loader_port import IcebergLoaderPort
+from etl_ecom.ports.secondary.infra_initializer_port import InfraInitializerPort
+from etl_ecom.ports.secondary.schema_validator_port import SchemaValidatorPort
+from etl_ecom.ports.secondary.semantic_layer_port import SemanticLayerPort
+from etl_ecom.ports.secondary.warehouse_state_port import WarehouseStatePort
 from etl_ecom.application.use_cases.run_pipeline_use_case import RunPipelineUseCase
-from tests.fakes.fake_warehouse_state import FakeWarehouseState
-from tests.fakes.fake_infra_initializer import FakeInfraInitializer
-from tests.fakes.fake_schema_validator import FakeSchemaValidator
-from tests.fakes.fake_iceberg_loader import FakeIcebergLoader
-from tests.fakes.fake_semantic_layer import FakeSemanticLayer
-from tests.fakes.fake_csv_ingestion import FakeCsvIngestion
 
 
 def make_use_case(
     initialized: bool = False,
     schema_raises: bool = False,
     rows_loaded: int = 10,
-    csv_rows: int = 33,
 ) -> tuple:
-    infra = FakeInfraInitializer()
-    validator = FakeSchemaValidator(schema_raises)
-    loader = FakeIcebergLoader(rows_loaded)
-    semantic = FakeSemanticLayer()
-    csv_ingestion = FakeCsvIngestion(csv_rows)
+    warehouse_state = MagicMock(spec=WarehouseStatePort)
+    warehouse_state.is_initialized.return_value = initialized
+    infra = MagicMock(spec=InfraInitializerPort)
+    validator = MagicMock(spec=SchemaValidatorPort)
+    if schema_raises:
+        validator.validate.side_effect = Exception("Schema drift detected")
+    loader = MagicMock(spec=IcebergLoaderPort)
+    loader.load.return_value = rows_loaded
+    semantic = MagicMock(spec=SemanticLayerPort)
+    csv_ingestion = MagicMock(spec=CsvIngestionPort)
     use_case = RunPipelineUseCase(
-        warehouse_state=FakeWarehouseState(initialized),
+        warehouse_state=warehouse_state,
         infra_initializer=infra,
         schema_validator=validator,
         iceberg_loader=loader,
@@ -38,24 +43,24 @@ class TestRunPipelineUseCase:
 
         use_case.execute("20240101_120000")
 
-        assert infra.called
-        assert validator.called
-        assert loader.called_with == "20240101_120000"
-        assert csv.called_with == "20240101_120000"
-        assert semantic.dbt_built
-        assert semantic.indexed
+        infra.initialize.assert_called_once()
+        validator.validate.assert_called_once()
+        loader.load.assert_called_once_with("20240101_120000")
+        csv.ingest.assert_called_once_with("20240101_120000")
+        semantic.build_dbt.assert_called_once()
+        semantic.index.assert_called_once()
 
     def test_skips_pipeline_when_already_initialized(self):
         use_case, infra, validator, loader, semantic, csv = make_use_case(initialized=True)
 
         use_case.execute("20240101_120000")
 
-        assert not infra.called
-        assert not validator.called
-        assert loader.called_with is None
-        assert csv.called_with is None
-        assert not semantic.dbt_built
-        assert not semantic.indexed
+        infra.initialize.assert_not_called()
+        validator.validate.assert_not_called()
+        loader.load.assert_not_called()
+        csv.ingest.assert_not_called()
+        semantic.build_dbt.assert_not_called()
+        semantic.index.assert_not_called()
 
     def test_raises_and_stops_when_schema_drift_detected(self):
         use_case, _, _, loader, semantic, csv = make_use_case(schema_raises=True)
@@ -63,7 +68,7 @@ class TestRunPipelineUseCase:
         with pytest.raises(Exception, match="Schema drift detected"):
             use_case.execute("20240101_120000")
 
-        assert loader.called_with is None
-        assert csv.called_with is None
-        assert not semantic.dbt_built
-        assert not semantic.indexed
+        loader.load.assert_not_called()
+        csv.ingest.assert_not_called()
+        semantic.build_dbt.assert_not_called()
+        semantic.index.assert_not_called()

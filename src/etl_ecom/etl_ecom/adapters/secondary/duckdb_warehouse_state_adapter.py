@@ -1,6 +1,6 @@
 from duckdb import DuckDBPyConnection
 
-from etl_ecom.application.ports.secondary.warehouse_state_port import WarehouseStatePort
+from etl_ecom.ports.secondary.warehouse_state_port import WarehouseStatePort
 from etl_ecom.warehouse.warehouse_initialized import warehouse_initialized
 
 

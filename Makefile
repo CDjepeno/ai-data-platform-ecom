@@ -1,5 +1,6 @@
 # ───────────────────────────────────── #  Variables # ───────────────────────────────────── m
 ETL_DIR := src/etl_ecom
+MCP_DIR := src/mcp
 ENV_FILE := docker/.env.local
 
 DBT_DIR := $(ETL_DIR)/etl_ecom/transformation
@@ -25,7 +26,7 @@ MINIO_BUCKET ?= ecom-etl
 #  dbt commands
 # ─────────────────────────────────────
 
-.PHONY: dbt-init dbt-run dbt-test dbt-build dbt-docs dbt-debug dbt-seed dbt-parse test-etl
+.PHONY: dbt-init dbt-run dbt-test dbt-build dbt-docs dbt-debug dbt-seed dbt-parse test-etl test-mcp test
 
 dbt-init:
 	@echo "Initializing dbt in $(DBT_DIR)..."
@@ -393,6 +394,16 @@ test-etl:
 	@echo "🧪 Running etl_ecom tests..."
 	cd $(ETL_DIR) && poetry run python -m pytest tests/ -v --tb=short
 
+test-mcp:
+	@echo "🧪 Running mcp tests..."
+	cd $(MCP_DIR) && poetry run python -m pytest tests/unit/ -v --tb=short
+
+test:
+	@echo "🧪 Running all unit tests..."
+	@$(MAKE) test-etl
+	@$(MAKE) test-mcp
+	@echo "✅ All tests passed"
+
 # ─────────────────────────────────────
 #  Airflow
 # ─────────────────────────────────────
@@ -436,6 +447,9 @@ help:
 	@echo "  make install               → Install Poetry dependencies"
 	@echo ""
 	@echo "🧪 CODE QUALITY"
+	@echo "  make test                  → Run all unit tests (CI)"
+	@echo "  make test-etl              → Run etl_ecom unit tests only"
+	@echo "  make test-mcp              → Run mcp unit tests only"
 	@echo "  make lint                  → Lint Python with Ruff"
 	@echo "  make lint-sql              → Lint ingestion SQL"
 	@echo "  make lint-dbt              → Lint dbt project SQL"

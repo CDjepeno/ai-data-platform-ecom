@@ -1,6 +1,6 @@
 from duckdb import DuckDBPyConnection
 
-from etl_ecom.application.ports.secondary.iceberg_loader_port import IcebergLoaderPort
+from etl_ecom.ports.secondary.iceberg_loader_port import IcebergLoaderPort
 from etl_ecom.ingestion.loader_to_iceberg import load_all_tables_minio_to_iceberg
 
 

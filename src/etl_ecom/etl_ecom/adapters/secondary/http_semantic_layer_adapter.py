@@ -3,7 +3,7 @@ from time import perf_counter
 from etl_ecom.utils.logger import get_logger
 import httpx
 
-from etl_ecom.application.ports.secondary.semantic_layer_port import SemanticLayerPort
+from etl_ecom.ports.secondary.semantic_layer_port import SemanticLayerPort
 logger = get_logger(__name__)
 
 
