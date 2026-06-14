@@ -70,3 +70,78 @@ models:
           - not_null
           - unique
 
+  - name: stg_meta_campaigns
+    description: "Cleaned Meta Ads campaign data — types cast, status normalized, deduplicated"
+
+    columns:
+      - name: campaign_id
+        description: "Unique Meta campaign identifier (primary key)"
+        tests:
+          - not_null
+          - unique
+
+      - name: platform
+        description: "Ad platform — always 'meta' in this model"
+        tests:
+          - not_null
+
+      - name: start_date
+        description: "Campaign start date (DATE)"
+        tests:
+          - not_null
+
+      - name: end_date
+        description: "Campaign end date (DATE)"
+        tests:
+          - not_null
+
+  - name: stg_tiktok_campaigns
+    description: "Cleaned TikTok Ads campaign data — types cast, status normalized, deduplicated"
+
+    columns:
+      - name: campaign_id
+        description: "Unique TikTok campaign identifier (primary key)"
+        tests:
+          - not_null
+          - unique
+
+      - name: platform
+        description: "Ad platform — always 'tiktok' in this model"
+        tests:
+          - not_null
+
+      - name: start_date
+        description: "Campaign start date (DATE)"
+        tests:
+          - not_null
+
+      - name: end_date
+        description: "Campaign end date (DATE)"
+        tests:
+          - not_null
+
+  - name: stg_google_campaigns
+    description: "Cleaned Google Ads campaign data — types cast, status normalized, deduplicated"
+
+    columns:
+      - name: campaign_id
+        description: "Unique Google campaign identifier (primary key)"
+        tests:
+          - not_null
+          - unique
+
+      - name: platform
+        description: "Ad platform — always 'google_ads' in this model"
+        tests:
+          - not_null
+
+      - name: start_date
+        description: "Campaign start date (DATE)"
+        tests:
+          - not_null
+
+      - name: end_date
+        description: "Campaign end date (DATE)"
+        tests:
+          - not_null
+

@@ -18,12 +18,6 @@ ENV_FILE = (
     else None   # ← K8s: no file, read from os.environ directly
 )
 
-print(f"BASE_DIR: {BASE_DIR}")
-print(f"env_local: {_env_local}")
-print(f"env_local exists: {_env_local.exists()}")
-print(f"env_default: {_env_default}")
-print(f"env_default exists: {_env_default.exists()}")
-print(f"Using ENV_FILE: {ENV_FILE}")
 
 class Settings(BaseSettings):
     """ETL E-commerce configuration."""

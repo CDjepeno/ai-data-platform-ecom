@@ -35,9 +35,9 @@ class RunPipelineUseCase(RunPipelinePort):
         logger.info("🚀 Starting Pipeline")
 
         self._infra_initializer.initialize()
-        self._schema_validator.validate()
-        self._iceberg_loader.load(run_id)
         self._csv_ingestion.ingest(run_id)
+        self._iceberg_loader.load(run_id)
+        self._schema_validator.validate()
         self._semantic_layer.build_dbt()
         self._semantic_layer.index()
 

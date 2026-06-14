@@ -10,6 +10,7 @@ from pyiceberg.types import (
     NestedField,
     StringType,
     TimestampType,
+    TimestamptzType,
 )
 
 from etl_ecom.utils.logger import get_logger
@@ -35,16 +36,13 @@ def arrow_to_iceberg_schema(arrow_schema):
             iceberg_type = StringType()
 
         elif pa.types.is_timestamp(field_type):
-            iceberg_type = TimestampType()
+            iceberg_type = TimestamptzType() if field_type.tz is not None else TimestampType()
 
         elif pa.types.is_boolean(field_type):
             iceberg_type = BooleanType()
 
         elif pa.types.is_floating(field_type):
             iceberg_type = DoubleType()
-
-        elif pa.types.is_timestamp(field_type):
-            iceberg_type = TimestampType()
 
         elif pa.types.is_date(field_type):
             iceberg_type = DateType()

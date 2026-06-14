@@ -189,4 +189,35 @@ sources:
             tests:
               - not_null
 
+      # ==========================================================
+      # MARKETING — CAMPAIGNS
+      # ==========================================================
+
+      - name: meta_campaigns
+        description: Raw Meta Ads campaign data ingested from CSV
+
+        columns:
+          - name: campaign_id
+            description: Unique Meta campaign identifier (e.g. META-001)
+            tests:
+              - not_null
+
+      - name: tiktok_campaigns
+        description: Raw TikTok Ads campaign data ingested from CSV
+
+        columns:
+          - name: campaign_id
+            description: Unique TikTok campaign identifier (e.g. TK-001)
+            tests:
+              - not_null
+
+      - name: google_campaigns
+        description: Raw Google Ads campaign data ingested from CSV
+
+        columns:
+          - name: campaign_id
+            description: Unique Google campaign identifier (e.g. GGL-001)
+            tests:
+              - not_null
+
 

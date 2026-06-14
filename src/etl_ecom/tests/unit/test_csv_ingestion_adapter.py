@@ -4,7 +4,7 @@ from pathlib import Path
 import duckdb
 import pytest
 
-from etl_ecom.ingestion.csv_to_minio import write_csv_dir_to_parquet
+from etl_ecom.ingestion.csv_to_minio import write_csv_dir_to_parquet, write_single_csv_to_parquet
 
 
 # ── Minimal CSV fixtures ────────────────────────────────────────────────────
@@ -122,3 +122,70 @@ class TestWriteCsvDirToParquet:
             f"SELECT DISTINCT platform FROM read_parquet('{output}') ORDER BY platform"
         ).fetchall()
         assert [p[0] for p in platforms] == ["meta", "tiktok"]
+
+
+class TestWriteSingleCsvToParquet:
+    """Unit tests for the single-file CSV → Parquet writer.
+
+    write_single_csv_to_parquet() reads exactly one CSV file and writes it
+    as a Parquet file — no union, one source per output file.
+    """
+
+    def test_returns_correct_row_count(
+        self, conn: duckdb.DuckDBPyConnection, tmp_path: Path
+    ):
+        csv_file = tmp_path / "meta_campaigns.csv"
+        csv_file.write_text(META_CSV)
+        output = str(tmp_path / "meta.parquet")
+
+        result = write_single_csv_to_parquet(conn, csv_file, output)
+
+        assert result == 2
+
+    def test_writes_readable_parquet_file(
+        self, conn: duckdb.DuckDBPyConnection, tmp_path: Path
+    ):
+        csv_file = tmp_path / "meta_campaigns.csv"
+        csv_file.write_text(META_CSV)
+        output = str(tmp_path / "meta.parquet")
+
+        write_single_csv_to_parquet(conn, csv_file, output)
+
+        df = conn.execute(f"SELECT * FROM read_parquet('{output}')").fetchdf()
+        assert len(df) == 2
+
+    def test_only_contains_rows_from_that_file(
+        self, conn: duckdb.DuckDBPyConnection, tmp_path: Path
+    ):
+        csv_file = tmp_path / "tiktok_campaigns.csv"
+        csv_file.write_text(TIKTOK_CSV)
+        output = str(tmp_path / "tiktok.parquet")
+
+        write_single_csv_to_parquet(conn, csv_file, output)
+
+        platforms = conn.execute(
+            f"SELECT DISTINCT platform FROM read_parquet('{output}')"
+        ).fetchall()
+        assert [p[0] for p in platforms] == ["tiktok"]
+
+    def test_returns_zero_for_empty_csv(
+        self, conn: duckdb.DuckDBPyConnection, tmp_path: Path
+    ):
+        csv_file = tmp_path / "empty.csv"
+        csv_file.write_text("campaign_id,platform\n")
+        output = str(tmp_path / "out.parquet")
+
+        result = write_single_csv_to_parquet(conn, csv_file, output)
+
+        assert result == 0
+
+    def test_does_not_create_parquet_when_csv_is_empty(
+        self, conn: duckdb.DuckDBPyConnection, tmp_path: Path
+    ):
+        csv_file = tmp_path / "empty.csv"
+        csv_file.write_text("campaign_id,platform\n")
+        output_path = tmp_path / "out.parquet"
+
+        write_single_csv_to_parquet(conn, csv_file, str(output_path))
+
+        assert not output_path.exists()

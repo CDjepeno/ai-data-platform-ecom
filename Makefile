@@ -292,6 +292,9 @@ endif
 iceberg-drop-all:
 	$(PYTHON) -m etl_ecom.scripts.iceberg.drop_all_tables
 
+iceberg-drop-dbt:
+	$(PYTHON) -m etl_ecom.scripts.iceberg.drop_dbt_tables
+
 iceberg-preview:
 ifndef TABLE
 	$(error ❌ Usage: make iceberg-preview TABLE=bronze.users)

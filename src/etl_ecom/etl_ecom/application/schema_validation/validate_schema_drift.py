@@ -46,15 +46,32 @@ def normalize_type(data_type: str) -> str:
 
     data_type = data_type.lower()
 
+    # Parameterized forms like "decimal(10,2)" — Airbyte always writes float64.
     if data_type.startswith("decimal"):
-        return "decimal"
+        return "double"
 
-    return TYPE_MAPPING.get(data_type, data_type)
+    mapped = TYPE_MAPPING.get(data_type, data_type)
+
+    # Airbyte promotes all integer types to int64 (long) when writing Parquet.
+    if mapped == "int":
+        return "long"
+
+    # Airbyte converts all timestamps to UTC when writing Parquet, so PostgreSQL
+    # tz-naive columns (timestamp) become Iceberg timestamptz on the Iceberg side.
+    if mapped in ("timestamp", "timestamptz"):
+        return "timestamptz"
+
+    # Airbyte converts all numeric/decimal types to float64 when writing Parquet.
+    # PostgreSQL numeric/real → "decimal"/"float", Iceberg side always gets "double".
+    if mapped in ("decimal", "float"):
+        return "double"
+
+    return mapped
 
 
 def main(conn: DuckDBPyConnection):
 
-    BASE_DIR = Path(__file__).resolve().parents[3]
+    BASE_DIR = Path(__file__).resolve().parents[2]
     sql_path = BASE_DIR / "sql/schema_validation/get_postgres_schema.sql"
 
     sql = load_sql_file(sql_path)
@@ -68,12 +85,21 @@ def main(conn: DuckDBPyConnection):
         for _, row in df.iterrows()
     )
 
-    TECHNICAL_COLUMNS = {"ingested_at", "ingestion_date", "run_id"}
+    # Pipeline technical columns and Airbyte internal metadata columns
+    EXCLUDED_COLUMNS = {
+        "ingested_at", "ingestion_date", "run_id",
+        "_airbyte_raw_id", "_airbyte_extracted_at",
+        "_airbyte_meta", "_airbyte_generation_id",
+    }
+
+    # Campaign tables come from CSV, not PostgreSQL — exclude from drift checks
+    CSV_TABLES = {"meta_campaigns", "tiktok_campaigns", "google_campaigns"}
 
     iceberg_columns = set(
         (row["table_name"], row["column_name"], normalize_type(row["data_type"]))
         for row in iceberg_schema
-        if row["column_name"] not in TECHNICAL_COLUMNS
+        if row["column_name"] not in EXCLUDED_COLUMNS
+        and row["table_name"] not in CSV_TABLES
     )
 
     missing_in_iceberg = source_columns - iceberg_columns

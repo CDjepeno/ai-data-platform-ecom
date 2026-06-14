@@ -8,6 +8,7 @@ from pyiceberg.types import (
     LongType,
     StringType,
     TimestampType,
+    TimestamptzType,
 )
 
 from etl_ecom.db.mapper.arrow_iceberg_mapper import arrow_to_iceberg_schema
@@ -40,9 +41,21 @@ class TestArrowToIcebergSchema:
         schema = _single_field_schema(pa.string())
         assert isinstance(schema.fields[0].field_type, StringType)
 
-    def test_timestamp_maps_to_timestamp_type(self):
+    def test_timestamp_without_timezone_maps_to_timestamp_type(self):
         schema = _single_field_schema(pa.timestamp("us"))
         assert isinstance(schema.fields[0].field_type, TimestampType)
+
+    def test_timestamp_with_utc_timezone_maps_to_timestamptz_type(self):
+        # Airbyte writes timezone-aware timestamps with tz=UTC after normalization
+        schema = _single_field_schema(pa.timestamp("us", tz="UTC"))
+        assert isinstance(schema.fields[0].field_type, TimestamptzType)
+
+    def test_timestamp_with_non_utc_timezone_maps_to_timestamptz_type(self):
+        # Europe/Paris arrives from Airbyte raw Parquet; _normalize_timestamps()
+        # casts it to UTC before the mapper runs, but the mapper itself also maps
+        # any tz-aware timestamp to TimestamptzType regardless of the tz name.
+        schema = _single_field_schema(pa.timestamp("us", tz="Europe/Paris"))
+        assert isinstance(schema.fields[0].field_type, TimestamptzType)
 
     def test_boolean_maps_to_boolean_type(self):
         schema = _single_field_schema(pa.bool_())

@@ -63,12 +63,13 @@ class TestRunPipelineUseCase:
         semantic.index.assert_not_called()
 
     def test_raises_and_stops_when_schema_drift_detected(self):
+        # validate() now runs AFTER load() — drift detection blocks dbt, not the load.
         use_case, _, _, loader, semantic, csv = make_use_case(schema_raises=True)
 
         with pytest.raises(Exception, match="Schema drift detected"):
             use_case.execute("20240101_120000")
 
-        loader.load.assert_not_called()
-        csv.ingest.assert_not_called()
+        loader.load.assert_called_once_with("20240101_120000")
+        csv.ingest.assert_called_once_with("20240101_120000")
         semantic.build_dbt.assert_not_called()
         semantic.index.assert_not_called()
