@@ -408,6 +408,43 @@ test:
 	@echo "✅ All tests passed"
 
 # ─────────────────────────────────────
+#  Observability (OTel + Tempo)
+# ─────────────────────────────────────
+
+K8S_NAMESPACE     := ecom-local
+MONITORING_NAMESPACE := monitoring
+HELM_VALUES_DIR   := infrastructure/kubernetes/overlays/local/helm-values
+
+.PHONY: otel-repos otel-install otel-uninstall monitoring-upgrade
+
+otel-repos:
+	helm repo add grafana https://grafana.github.io/helm-charts
+	helm repo add open-telemetry https://open-telemetry.github.io/opentelemetry-helm-charts
+	helm repo update
+
+otel-install: otel-repos
+	@echo "🔭 Installing Tempo..."
+	helm upgrade --install tempo grafana/tempo \
+		-n $(K8S_NAMESPACE) \
+		-f $(HELM_VALUES_DIR)/tempo-values.yml
+	@echo "📡 Installing OTel Collector..."
+	helm upgrade --install otel-collector open-telemetry/opentelemetry-collector \
+		-n $(K8S_NAMESPACE) \
+		-f $(HELM_VALUES_DIR)/otel-collector-values.yml
+
+otel-uninstall:
+	helm uninstall tempo -n $(K8S_NAMESPACE) || true
+	helm uninstall otel-collector -n $(K8S_NAMESPACE) || true
+
+monitoring-upgrade:
+	@echo "📊 Installing/upgrading kube-prometheus-stack..."
+	helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+	helm repo update
+	helm upgrade --install monitoring prometheus-community/kube-prometheus-stack \
+		-n $(MONITORING_NAMESPACE) --create-namespace \
+		-f infrastructure/kubernetes/overlays/local/prometheus-values.yml
+
+# ─────────────────────────────────────
 #  Airflow
 # ─────────────────────────────────────
 
@@ -415,9 +452,9 @@ AIRFLOW_NAMESPACE := airflow
 
 airflow-build:
 	@echo "🐳 Building custom Airflow image..."
-	docker build -f src/airflow/Dockerfile -t airflow-ecom:latest .
+	docker build -f src/airflow/Dockerfile -t airflow-ecom:local .
 	@echo "📦 Loading image into Kind cluster..."
-	kind load docker-image airflow-ecom:latest --name ecom-local
+	kind load docker-image airflow-ecom:local --name ecom-local
 
 airflow-apply:
 	@echo "🚀 Applying Airflow via Kustomize..."
@@ -533,6 +570,11 @@ help:
 	@echo ""
 	@echo "⏩ fastAPI"
 	@echo "  make run-api                             → Dev server with reload"
+	@echo ""
+	@echo "🔭 OBSERVABILITY (Kind)"
+	@echo "  make otel-install          → Install Tempo + OTel Collector via Helm"
+	@echo "  make otel-uninstall        → Remove Tempo + OTel Collector"
+	@echo "  make monitoring-upgrade    → Upgrade kube-prometheus-stack (adds Tempo datasource)"
 	@echo ""
 	@echo "✈️  AIRFLOW"
 	@echo "  make airflow-build         → Build custom image + load into Kind"

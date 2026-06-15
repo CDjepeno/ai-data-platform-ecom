@@ -127,6 +127,21 @@ patches:
       kind: Service
       name: minio
 
+  - patch: |-
+      apiVersion: v1
+      kind: Service
+      metadata:
+        name: trino
+      spec:
+        type: NodePort
+        ports:
+          - name: http
+            port: 8080
+            targetPort: 8080
+            nodePort: 30808
+    target:
+      kind: Service
+      name: trino
 
   - path: ingress-patch.yml
     target:
@@ -146,6 +161,44 @@ patches:
       name: nessie
         
   - path: semantic-layer-patch.yml
+    target:
+      kind: Deployment
+      name: semantic-layer
+
+  - patch: |-
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata:
+        name: fastapi
+      spec:
+        template:
+          spec:
+            containers:
+              - name: fastapi
+                env:
+                  - name: OTEL_SERVICE_NAME
+                    value: "api"
+                  - name: OTEL_EXPORTER_OTLP_ENDPOINT
+                    value: "http://otel-collector:4318"
+    target:
+      kind: Deployment
+      name: fastapi
+
+  - patch: |-
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata:
+        name: semantic-layer
+      spec:
+        template:
+          spec:
+            containers:
+              - name: semantic-layer
+                env:
+                  - name: OTEL_SERVICE_NAME
+                    value: "semantic_layer"
+                  - name: OTEL_EXPORTER_OTLP_ENDPOINT
+                    value: "http://otel-collector:4318"
     target:
       kind: Deployment
       name: semantic-layer

@@ -12,7 +12,7 @@ RUN pip install --no-cache-dir \
     "numpy<2"  \ 
     "apache-airflow-providers-airbyte>=4.0.0" \
     "duckdb>=1.5.2" \
-    "pyarrow>=14.0.0,<15.0.0" \
+    "pyarrow>=17.0.0" \
     "pyiceberg>=0.7.0" \
     "boto3==1.40.18" \
     "s3fs==2023.12.2" \

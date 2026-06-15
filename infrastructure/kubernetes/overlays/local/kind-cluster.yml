@@ -11,6 +11,15 @@ nodes:
       - containerPort: 443
         hostPort: 8443
         protocol: TCP
+      - containerPort: 5434       
+        hostPort: 5434
+        protocol: TCP
+      - containerPort: 9000      
+        hostPort: 9000
+        protocol: TCP
+      - containerPort: 9001      # 
+        hostPort: 9001
+        protocol: TCP
     # Patch ingress-nginx to bind to this node via label
     kubeadmConfigPatches:
       - |

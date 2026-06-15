@@ -26,6 +26,12 @@ spec:
           envFrom:
             - secretRef:
                 name: postgres-secret
+          readinessProbe:
+            exec:
+              command: ["pg_isready", "-U", "postgres", "-d", "ecom_db"]
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            failureThreshold: 6
           volumeMounts:
             - name: postgres-data
               mountPath: /var/lib/postgresql/data

@@ -21,3 +21,8 @@ spec:
       targetPort: 5434
       nodePort: 30434
       protocol: TCP
+    - name: minio-api       
+      port: 9000
+      targetPort: 9000
+      nodePort: 30900
+      protocol: TCP
