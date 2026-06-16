@@ -169,6 +169,23 @@ patches:
       apiVersion: apps/v1
       kind: Deployment
       metadata:
+        name: nextjs
+      spec:
+        template:
+          spec:
+            containers:
+              - name: nextjs
+                env:
+                  - name: OTEL_EXPORTER_OTLP_ENDPOINT
+                    value: "http://otel-collector-opentelemetry-collector.ecom-local.svc.cluster.local:4318"
+    target:
+      kind: Deployment
+      name: nextjs
+
+  - patch: |-
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata:
         name: fastapi
       spec:
         template:

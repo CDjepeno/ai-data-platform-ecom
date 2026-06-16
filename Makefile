@@ -456,6 +456,15 @@ airflow-build:
 	@echo "📦 Loading image into Kind cluster..."
 	kind load docker-image airflow-ecom:local --name ecom-local
 
+nextjs-build:
+	@echo "🐳 Building Next.js image..."
+	docker build -f src/next_js/Dockerfile -t ecom-nextjs:local src/next_js
+	@echo "📦 Loading image into Kind cluster..."
+	kind load docker-image ecom-nextjs:local --name ecom-local
+	@echo "♻️  Restarting Next.js deployment..."
+	kubectl rollout restart deployment/nextjs -n ecom-local
+	kubectl rollout status deployment/nextjs -n ecom-local
+
 airflow-apply:
 	@echo "🚀 Applying Airflow via Kustomize..."
 	kubectl create namespace $(AIRFLOW_NAMESPACE) || true
