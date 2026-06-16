@@ -1,0 +1,91 @@
+name: Deploy Platform
+
+on:
+  push:
+    branches:
+      - pre-prod
+      - feat/kubernetes-terraform-deployment
+    paths:
+      - 'infrastructure/kubernetes/platform/**'
+      - 'infrastructure/kubernetes/overlays/preprod/infra/**'
+      - '.github/workflows/deploy-platform.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-platform-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    name: Deploy Platform
+    runs-on: ubuntu-latest
+
+    environment: pre-prod
+
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup kubectl
+        uses: azure/setup-kubectl@v4
+        with:
+          version: 'v1.35.5'
+
+      - name: Configure kubeconfig
+        run: |
+          mkdir -p ~/.kube
+          echo "${{ secrets.KUBECONFIG_PRE_PROD }}" | base64 -d > ~/.kube/config
+          chmod 600 ~/.kube/config
+
+      - name: Verify cluster connectivity
+        run: |
+          kubectl cluster-info
+          kubectl get nodes
+
+      - name: Ensure namespace exists
+        run: |
+          kubectl create namespace ecom-preprod \
+            --dry-run=client -o yaml | kubectl apply -f -
+
+      - name: Create MinIO secret
+        run: |
+          kubectl create secret generic minio-secret \
+            --from-literal=AWS_ACCESS_KEY_ID=${{ secrets.MINIO_ROOT_USER }} \
+            --from-literal=AWS_SECRET_ACCESS_KEY=${{ secrets.MINIO_ROOT_PASSWORD }} \
+            --from-literal=MINIO_ROOT_USER=${{ secrets.MINIO_ROOT_USER }} \
+            --from-literal=MINIO_ROOT_PASSWORD=${{ secrets.MINIO_ROOT_PASSWORD }} \
+            --from-literal=MINIO_ENDPOINT=http://minio:9000 \
+            -n ecom-preprod \
+            --dry-run=client -o yaml | kubectl apply -f -
+
+      - name: Show diff before applying
+        run: |
+          kubectl diff -k infrastructure/kubernetes/overlays/preprod/infra/ || true
+
+      - name: Deploy platform
+        run: |
+          kubectl apply -k infrastructure/kubernetes/overlays/preprod/infra/
+
+      - name: Restart Trino
+        run: |
+          kubectl rollout restart deployment/trino -n ecom-preprod
+
+      - name: Wait for platform readiness
+        run: |
+          kubectl rollout status statefulset/minio \
+            -n ecom-preprod \
+            --timeout=120s
+
+          kubectl rollout status deployment/trino \
+            -n ecom-preprod \
+            --timeout=300s
+
+      - name: Show platform status
+        if: always()
+        run: |
+          kubectl get pods -n ecom-preprod
+          kubectl get pvc -n ecom-preprod
+          kubectl get svc -n ecom-preprod

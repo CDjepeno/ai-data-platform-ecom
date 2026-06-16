@@ -5,9 +5,9 @@ kind: Kustomization
 
 helmCharts:
   - name: kube-prometheus-stack
+    valuesFile: ../../../infra/observability/helm-values/prometheus-values.yml
     repo: https://prometheus-community.github.io/helm-charts
     version: "65.1.1"
     releaseName: monitoring
     namespace: monitoring
-    valuesFile: prometheus-values.yml
     includeCRDs: true

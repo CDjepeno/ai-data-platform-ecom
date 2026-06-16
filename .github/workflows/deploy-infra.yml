@@ -1,4 +1,3 @@
----
 name: Deploy Infra
 
 on:
@@ -7,18 +6,11 @@ on:
       - pre-prod
       - feat/kubernetes-terraform-deployment
     paths:
-      - 'infrastructure/kubernetes/base/minio/**'
-      - 'infrastructure/kubernetes/base/qdrant/**'
-      - 'infrastructure/kubernetes/base/trino/**'
-      - 'infrastructure/kubernetes/base/nessie/**'
-      - 'infrastructure/kubernetes/base/valkey/**'
-      - 'infrastructure/kubernetes/base/airflow/**'
-      - 'infrastructure/kubernetes/overlays/pre-prod/infra/**'
+      - 'infrastructure/kubernetes/infra/**'
+      - 'infrastructure/kubernetes/overlays/preprod/infra/**'
       - '.github/workflows/deploy-infra.yml'
   workflow_dispatch:
 
-# Cancel in-flight runs when a new push arrives. A slower previous run
-# could overwrite changes from a newer one.
 concurrency:
   group: deploy-infra-${{ github.ref }}
   cancel-in-progress: true
@@ -53,73 +45,15 @@ jobs:
           kubectl cluster-info
           kubectl get nodes
 
-      - name: Ensure namespace exists
-        run: |
-          # WHY dry-run + apply: idempotent namespace creation.
-          # "kubectl create namespace" fails if it already exists;
-          # this pattern is safe to run on every deploy.
-          kubectl create namespace ecom-preprod \
-            --dry-run=client -o yaml | kubectl apply -f -
-
-      - name: Create minio-secret
-        run: |
-          # WHY --dry-run + apply: idempotent secret creation.
-          # Recreates the secret with updated credentials on every deploy
-          # without failing if it already exists.
-          kubectl create secret generic minio-secret \
-            --from-literal=AWS_ACCESS_KEY_ID=${{ secrets.MINIO_ROOT_USER }} \
-            --from-literal=AWS_SECRET_ACCESS_KEY=${{ secrets.MINIO_ROOT_PASSWORD }} \
-            --from-literal=MINIO_ROOT_USER=${{ secrets.MINIO_ROOT_USER }} \
-            --from-literal=MINIO_ROOT_PASSWORD=${{ secrets.MINIO_ROOT_PASSWORD }} \
-            --from-literal=MINIO_ENDPOINT=http://minio:9000 \
-            -n ecom-preprod \
-            --dry-run=client -o yaml | kubectl apply -f -
-
       - name: Show diff before applying
         run: |
-          # Shows exactly what will change without touching the cluster.
-          # kubectl diff exits non-zero when differences exist — "|| true" prevents
-          # failing the workflow on a legitimate diff.
-          kubectl diff -k infrastructure/kubernetes/overlays/pre-prod/infra/ || true
+          kubectl diff -k infrastructure/kubernetes/overlays/preprod/infra/ || true
 
       - name: Deploy infra
         run: |
-          kubectl apply -k infrastructure/kubernetes/overlays/pre-prod/infra/
-
-      - name: Restart configmap-dependent deployments
-        run: |
-          # WHY: ConfigMap changes alone don't trigger pod restarts in Kubernetes.
-          # Explicitly restarting ensures pods always pick up the latest config.
-          kubectl rollout restart deployment/trino -n ecom-preprod
-
-      - name: Wait for deployments to be ready
-        run: |
-          kubectl rollout status statefulset/minio \
-            -n ecom-preprod \
-            --timeout=120s
-          kubectl rollout status deployment/trino \
-            -n ecom-preprod \
-            --timeout=300s
-
-      - name: Create git-sync secret
-        run: |
-          kubectl create secret generic airflow-git-secret \
-            --from-literal=GIT_SYNC_USERNAME=CDjepeno \
-            --from-literal=GIT_SYNC_PASSWORD=${{ secrets.GHCR_PAT }} \
-            --namespace=airflow \
-            --dry-run=client -o yaml | kubectl apply -f -
-      
+          kubectl apply -k infrastructure/kubernetes/overlays/preprod/infra/
 
       - name: Show infra status
         if: always()
         run: |
-          echo "=== Pods ==="
-          kubectl get pods -n ecom-preprod -o wide
-
-          echo ""
-          echo "=== PVC ==="
-          kubectl get pvc -n ecom-preprod
-
-          echo ""
-          echo "=== Services ==="
-          kubectl get svc -n ecom-preprod
+          kubectl get pods -A

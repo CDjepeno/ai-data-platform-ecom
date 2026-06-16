@@ -1,7 +1,10 @@
 
 grafana:
   enabled: true
-  adminPassword: "admin"          # override via Secret in prod
+  admin:
+    existingSecret: grafana-admin-credentials
+    userKey: admin-user
+    passwordKey: admin-password          # override via Secret in prod
   service:
     type: ClusterIP
   ingress:

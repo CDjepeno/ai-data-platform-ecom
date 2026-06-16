@@ -6,11 +6,11 @@ namespace: ecom-preprod
 resources:
   - namespace.yml
   - configmap-env.yml
-  - ../../../base/minio/
-  - ../../../base/valkey/
-  - ../../../base/qdrant/
-  - ../../../base/nessie/
-  - ../../../base/trino/
+  - ../../../platform/minio/
+  - ../../../platform/valkey/
+  - ../../../platform/qdrant/
+  - ../../../platform/nessie/
+  - ../../../platform/trino/
   - trino-configmap.yml
   - trino-server-configmap.yml
   - http-route-minio.yaml
