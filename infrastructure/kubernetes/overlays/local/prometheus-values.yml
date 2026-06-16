@@ -48,7 +48,7 @@ prometheus:
     additionalScrapeConfigs:
       - job_name: otel-collector
         static_configs:
-          - targets: ['otel-collector.ecom-local:8889']
+          - targets: ['otel-collector-opentelemetry-collector.ecom-local:8889']
         metrics_path: /metrics
 
 alertmanager:

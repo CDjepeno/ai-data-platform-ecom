@@ -13,7 +13,6 @@ logger = get_logger(__name__)
 
 
 def get_iceberg_schema():
-
     catalog = get_iceberg_catalog()
 
     rows = []
@@ -30,7 +29,6 @@ def get_iceberg_schema():
             table_name = table_identifier[1]
 
             for field in table.schema().fields:
-
                 rows.append(
                     {
                         "table_name": table_name,
@@ -102,9 +100,16 @@ def main(conn: DuckDBPyConnection):
         and row["table_name"] not in CSV_TABLES
     )
 
-    missing_in_iceberg = source_columns - iceberg_columns
+    # Only validate tables that already exist in Iceberg.
+    # Tables absent from Iceberg are new and will be created by load_to_iceberg.
+    iceberg_tables = {row["table_name"] for row in iceberg_schema}
+    source_columns_to_check = {
+        (t, c, dt) for t, c, dt in source_columns if t in iceberg_tables
+    }
 
-    extra_in_iceberg = iceberg_columns - source_columns
+    missing_in_iceberg = source_columns_to_check - iceberg_columns
+
+    extra_in_iceberg = iceberg_columns - source_columns_to_check
 
     if missing_in_iceberg:
         logger.error("❌ Missing columns in Iceberg:")

@@ -461,6 +461,13 @@ airflow-apply:
 	kubectl create namespace $(AIRFLOW_NAMESPACE) || true
 	kustomize build --enable-helm infrastructure/kubernetes/overlays/local/airflow | kubectl apply -n $(AIRFLOW_NAMESPACE) -f -
 
+airflow-upgrade:
+	@echo "⬆️  Upgrading Airflow Helm release..."
+	helm upgrade airflow apache-airflow/airflow \
+		-n $(AIRFLOW_NAMESPACE) \
+		-f infrastructure/kubernetes/overlays/local/airflow/airflow-values.yaml
+	kubectl rollout restart statefulset/airflow-scheduler -n $(AIRFLOW_NAMESPACE)
+
 airflow-ui:
 	@echo "🌐 Airflow UI → http://localhost:8082"
 	kubectl port-forward svc/airflow-api-server 8082:8080 -n $(AIRFLOW_NAMESPACE)
