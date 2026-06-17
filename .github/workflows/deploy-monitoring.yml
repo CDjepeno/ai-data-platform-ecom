@@ -81,9 +81,9 @@ jobs:
         run: |
           kubectl apply -f https://github.com/kubernetes-sigs/gateway-api/releases/download/v1.2.0/standard-install.yaml
 
-      - name: Apply monitoring manifests
+      - name: Apply observability manifests
         run: |
-          kubectl apply -k infrastructure/kubernetes/infra/monitoring
+          kubectl apply -k infrastructure/kubernetes/infra/observability
 
       - name: Check pods
         run: |
