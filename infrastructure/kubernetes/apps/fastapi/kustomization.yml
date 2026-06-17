@@ -3,4 +3,3 @@ kind: Kustomization
 resources:
   - fastapi-deployment.yml
   - fastapi-service.yml
-  - fastapi-ingress.yml

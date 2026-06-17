@@ -75,7 +75,7 @@ jobs:
             prometheus-community/kube-prometheus-stack \
             --namespace monitoring \
             --create-namespace \
-            -f infrastructure/kubernetes/base/monitoring/helm-values/prometheus-values.yml
+            -f infrastructure/kubernetes/infra/observability/helm-values/prometheus-values.yml
 
       - name: Install Gateway API CRDs
         run: |
@@ -83,7 +83,7 @@ jobs:
 
       - name: Apply monitoring manifests
         run: |
-          kubectl apply -k infrastructure/kubernetes/base/monitoring
+          kubectl apply -k infrastructure/kubernetes/infra/monitoring
 
       - name: Check pods
         run: |

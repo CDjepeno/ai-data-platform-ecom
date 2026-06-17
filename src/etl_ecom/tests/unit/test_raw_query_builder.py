@@ -1,5 +1,4 @@
 import duckdb
-import pytest
 
 from etl_ecom.application.raw_query_builder import build_query
 

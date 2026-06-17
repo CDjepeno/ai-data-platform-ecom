@@ -6,16 +6,7 @@ namespace: ecom-preprod
 resources:
   - namespace.yml
   - configmap-env.yml
-  - ../../../platform/minio/
-  - ../../../platform/valkey/
-  - ../../../platform/qdrant/
-  - ../../../platform/nessie/
-  - ../../../platform/trino/
-  - trino-configmap.yml
-  - trino-server-configmap.yml
-  - http-route-minio.yaml
-  - http-route-qdrant.yaml
-  - http-route-trino.yaml
+  - postgres-cluster.yaml
 
 patches:
   - patch: |-

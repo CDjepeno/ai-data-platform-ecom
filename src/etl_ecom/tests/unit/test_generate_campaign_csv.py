@@ -1,7 +1,6 @@
 from contextlib import contextmanager
 from unittest.mock import MagicMock, mock_open, patch
 
-import pytest
 
 from etl_ecom.scripts.seed.generate_campaign_csv import (
     FIELDNAMES,

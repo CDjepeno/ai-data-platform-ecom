@@ -13,7 +13,6 @@ class TestNormalizeTimestamps:
     """
 
     def test_utc_timestamp_column_is_returned_unchanged(self):
-        schema = pa.schema([pa.field("ts", pa.timestamp("us", tz="UTC"))])
         table = pa.table({"ts": pa.array([1_000_000], type=pa.timestamp("us", tz="UTC"))})
         result = _normalize_timestamps(table)
         assert result.schema.field("ts").type == pa.timestamp("us", tz="UTC")
@@ -32,10 +31,7 @@ class TestNormalizeTimestamps:
         assert result.schema.field("ts").type == naive_type
 
     def test_non_timestamp_columns_are_unchanged(self):
-        schema = pa.schema([
-            pa.field("id", pa.int64()),
-            pa.field("name", pa.string()),
-        ])
+
         table = pa.table({"id": pa.array([1]), "name": pa.array(["alice"])})
         result = _normalize_timestamps(table)
         assert result.schema == table.schema
@@ -94,6 +90,28 @@ class TestDropAirbyteColumns:
         })
         result = _drop_airbyte_columns(table)
         assert set(result.column_names) == {"order_id", "amount"}
+    
+    def test_timestamp_value_is_preserved_when_casting_to_utc(self):
+        paris_type = pa.timestamp("us", tz="Europe/Paris")
+        utc_type = pa.timestamp("us", tz="UTC")
+
+        epoch_us = 1_704_067_200_000_000
+
+        table = pa.table({
+            "ts": pa.array([epoch_us], type=paris_type)
+        })
+
+        result = _normalize_timestamps(table)
+
+        result_values = result.column("ts").cast(pa.int64())
+
+        original_in_utc = (
+            pa.array([epoch_us], type=paris_type)
+            .cast(utc_type)
+            .cast(pa.int64())
+        )
+
+        assert result_values[0].as_py() == original_in_utc[0].as_py()
 
 
 class TestDropThenNormalize:
@@ -111,13 +129,4 @@ class TestDropThenNormalize:
         assert result.schema.field("created_at").type == pa.timestamp("us", tz="UTC")
 
 
-class TestNormalizeTimestamps:
-        paris_type = pa.timestamp("us", tz="Europe/Paris")
-        utc_type = pa.timestamp("us", tz="UTC")
-        # 2024-01-01 00:00:00 UTC = 1704067200000000 microseconds since epoch
-        epoch_us = 1_704_067_200_000_000
-        table = pa.table({"ts": pa.array([epoch_us], type=paris_type)})
-        result = _normalize_timestamps(table)
-        result_values = result.column("ts").cast(pa.int64())
-        original_in_utc = pa.array([epoch_us], type=paris_type).cast(utc_type).cast(pa.int64())
-        assert result_values[0].as_py() == original_in_utc[0].as_py()
+
