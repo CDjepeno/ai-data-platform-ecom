@@ -36,6 +36,11 @@ spec:
                   key: JSON_LOGS
             - name: SEMANTIC_LAYER_URL
               value: "http://semantic-layer:8001"
+            - name: OTEL_EXPORTER_OTLP_ENDPOINT
+              value: "http://otel-collector.observability.svc.cluster.local:4318"
+
+            - name: OTEL_SERVICE_NAME
+              value: "fastapi"
 
           resources:
             requests:
