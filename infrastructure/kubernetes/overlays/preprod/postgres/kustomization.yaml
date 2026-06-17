@@ -1,0 +1,16 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: postgres
+
+resources:
+  - postgres-cluster.yaml
+
+configMapGenerator:
+  - name: postgres-source-init-sql
+    files:
+      - init/01_init.sql
+      - init/02_seed.sql
+
+generatorOptions:
+  disableNameSuffixHash: true

@@ -8,9 +8,8 @@ name: Deploy PostgreSQL
       # Temporary: enables iteration on the feature branch. Remove before merge.
       - feat/kubernetes-terraform-deployment
     paths:
-      - 'infrastructure/kubernetes/overlays/pre-prod/postgres-cluster.yaml'
-      - 'infrastructure/kubernetes/base/postgres/**'
-      # Trigger when the workflow itself changes — useful for iteration:
+      - 'infrastructure/kubernetes/overlays/preprod/postgres/**'
+      - 'infrastructure/kubernetes/infra/postgres/**'
       - '.github/workflows/deploy-postgres.yml'
   workflow_dispatch:
 
@@ -38,7 +37,7 @@ jobs:
     # WHY env at job scope: same value, multiple steps, single source of truth.
     # Change the path here and every step picks it up automatically.
     env:
-      CLUSTER_MANIFEST: infrastructure/kubernetes/overlays/pre-prod/postgres-cluster.yaml
+      POSTGRES_OVERLAY: infrastructure/kubernetes/overlays/preprod/postgres
 
     steps:
       - name: Checkout repository
@@ -81,19 +80,18 @@ jobs:
           # to fail here with a clear message.
           kubectl get namespace postgres
           kubectl get secret -n postgres postgres-source-credentials
+      
+      - name: Validate Kustomize output
+        run: |
+          kubectl kustomize "$POSTGRES_OVERLAY"
 
       - name: Show diff before applying
         run: |
-          # WHY a dry-run diff: in Tier 2 (stateful infra), seeing what's
-          # about to change is invaluable. This step doesn't change anything
-          # but shows you exactly what apply would do.
-          # NOTE: kubectl diff exits non-zero when there ARE differences (by
-          # design), so "|| true" prevents failing the workflow here.
-          kubectl diff -f "$CLUSTER_MANIFEST" || true
+          kubectl diff -k "$POSTGRES_OVERLAY" || true
 
       - name: Deploy PostgreSQL cluster
         run: |
-          kubectl apply -f "$CLUSTER_MANIFEST"
+          kubectl apply -k "$POSTGRES_OVERLAY"
 
       - name: Wait for PostgreSQL cluster to be Ready
         run: |

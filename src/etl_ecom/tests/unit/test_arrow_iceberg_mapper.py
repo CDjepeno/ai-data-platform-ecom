@@ -1,5 +1,4 @@
 import pyarrow as pa
-import pytest
 from pyiceberg.types import (
     BooleanType,
     DecimalType,

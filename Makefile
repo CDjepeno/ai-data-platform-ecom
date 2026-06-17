@@ -442,7 +442,7 @@ monitoring-upgrade:
 	helm repo update
 	helm upgrade --install monitoring prometheus-community/kube-prometheus-stack \
 		-n $(MONITORING_NAMESPACE) --create-namespace \
-		-f infrastructure/kubernetes/overlays/local/prometheus-values.yml
+		-f infrastructure/kubernetes/overlays/local/observability/charts/prometheus-values.yml
 
 # ─────────────────────────────────────
 #  Airflow
