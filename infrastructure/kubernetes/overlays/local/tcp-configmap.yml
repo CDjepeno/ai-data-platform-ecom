@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: tcp-services
+  namespace: ingress-nginx
+data:
+  "5434": "ecom-local/postgres:5432"
+  "9000": "ecom-local/minio:9000"

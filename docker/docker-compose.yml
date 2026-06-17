@@ -1,4 +1,4 @@
-name: ecom-data-platform-dev
+name: ai-data-platform-ecom-dev
 
 services:
 
@@ -10,7 +10,7 @@ services:
       - "5434:5432"
     volumes:
         - postgres_data_dev:/var/lib/postgresql/data
-        - ./postgres/init:/docker-entrypoint-initdb.d
+        - ./postgres/db-source/init:/docker-entrypoint-initdb.d
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres"]
       interval: 5s
@@ -25,7 +25,13 @@ services:
       - "9000:9000"     
       - "9001:9001"     
     env_file:
-      - .env         
+      - .env
+    environment:
+    # Override MinIO image defaults — these point to Docker secret files
+    # that don't exist in our setup. Setting them empty forces MinIO
+    # to use MINIO_ROOT_USER and MINIO_ROOT_PASSWORD from .env instead.
+      - MINIO_ROOT_USER_FILE=
+      - MINIO_ROOT_PASSWORD_FILE=         
     volumes:
       - minio_data_dev:/data
     command: server /data --console-address ":9001"
@@ -38,7 +44,10 @@ services:
 
     ports:
       - "19120:19120"
-
+    
+    depends_on:
+      - minio
+    
     environment:
       - QUARKUS_HTTP_PORT=19120
 
@@ -66,7 +75,11 @@ services:
       - AWS_SECRET_ACCESS_KEY=${MINIO_ROOT_PASSWORD}
       - AWS_REGION=us-east-1
       - nessie.version.store.type=ROCKSDB
-      - nessie.version.store.persist.directory=/nessie-data   
+      - nessie.version.store.persist.directory=/nessie-data 
+
+    env_file:
+      - .env.local
+      
     volumes:
       - nessie_data:/nessie-data
     networks:
@@ -76,7 +89,7 @@ services:
     image: trinodb/trino:435
     container_name: trino
     ports:
-      - "8080:8080"
+      - "8081:8080"
     volumes:
       - ./trino/catalog:/etc/trino/catalog
     depends_on:
@@ -114,7 +127,6 @@ services:
       - etl_ecom
     volumes:
       - ../src/etl_ecom:/app
-      - ../src/semantic_layer:/app/semantic_layer
 
   api:
     build:
@@ -127,6 +139,10 @@ services:
 
     env_file:
       - .env
+
+    environment:
+      - OTEL_SERVICE_NAME=api
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4318
 
     volumes:
     - ../src/fast_api:/app
@@ -148,6 +164,9 @@ services:
     - "8001:8001"
     env_file:
       - .env
+    environment:
+      - OTEL_SERVICE_NAME=semantic_layer
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4318
     volumes:
       - ../src/semantic_layer:/app
       - ../src/etl_ecom:/app/etl_ecom
@@ -188,6 +207,33 @@ services:
    # ==============================
   # MONITORING
   # ==============================
+
+  tempo:
+    image: grafana/tempo:latest
+    container_name: tempo
+    ports:
+      - "3200:3200"
+    volumes:
+      - ./monitoring/tempo.yml:/etc/tempo.yml
+      - tempo_data:/var/tempo
+    command: ["-config.file=/etc/tempo.yml"]
+    networks:
+      - etl_ecom
+
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:latest
+    container_name: otel-collector
+    volumes:
+      - ./monitoring/otel-collector.yml:/etc/otel-collector.yml
+    command: ["--config=/etc/otel-collector.yml"]
+    ports:
+      - "4317:4317"
+      - "4318:4318"
+      - "8889:8889"
+    depends_on:
+      - tempo
+    networks:
+      - etl_ecom
 
   prometheus:
     image: prom/prometheus:latest
@@ -238,7 +284,7 @@ services:
     build:
       context: ../src/mcp          
       dockerfile: Dockerfile
-    restart: unless-stopped
+    restart: no
     env_file:
       - .env
     depends_on:
@@ -247,13 +293,14 @@ services:
       - etl_ecom
 
 volumes:
-  minio_data_dev: 
+  minio_data_dev:
   postgres_data_dev:
   qdrant_data:
   nessie_data:
   prometheus_data:
   grafana_data:
   valkey_data:
+  tempo_data:
 
 networks:
   etl_ecom:

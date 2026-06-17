@@ -9,7 +9,7 @@ WITH snapshot_users AS (
 
 SELECT
 
-    ROW_NUMBER() OVER () AS user_sk,
+    ROW_NUMBER() OVER (ORDER BY user_id, dbt_valid_from) AS user_sk,
 
     user_id,
     email,

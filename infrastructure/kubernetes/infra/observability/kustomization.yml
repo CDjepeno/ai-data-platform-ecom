@@ -1,0 +1,19 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  # - manifests/namespace-networking.yaml
+  - manifests/http-route-nginx.yaml
+  - manifests/http-route-grafana.yaml
+  - manifests/http-route-prometheus.yaml
+
+  - otel-collector
+  - tempo
+
+helmCharts:
+  - name: kube-prometheus-stack
+    repo: https://prometheus-community.github.io/helm-charts
+    version: "65.1.1"
+    releaseName: monitoring
+    namespace: monitoring
+    valuesFile: helm-values/prometheus-values.yml
+    includeCRDs: true

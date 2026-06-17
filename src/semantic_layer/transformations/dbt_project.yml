@@ -31,7 +31,7 @@ clean-targets:         # directories to be removed by `dbt clean`
 # files using the `{{ config(...) }}` macro.
 models:
   transformation:
-    silver:
+    staging_intermediate:
       +materialized: table
       +schema: silver
 

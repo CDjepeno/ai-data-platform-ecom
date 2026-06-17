@@ -11,7 +11,15 @@ cleaned AS (
     branch_id,
     name,
     city,
-    country,
+    CASE country
+        WHEN 'FR' THEN 'France'
+        WHEN 'DE' THEN 'Germany'
+        WHEN 'ES' THEN 'Spain'
+        WHEN 'US' THEN 'United States'
+        WHEN 'JP' THEN 'Japan'
+        WHEN 'AE' THEN 'United Arab Emirates'
+        ELSE country
+    END AS country,
     created_at,
     updated_at,
     ingested_at,

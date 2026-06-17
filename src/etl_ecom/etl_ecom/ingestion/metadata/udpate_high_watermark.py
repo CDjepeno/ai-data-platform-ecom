@@ -4,7 +4,7 @@ import traceback
 from duckdb import DuckDBPyConnection
 
 from etl_ecom.ingestion.config.table_config import TABLE_CONFIG
-from etl_ecom.ingestion.raw_query_builder import build_query
+from etl_ecom.application.raw_query_builder import build_query
 from etl_ecom.utils.load_sql_files import load_sql_file
 from etl_ecom.utils.logger import get_logger
 

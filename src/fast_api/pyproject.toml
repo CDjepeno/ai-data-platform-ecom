@@ -13,6 +13,12 @@ dependencies = [
     "python-dotenv>=1.2.2,<2.0.0",
 
     "prometheus-fastapi-instrumentator (>=7.1.0,<8.0.0)",
+
+    # OpenTelemetry — traces
+    "opentelemetry-api>=1.26.0,<2.0.0",
+    "opentelemetry-sdk>=1.26.0,<2.0.0",
+    "opentelemetry-instrumentation-fastapi>=0.47b0",
+    "opentelemetry-exporter-otlp-proto-http>=1.26.0,<2.0.0",
 ]
 
 [tool.poetry]

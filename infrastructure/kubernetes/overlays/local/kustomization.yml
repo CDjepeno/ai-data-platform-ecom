@@ -5,22 +5,31 @@ kind: Kustomization
 namespace: ecom-local
 
 resources:
-  - namespace.yml
+  - ecom-namespace.yml
   - configmap-env.yml
   - ecom-ingress.yml
-  - ../../base/postgres/
-  - ../../base/minio/
-  - ../../base/valkey/
-  - ../../base/qdrant/
-  - ../../base/nessie/
-  - ../../base/trino/
-  - ../../base/semantic-layer/
-  - ../../base/fastapi/
-  - ../../base/nextjs/
-  - ../../base/etl-pipeline/
-  - ../../base/mcp/
+
+  # Infrastructure
+  - ../../infra/postgres/
+  - ../../infra/observability/
+
+  # Data Platform
+  - ../../platform/minio/
+  - ../../platform/valkey/
+  - ../../platform/qdrant/
+  - ../../platform/nessie/
+  - ../../platform/trino/
+
+  # Applications
+  - ../../apps/semantic-layer/
+  - ../../apps/fastapi/
+  - ../../apps/nextjs/
+  - ../../apps/etl-pipeline/
+  - ../../apps/mcp/
+
   - trino-configmap.yml
   - dbt-profiles-configmap.yml
+
 
 images:
   - name: ghcr.io/cdjepeno/ecom-fastapi
@@ -106,26 +115,116 @@ patches:
     target:
       kind: Deployment
       name: mcp
+  
+  - patch: |-
+      apiVersion: v1
+      kind: Service
+      metadata:
+        name: minio
+      spec:
+        type: NodePort
+        ports:
+          - name: api
+            port: 9000
+            targetPort: 9000
+            nodePort: 30900
+          - name: console
+            port: 9001
+            targetPort: 9001
+            nodePort: 30901
+    target:
+      kind: Service
+      name: minio
 
+  - patch: |-
+      apiVersion: v1
+      kind: Service
+      metadata:
+        name: trino
+      spec:
+        type: NodePort
+        ports:
+          - name: http
+            port: 8080
+            targetPort: 8080
+            nodePort: 30808
+    target:
+      kind: Service
+      name: trino
 
-  - path: ingress-patch.yml
+  - path: patch/ingress-patch.yml
     target:
       kind: Service
       name: ingress-nginx-controller
       namespace: ingress-nginx
 
 
-  - path: etl-patch.yml
+  - path: patch/etl-patch.yml
     target: 
       kind: Job
       name: etl-pipeline
 
-  - path: nessie-patch.yml
+  - path: patch/nessie-patch.yml
     target:
       kind: StatefulSet
       name: nessie
         
-  - path: semantic-layer-patch.yml
+  - path: patch/semantic-layer-patch.yml
+    target:
+      kind: Deployment
+      name: semantic-layer
+
+  - patch: |-
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata:
+        name: nextjs
+      spec:
+        template:
+          spec:
+            containers:
+              - name: nextjs
+                env:
+                  - name: OTEL_EXPORTER_OTLP_ENDPOINT
+                    value: "http://otel-collector-opentelemetry-collector.ecom-local.svc.cluster.local:4318"
+    target:
+      kind: Deployment
+      name: nextjs
+
+  - patch: |-
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata:
+        name: fastapi
+      spec:
+        template:
+          spec:
+            containers:
+              - name: fastapi
+                env:
+                  - name: OTEL_SERVICE_NAME
+                    value: "api"
+                  - name: OTEL_EXPORTER_OTLP_ENDPOINT
+                    value: "http://otel-collector:4318"
+    target:
+      kind: Deployment
+      name: fastapi
+
+  - patch: |-
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata:
+        name: semantic-layer
+      spec:
+        template:
+          spec:
+            containers:
+              - name: semantic-layer
+                env:
+                  - name: OTEL_SERVICE_NAME
+                    value: "semantic_layer"
+                  - name: OTEL_EXPORTER_OTLP_ENDPOINT
+                    value: "http://otel-collector:4318"
     target:
       kind: Deployment
       name: semantic-layer

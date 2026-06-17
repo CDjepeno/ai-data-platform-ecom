@@ -4,14 +4,15 @@ kind: Kustomization
 namespace: ecom-preprod
 
 resources:
-  - ../../../base/semantic-layer/
-  - ../../../base/fastapi/
-  - ../../../base/nextjs/
-  - ../../../base/etl-pipeline/
-  - ../../../base/mcp/
+  - ../../../apps/semantic-layer/
+  - ../../../apps/fastapi/
+  - ../../../apps/nextjs/
+  - ../../../apps/etl-pipeline/
+  - ../../../apps/mcp/
   - dbt-profiles-configmap.yml
   - http-route-fastapi.yaml
   - http-route-nextjs.yaml
+  - http-route-mcp.yaml
 
 # Tags updated automatically by GitHub Actions on every deploy.
 # NEVER edit these manually — CI owns these values.

@@ -9,7 +9,9 @@ WITH snapshot_branches AS (
 
 SELECT
 
-    ROW_NUMBER() OVER () AS branch_sk,
+    ROW_NUMBER() OVER (
+        ORDER BY dbt_valid_from, branch_id
+    ) AS branch_sk,
 
     branch_id,
     name,

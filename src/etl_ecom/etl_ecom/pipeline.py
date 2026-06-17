@@ -1,69 +1,12 @@
-import asyncio
 from datetime import datetime
-from time import perf_counter
 
-from etl_ecom.db.engine import get_duckdb_connection
-from etl_ecom.warehouse.warehouse_initialized import warehouse_initialized
-from etl_ecom.ingestion.initialize_infra import initialize_infra
-from etl_ecom.ingestion.loader_to_iceberg import load_all_tables_minio_to_iceberg
-from etl_ecom.ingestion.run_raw import ingest_raw_to_minio
-from etl_ecom.ingestion.schema_validation.validate_schema_drift import (
-    main as validate_schema_drift,
-)
-from etl_ecom.utils.logger import get_logger
-import httpx
-
-logger = get_logger(__name__)
+from etl_ecom.factory.pipeline_factory import PipelineFactory
 
 
-async def main():
-    
-    conn = get_duckdb_connection()
-    
-    if not warehouse_initialized(conn):
-
-        logger.info("🚀 Starting Pipeline")
-
-        run_id = datetime.now().strftime("%Y%m%d_%H%M%S")
-
-        initialize_infra()
-
-        validate_schema_drift(conn)
-
-        ingest_raw_to_minio(run_id)
-
-        load_all_tables_minio_to_iceberg(run_id, conn)
-
-        async with httpx.AsyncClient(timeout=300) as client:
-
-            start = perf_counter()
-            response = await client.post(
-                "http://semantic-layer:8001/build-dbt"
-            )
-            duration_dbt = perf_counter() - start
-
-            logger.info(
-                "dbt build completed in %.2f seconds",
-                duration_dbt,
-            )
-            response.raise_for_status()
-
-            duration_indexing = perf_counter() - start
-            response = await client.post(
-                "http://semantic-layer:8001/index"
-            )
-            
-            logger.info(
-                "indexing completed in %.2f seconds",
-                duration_indexing,
-            )
-            response.raise_for_status()
-
-
-        logger.info("🏁 Pipeline finished 🌞")
-    else:
-        logger.info("✅ Warehouse already initialized")
+def main() -> None:
+    run_id = datetime.now().strftime("%Y%m%d_%H%M%S")
+    PipelineFactory.create_use_case().execute(run_id)
 
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    main()

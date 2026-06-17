@@ -1,0 +1,15 @@
+campaign_id,campaign_name,platform,owner,product_sku,start_date,end_date,budget_eur,impressions,clicks,conversions,spend_eur,revenue_eur,status
+GGL-001,Laptop Pro Buy Now,google_ads,Alice Martin,SKU-LAPTOP-PRO,2026-01-10,2026-02-28,4000.00,18500,1202,86,3365.60,111799.14,completed
+GGL-002,SSD NVMe Best Price,google_ads,Lucas Dupont,SKU-SSD-1TB,2026-02-01,2026-03-31,1600.00,12400,880,74,1584.00,7399.26,completed
+GGL-003,CPU i9 Gaming Build,google_ads,Thomas Girard,SKU-CPU-I9,2026-02-15,2026-03-31,1900.00,9800,568,39,1817.60,15599.61,completed
+GGL-004,RAM DDR5 Upgrade Now,google_ads,Sophie Bernard,SKU-RAM-32GB,2026-03-01,2026-04-30,1500.00,14200,894,72,1430.40,9359.28,completed
+GGL-005,Monitor 4K Best Deal,google_ads,Alice Martin,SKU-MONITOR-27,2026-03-15,2026-04-30,1700.00,11600,638,47,1595.00,23499.53,completed
+GGL-006,Webcam Work From Home,google_ads,Lucas Dupont,SKU-WEBCAM-HD,2026-04-01,2026-05-31,1000.00,8900,694,63,971.60,5039.37,completed
+GGL-007,Ergonomic Chair Office Search,google_ads,Thomas Girard,SKU-CHAIR-ERGO,2026-04-15,2026-05-31,1200.00,7400,384,24,1113.60,8399.76,completed
+GGL-008,GPU RTX 4070 Compare,google_ads,Sophie Bernard,SKU-GPU-RTX4070,2026-05-01,2026-06-30,3200.00,13800,841,58,2943.50,34799.42,active
+GGL-009,Tablet Pro Drawing Buy,google_ads,Alice Martin,SKU-TABLET-PRO,2026-05-15,2026-06-30,1800.00,10200,601,46,1622.70,32199.54,active
+GGL-010,Mechanical Keyboard Review,google_ads,Lucas Dupont,SKU-KEYBOARD-MECH,2026-06-01,2026-06-30,1500.00,16300,1108,97,1440.40,8729.03,active
+GGL-011,Monitor Stand Home Office,google_ads,Thomas Girard,SKU-DESK-STAND,2026-06-01,2026-06-30,750.00,6800,367,27,697.30,1889.73,active
+GGL-012,USB-C Hub Multiport,google_ads,Sophie Bernard,SKU-HUB-USBC,2026-06-05,2026-06-30,900.00,9500,684,64,820.80,3199.36,active
+GGL-013,Ram 32Gb Buy Now,google_ads,Thomas Girard,SKU-RAM-32GB,2026-06-03,2026-06-17,2631.82,15232,174,9,2337.93,635.58,active
+GGL-014,Keyboard Mech Search Intent,google_ads,Alice Martin,SKU-KEYBOARD-MECH,2026-05-21,2026-06-14,2050.4,9684,96,5,1830.84,5984.18,active

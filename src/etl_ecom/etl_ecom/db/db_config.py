@@ -1,13 +1,22 @@
 from __future__ import annotations
 
+import os
 from pathlib import Path
 
 from pydantic import Field, computed_field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
+BASE_DIR = Path(__file__).resolve().parents[4]
 
-BASE_DIR = Path(__file__).resolve().parent
-ENV_FILE = BASE_DIR / ".env"
+
+
+_env_local = BASE_DIR / "docker" / ".env.local"
+_env_default = BASE_DIR / "docker" / ".env"
+ENV_FILE = (
+    _env_local if _env_local.exists()
+    else _env_default if _env_default.exists()
+    else None   # ← K8s: no file, read from os.environ directly
+)
 
 
 class Settings(BaseSettings):
@@ -66,17 +75,23 @@ class Settings(BaseSettings):
 
     # ── DuckDB Warehouse ────────────────────────────────────
 
-    dbt_duckdb_path_dev: Path = Field(
-        default=Path("/app/warehouse/dev.duckdb"),
+    duckdb_path_dev: Path = Field(
+        default=Path(os.getenv("DUCKDB_PATH_DEV", "/tmp/dev.duckdb")),
         description="DuckDB development database path.",
     )
 
-    dbt_duckdb_path_prod: Path = Field(
-        default=Path("/app/warehouse/prod.duckdb"),
+    duckdb_path_prod: Path = Field(
+        default=Path(os.getenv("DUCKDB_PATH_PROD", "/tmp/prod.duckdb")),
         description="DuckDB production database path.",
     )
 
+    # ── Semantic Layer ────────────────────────────────────
+    semantic_layer_url: str = Field(
+        description="Semantic layer base URL (e.g. http://semantic-layer:8001).",
+    )
+    
     # ── Iceberg / Nessie ────────────────────────────────────
+    
 
     nessie_uri: str = Field(
         description="Nessie catalog URI.",
@@ -120,7 +135,6 @@ class Settings(BaseSettings):
     )
 
     minio_region: str = Field(
-        default="us-east-1",
         description="S3-compatible storage region.",
     )
 

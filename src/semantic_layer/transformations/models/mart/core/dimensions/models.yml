@@ -25,4 +25,29 @@ models:
           - not_null
           - unique
 
+  - name: dim_products
+    description: "SCD2 product dimension tracking price and name changes over time"
+    columns:
+      - name: product_sk
+        tests:
+          - not_null
+          - unique
+      - name: product_sku
+        tests:
+          - not_null
+
+  - name: dim_campaigns
+    description: "Unified campaign dimension across Meta, TikTok, and Google with computed KPIs"
+    columns:
+      - name: campaign_sk
+        tests:
+          - not_null
+          - unique
+      - name: campaign_id
+        tests:
+          - not_null
+      - name: platform
+        tests:
+          - not_null
+
       

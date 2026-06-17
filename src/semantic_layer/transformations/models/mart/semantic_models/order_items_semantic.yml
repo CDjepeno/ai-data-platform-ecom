@@ -1,0 +1,63 @@
+semantic_models:
+
+  - name: order_items
+
+    description: Semantic model representing order line items — grain is one row per product per order
+
+    model: ref('fact_order_items')
+
+    defaults:
+      agg_time_dimension: order_date
+
+    entities:
+
+      - name: order_item
+        type: primary
+        expr: order_item_id
+
+      - name: order
+        type: foreign
+        expr: order_id
+
+      - name: product
+        type: foreign
+        expr: product_sk
+
+    dimensions:
+
+      - name: product_sku
+        type: categorical
+
+      - name: product_name
+        type: categorical
+
+      - name: branch_country
+        type: categorical
+
+      - name: branch_city
+        type: categorical
+
+      - name: order_status
+        type: categorical
+
+      - name: order_date
+        type: time
+        type_params:
+          time_granularity: day
+
+    measures:
+
+      - name: total_quantity_sold
+        description: Total units sold across all order items
+        agg: sum
+        expr: quantity
+
+      - name: total_order_items_revenue
+        description: Total revenue from order line items
+        agg: sum
+        expr: line_total
+
+      - name: order_item_count
+        description: Number of order line items
+        agg: count_distinct
+        expr: order_item_id

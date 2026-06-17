@@ -1,0 +1,10 @@
+{
+  "folders": [
+    { "path": "src/airflow", "name": "airflow" },
+    { "path": "src/etl_ecom", "name": "etl_ecom" },
+    { "path": "src/fast_api", "name": "fast_api" },
+    { "path": "src/mcp", "name": "mcp" },
+    { "path": "src/semantic_layer", "name": "semantic_layer" },
+    { "path": ".", "name": "root" }
+  ]
+}

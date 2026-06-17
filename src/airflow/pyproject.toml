@@ -1,0 +1,19 @@
+[project]
+name = "etl-ecom-dags"
+version = "0.1.0"
+description = "Airflow DAGs for the ai-data-platform-ecom pipeline"
+
+requires-python = ">=3.11,<3.12"
+
+[tool.poetry]
+package-mode = false
+
+[tool.poetry.dependencies]
+python = ">=3.11,<3.12"
+apache-airflow = "==3.2.2"
+apache-airflow-providers-airbyte = ">=4.0.0"
+psycopg2-binary = ">=2.9.0,<3.0.0"
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"

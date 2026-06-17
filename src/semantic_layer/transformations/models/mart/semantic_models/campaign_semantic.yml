@@ -1,0 +1,77 @@
+semantic_models:
+
+  - name: campaigns
+
+    description: Semantic model representing marketing campaigns across Meta, TikTok, and Google
+
+    model: ref('dim_campaigns')
+
+    defaults:
+      agg_time_dimension: start_date
+
+    entities:
+
+      - name: campaign
+        type: primary
+        expr: campaign_id
+
+    dimensions:
+
+      - name: platform
+        type: categorical
+
+      - name: status
+        type: categorical
+
+      - name: owner
+        type: categorical
+
+      - name: product_sku
+        type: categorical
+
+      - name: start_date
+        type: time
+        type_params:
+          time_granularity: day
+
+      - name: end_date
+        type: time
+        type_params:
+          time_granularity: day
+
+    measures:
+
+      - name: campaign_count
+        description: Total number of campaigns
+        agg: count_distinct
+        expr: campaign_id
+
+      - name: total_impressions
+        description: Total impressions across all campaigns
+        agg: sum
+        expr: impressions
+
+      - name: total_clicks
+        description: Total clicks across all campaigns
+        agg: sum
+        expr: clicks
+
+      - name: total_conversions
+        description: Total conversions across all campaigns
+        agg: sum
+        expr: conversions
+
+      - name: total_spend_eur
+        description: Total ad spend in EUR
+        agg: sum
+        expr: spend_eur
+
+      - name: total_revenue_eur
+        description: Total revenue attributed to campaigns in EUR
+        agg: sum
+        expr: revenue_eur
+
+      - name: total_budget_eur
+        description: Total budget allocated across campaigns in EUR
+        agg: sum
+        expr: budget_eur

@@ -5,14 +5,14 @@ metadata:
 
 data:
   # -- Trino
-  TRINO_HOST: "trino"
+  TRINO_HOST: "trino.ecom-local.svc.cluster.local"
   TRINO_PORT: "8080"
   TRINO_USER: "trino"
   TRINO_CATALOG: "iceberg"
-  TRINO_SCHEMA: "mart"
+  TRINO_SCHEMA: "iceberg"
 
   # -- Nessie
-  NESSIE_URI: "http://nessie:19120"
+  NESSIE_URI: "http://nessie.ecom-local.svc.cluster.local:19120/iceberg"
   ICEBERG_WAREHOUSE: "s3://ecom-etl/warehouse"
 
   # -- Nessie S3/catalog config (moved from statefulset hardcoded values)
@@ -27,7 +27,7 @@ data:
   AWS_REGION: "us-east-1"
 
   # -- Qdrant
-  QDRANT_HOST: "qdrant"
+  QDRANT_HOST: "qdrant.ecom-local.svc.cluster.local"
   QDRANT_PORT: "6333"
   QDRANT_COLLECTION: "semantic_models"
   QDRANT_SIZE: "1536"
@@ -36,16 +36,16 @@ data:
   MODEL_EMBEDDING: "text-embedding-3-small"
 
   # -- Valkey
-  VALKEY_HOST: "valkey"
+  VALKEY_HOST: "valkey.ecom-local.svc.cluster.local"
   VALKEY_PORT: "6379"
   VALKEY_TTL: "3600"
 
   # -- MinIO
-  MINIO_ENDPOINT: "http://minio:9000"
+  MINIO_ENDPOINT: "http://minio.ecom-local.svc.cluster.local:9000"
   MINIO_BUCKET: "ecom-etl"              
 
   # -- Postgres
-  POSTGRES_HOST: "postgres"
+  POSTGRES_HOST: "postgres.ecom-local.svc.cluster.local"
   POSTGRES_PORT: "5432"
   POSTGRES_DB: "ecom_db"
 

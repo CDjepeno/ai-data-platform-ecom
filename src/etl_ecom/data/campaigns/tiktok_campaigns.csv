@@ -1,0 +1,14 @@
+campaign_id,campaign_name,platform,owner,product_sku,start_date,end_date,budget_eur,impressions,clicks,conversions,spend_eur,revenue_eur,status
+TK-001,Gaming Mouse Viral Unbox,tiktok,Thomas Girard,SKU-MOUSE-GAMING,2026-01-10,2026-02-10,700.00,512000,5120,153,694.30,9178.47,completed
+TK-002,Keyboard ASMR Typing Review,tiktok,Lucas Dupont,SKU-KEYBOARD-MECH,2026-02-01,2026-03-01,500.00,389000,3890,116,467.80,10438.84,completed
+TK-003,Speaker Festival Vibes,tiktok,Sophie Bernard,SKU-SPEAKER-BT,2026-03-10,2026-04-10,400.00,623000,6230,174,396.20,10438.26,completed
+TK-004,Laptop Air Student Life,tiktok,Alice Martin,SKU-LAPTOP-AIR,2026-02-15,2026-03-31,1800.00,298000,2980,89,1743.30,80099.11,completed
+TK-005,Mouse Pad RGB Desk Tour,tiktok,Thomas Girard,SKU-PAD-MOUSE-XL,2026-04-01,2026-05-01,200.00,445000,4450,186,196.80,5578.14,completed
+TK-006,USB-C Cable Life Hack,tiktok,Lucas Dupont,SKU-CABLE-USBC,2026-04-15,2026-05-15,150.00,312000,3120,140,147.60,2798.60,completed
+TK-007,Webcam Streaming Setup,tiktok,Sophie Bernard,SKU-WEBCAM-HD,2026-05-01,2026-06-01,550.00,276000,2760,82,534.60,6559.18,completed
+TK-008,Backpack Whats In My Bag,tiktok,Alice Martin,SKU-BACKPACK-TECH,2026-05-10,2026-06-10,350.00,487000,4870,219,342.10,19707.81,completed
+TK-009,Smart Watch Fitness Challenge,tiktok,Thomas Girard,SKU-WATCH-SMART,2026-05-20,2026-06-20,1200.00,534000,5340,200,1178.40,59998.00,active
+TK-010,USB Hub Desk Setup Tour,tiktok,Lucas Dupont,SKU-HUB-USBC,2026-06-01,2026-06-30,300.00,198000,1980,59,287.30,2949.41,active
+TK-011,Headphones ASMR Rain Sounds,tiktok,Sophie Bernard,SKU-HEADPHONES-BT,2026-06-05,2026-06-30,600.00,421000,4210,126,578.60,18898.74,active
+TK-012,Ram 32Gb Day in My Life,tiktok,Lucas Dupont,SKU-RAM-32GB,2026-05-28,2026-07-01,974.2,684796,5988,264,939.75,145776.06,active
+TK-013,Mouse Gaming Day in My Life,tiktok,Alice Martin,SKU-MOUSE-GAMING,2026-06-06,2026-07-07,4512.26,658531,8033,240,4357.26,84423.97,active

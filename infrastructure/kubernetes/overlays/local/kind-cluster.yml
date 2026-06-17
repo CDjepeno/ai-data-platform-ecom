@@ -6,10 +6,19 @@ nodes:
     # Map host ports so ingress-nginx NodePort is reachable from your browser
     extraPortMappings:
       - containerPort: 80
-        hostPort: 8888
+        hostPort: 30080
         protocol: TCP
       - containerPort: 443
         hostPort: 8443
+        protocol: TCP
+      - containerPort: 5434       
+        hostPort: 5434
+        protocol: TCP
+      - containerPort: 9000      
+        hostPort: 9000
+        protocol: TCP
+      - containerPort: 9001      # 
+        hostPort: 9001
         protocol: TCP
     # Patch ingress-nginx to bind to this node via label
     kubeadmConfigPatches:
@@ -18,6 +27,9 @@ nodes:
         nodeRegistration:
           kubeletExtraArgs:
             node-labels: "ingress-ready=true"
+    extraMounts:
+      - hostPath: /home/djepeno/sites/ai-data-platform-ecom/src/airflow/dags
+        containerPath: /dags
 
   - role: worker
     kubeadmConfigPatches:
@@ -26,6 +38,9 @@ nodes:
         nodeRegistration:
           kubeletExtraArgs:
             node-labels: "workload=data"
+    extraMounts:
+      - hostPath: /home/djepeno/sites/ai-data-platform-ecom/src/airflow/dags
+        containerPath: /dags
 
   - role: worker
     kubeadmConfigPatches:
@@ -34,3 +49,6 @@ nodes:
         nodeRegistration:
           kubeletExtraArgs:
             node-labels: "workload=app"
+    extraMounts:
+      - hostPath: /home/djepeno/sites/ai-data-platform-ecom/src/airflow/dags
+        containerPath: /dags

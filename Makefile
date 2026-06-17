@@ -1,4 +1,8 @@
 # ───────────────────────────────────── #  Variables # ───────────────────────────────────── m
+ETL_DIR := src/etl_ecom
+MCP_DIR := src/mcp
+ENV_FILE := docker/.env.local
+
 DBT_DIR := $(ETL_DIR)/etl_ecom/transformation
 
 POETRY := poetry -C $(ETL_DIR)
@@ -22,7 +26,7 @@ MINIO_BUCKET ?= ecom-etl
 #  dbt commands
 # ─────────────────────────────────────
 
-.PHONY: dbt-init dbt-run dbt-test dbt-build dbt-docs dbt-debug dbt-seed dbt-parse
+.PHONY: dbt-init dbt-run dbt-test dbt-build dbt-docs dbt-debug dbt-seed dbt-parse test-etl test-mcp test
 
 dbt-init:
 	@echo "Initializing dbt in $(DBT_DIR)..."
@@ -242,7 +246,7 @@ reset-db-safe:
 
 run:
 	@echo "🚀 Launching ETL pipeline..."
-	$(PYTHON) -m etl_ecom.pipeline
+	poetry -C $(ETL_DIR) run python -m etl_ecom.pipeline
 
 daily-run: seed-daily run
 
@@ -287,6 +291,9 @@ endif
 
 iceberg-drop-all:
 	$(PYTHON) -m etl_ecom.scripts.iceberg.drop_all_tables
+
+iceberg-drop-dbt:
+	$(PYTHON) -m etl_ecom.scripts.iceberg.drop_dbt_tables
 
 iceberg-preview:
 ifndef TABLE
@@ -386,9 +393,100 @@ lint:
 	@echo "Linting Python with ruff..."
 	$(POETRY) run ruff check $(ETL_DIR)
 
+test-etl:
+	@echo "🧪 Running etl_ecom tests..."
+	cd $(ETL_DIR) && poetry run python -m pytest tests/ -v --tb=short
+
+test-mcp:
+	@echo "🧪 Running mcp tests..."
+	cd $(MCP_DIR) && poetry run python -m pytest tests/unit/ -v --tb=short
+
 test:
-	@echo "Running tests..."
-	$(POETRY) run pytest
+	@echo "🧪 Running all unit tests..."
+	@$(MAKE) test-etl
+	@$(MAKE) test-mcp
+	@echo "✅ All tests passed"
+
+# ─────────────────────────────────────
+#  Observability (OTel + Tempo)
+# ─────────────────────────────────────
+
+K8S_NAMESPACE     := ecom-local
+MONITORING_NAMESPACE := monitoring
+HELM_VALUES_DIR   := infrastructure/kubernetes/overlays/local/helm-values
+
+.PHONY: otel-repos otel-install otel-uninstall monitoring-upgrade
+
+otel-repos:
+	helm repo add grafana https://grafana.github.io/helm-charts
+	helm repo add open-telemetry https://open-telemetry.github.io/opentelemetry-helm-charts
+	helm repo update
+
+otel-install: otel-repos
+	@echo "🔭 Installing Tempo..."
+	helm upgrade --install tempo grafana/tempo \
+		-n $(K8S_NAMESPACE) \
+		-f $(HELM_VALUES_DIR)/tempo-values.yml
+	@echo "📡 Installing OTel Collector..."
+	helm upgrade --install otel-collector open-telemetry/opentelemetry-collector \
+		-n $(K8S_NAMESPACE) \
+		-f $(HELM_VALUES_DIR)/otel-collector-values.yml
+
+otel-uninstall:
+	helm uninstall tempo -n $(K8S_NAMESPACE) || true
+	helm uninstall otel-collector -n $(K8S_NAMESPACE) || true
+
+monitoring-upgrade:
+	@echo "📊 Installing/upgrading kube-prometheus-stack..."
+	helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+	helm repo update
+	helm upgrade --install monitoring prometheus-community/kube-prometheus-stack \
+		-n $(MONITORING_NAMESPACE) --create-namespace \
+		-f infrastructure/kubernetes/overlays/local/observability/charts/prometheus-values.yml
+
+# ─────────────────────────────────────
+#  Airflow
+# ─────────────────────────────────────
+
+AIRFLOW_NAMESPACE := airflow
+
+airflow-build:
+	@echo "🐳 Building custom Airflow image..."
+	docker build -f src/airflow/Dockerfile -t airflow-ecom:local .
+	@echo "📦 Loading image into Kind cluster..."
+	kind load docker-image airflow-ecom:local --name ecom-local
+
+nextjs-build:
+	@echo "🐳 Building Next.js image..."
+	docker build -f src/next_js/Dockerfile -t ecom-nextjs:local src/next_js
+	@echo "📦 Loading image into Kind cluster..."
+	kind load docker-image ecom-nextjs:local --name ecom-local
+	@echo "♻️  Restarting Next.js deployment..."
+	kubectl rollout restart deployment/nextjs -n ecom-local
+	kubectl rollout status deployment/nextjs -n ecom-local
+
+airflow-apply:
+	@echo "🚀 Applying Airflow via Kustomize..."
+	kubectl create namespace $(AIRFLOW_NAMESPACE) || true
+	kustomize build --enable-helm infrastructure/kubernetes/overlays/local/airflow | kubectl apply -n $(AIRFLOW_NAMESPACE) -f -
+
+airflow-upgrade:
+	@echo "⬆️  Upgrading Airflow Helm release..."
+	helm upgrade airflow apache-airflow/airflow \
+		-n $(AIRFLOW_NAMESPACE) \
+		-f infrastructure/kubernetes/overlays/local/airflow/airflow-values.yaml
+	kubectl rollout restart statefulset/airflow-scheduler -n $(AIRFLOW_NAMESPACE)
+
+airflow-ui:
+	@echo "🌐 Airflow UI → http://localhost:8082"
+	kubectl port-forward svc/airflow-api-server 8082:8080 -n $(AIRFLOW_NAMESPACE)
+
+airflow-logs:
+	kubectl logs -f deployment/airflow-scheduler -n $(AIRFLOW_NAMESPACE)
+
+airflow-uninstall:
+	helm uninstall airflow --namespace $(AIRFLOW_NAMESPACE)
+	kubectl delete namespace $(AIRFLOW_NAMESPACE)
 
 
 # ─────────────────────────────────────
@@ -405,6 +503,9 @@ help:
 	@echo "  make install               → Install Poetry dependencies"
 	@echo ""
 	@echo "🧪 CODE QUALITY"
+	@echo "  make test                  → Run all unit tests (CI)"
+	@echo "  make test-etl              → Run etl_ecom unit tests only"
+	@echo "  make test-mcp              → Run mcp unit tests only"
 	@echo "  make lint                  → Lint Python with Ruff"
 	@echo "  make lint-sql              → Lint ingestion SQL"
 	@echo "  make lint-dbt              → Lint dbt project SQL"
@@ -485,5 +586,17 @@ help:
 	@echo ""
 	@echo "⏩ fastAPI"
 	@echo "  make run-api                             → Dev server with reload"
+	@echo ""
+	@echo "🔭 OBSERVABILITY (Kind)"
+	@echo "  make otel-install          → Install Tempo + OTel Collector via Helm"
+	@echo "  make otel-uninstall        → Remove Tempo + OTel Collector"
+	@echo "  make monitoring-upgrade    → Upgrade kube-prometheus-stack (adds Tempo datasource)"
+	@echo ""
+	@echo "✈️  AIRFLOW"
+	@echo "  make airflow-build         → Build custom image + load into Kind"
+	@echo "  make airflow-apply         → Deploy/update Airflow via Kustomize"
+	@echo "  make airflow-ui            → Port-forward UI to localhost:8080"
+	@echo "  make airflow-logs          → Tail scheduler logs"
+	@echo "  make airflow-uninstall     → Remove Airflow from the cluster"
 	@echo "══════════════════════════════════════════"
 	@echo ""

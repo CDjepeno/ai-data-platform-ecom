@@ -37,6 +37,10 @@ out/
 .vscode/
 .idea/
 
+# Helm / Kustomize - downloaded chart sources (kustomize --enable-helm cache)
+infrastructure/kubernetes/overlays/local/charts/charts/
+infrastructure/kubernetes/overlays/local/airflow/charts/
+
 # Terraform
 **/.terraform/
 *.tfstate

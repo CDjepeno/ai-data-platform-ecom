@@ -1,1 +1,1 @@
-# ecom-data_plateform
+# ai-data-platform-ecom

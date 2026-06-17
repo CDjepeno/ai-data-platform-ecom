@@ -33,6 +33,12 @@ semantic_models:
       - name: status
         type: categorical
 
+      - name: branch_country
+        type: categorical
+
+      - name: branch_city
+        type: categorical
+
     measures:
 
       - name: revenue
