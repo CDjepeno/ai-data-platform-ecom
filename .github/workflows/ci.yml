@@ -101,8 +101,10 @@ jobs:
           context: ./src/semantic_layer
           push: true
           provenance: false
-          cache-from: type=registry,ref=ghcr.io/cdjepeno/ecom-semantic-layer:buildcache
-          cache-to: type=registry,ref=ghcr.io/cdjepeno/ecom-semantic-layer:buildcache,mode=max
+
+          # Diagnostic
+          no-cache: true
+
           tags: |
             ghcr.io/cdjepeno/ecom-semantic-layer:${{ steps.set-tag.outputs.image-tag }}
             ghcr.io/cdjepeno/ecom-semantic-layer:latest

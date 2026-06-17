@@ -19,10 +19,16 @@ ENV POETRY_VIRTUALENVS_CREATE=false \
 
 RUN pip install poetry==2.3.4
 
-# -- torch removed: embeddings are served by OpenAI API, no local model needed
+# Debug Poetry
+RUN poetry --version
 
 COPY pyproject.toml poetry.lock* ./
-RUN poetry install --no-root --no-cache
+
+# Validate project configuration
+RUN poetry check
+
+# Verbose install to expose the real CI error
+RUN poetry install --no-root --no-cache -vvv
 
 # ==============================================================================
 # Stage 2 — runtime
@@ -39,13 +45,14 @@ RUN apt-get update && apt-get install -y \
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     PYTHONPATH=/app
-# HF_HOME removed: no HuggingFace models loaded at runtime
 
 COPY --from=builder /usr/local/lib/python3.11/site-packages /usr/local/lib/python3.11/site-packages
 COPY --from=builder /usr/local/bin /usr/local/bin
 
 COPY . .
+
 RUN cd /app/transformations && dbt parse --profiles-dir /app/.dbt
+
 EXPOSE 8001
 
 CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8001"]

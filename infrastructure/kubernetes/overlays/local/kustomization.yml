@@ -11,6 +11,7 @@ resources:
 
   # Infrastructure
   - ../../infra/postgres/
+  - ../../infra/observability/
 
   # Data Platform
   - ../../platform/minio/
@@ -28,6 +29,7 @@ resources:
 
   - trino-configmap.yml
   - dbt-profiles-configmap.yml
+
 
 images:
   - name: ghcr.io/cdjepeno/ecom-fastapi
@@ -150,24 +152,24 @@ patches:
       kind: Service
       name: trino
 
-  - path: ingress-patch.yml
+  - path: patch/ingress-patch.yml
     target:
       kind: Service
       name: ingress-nginx-controller
       namespace: ingress-nginx
 
 
-  - path: etl-patch.yml
+  - path: patch/etl-patch.yml
     target: 
       kind: Job
       name: etl-pipeline
 
-  - path: nessie-patch.yml
+  - path: patch/nessie-patch.yml
     target:
       kind: StatefulSet
       name: nessie
         
-  - path: semantic-layer-patch.yml
+  - path: patch/semantic-layer-patch.yml
     target:
       kind: Deployment
       name: semantic-layer
