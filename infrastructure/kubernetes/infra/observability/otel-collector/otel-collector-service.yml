@@ -1,0 +1,19 @@
+# infrastructure/kubernetes/infra/observability/otel-collector/otel-collector-servicemonitor.yaml
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: otel-collector-app-metrics
+  namespace: monitoring
+  labels:
+    release: monitoring          # matches helm release name confirmed above
+spec:
+  namespaceSelector:
+    matchNames:
+      - observability
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: otel-collector
+  endpoints:
+    - port: metrics-app
+      path: /metrics
+      interval: 30s
