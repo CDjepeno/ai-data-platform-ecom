@@ -4,7 +4,6 @@ kind: Kustomization
 resources:
 - deployment.yml
 - service.yml
-- ingress.yml
 images:
 - name: ghcr.io/cdjepeno/ecom-nextjs
   newName: ghcr.io/cdjepeno/ecom-nextjs

@@ -8,8 +8,8 @@ name: Deploy PostgreSQL
       # Temporary: enables iteration on the feature branch. Remove before merge.
       - feat/kubernetes-terraform-deployment
     paths:
-      - 'infrastructure/kubernetes/overlays/pre-prod/postgres-cluster.yaml'
-      - 'infrastructure/kubernetes/base/postgres/**'
+      - 'infrastructure/kubernetes/overlays/preprod/infra/postgres-cluster.yaml'
+      - 'infrastructure/kubernetes/infra/postgres/**'
       # Trigger when the workflow itself changes — useful for iteration:
       - '.github/workflows/deploy-postgres.yml'
   workflow_dispatch:
@@ -38,7 +38,7 @@ jobs:
     # WHY env at job scope: same value, multiple steps, single source of truth.
     # Change the path here and every step picks it up automatically.
     env:
-      CLUSTER_MANIFEST: infrastructure/kubernetes/overlays/pre-prod/postgres-cluster.yaml
+      CLUSTER_MANIFEST: infrastructure/kubernetes/overlays/preprod/infra/postgres-cluster.yaml
 
     steps:
       - name: Checkout repository
