@@ -117,7 +117,7 @@ jobs:
       - name: Set image tags
         run: |
           TAG="${{ steps.tag.outputs.image-tag }}"
-          cd infrastructure/kubernetes/overlays/pre-prod/apps
+          cd infrastructure/kubernetes/overlays/preprod/apps
 
           kustomize edit set image \
             ghcr.io/cdjepeno/ecom-fastapi=ghcr.io/cdjepeno/ecom-fastapi:${TAG} \
@@ -128,7 +128,7 @@ jobs:
 
       - name: Show diff before applying
         run: |
-          kubectl diff -k infrastructure/kubernetes/overlays/pre-prod/apps/ || true
+          kubectl diff -k infrastructure/kubernetes/overlays/preprod/apps/ || true
 
       - name: Delete immutable Job before apply
         run: |
@@ -140,7 +140,7 @@ jobs:
 
       - name: Deploy apps
         run: |
-          kubectl apply -k infrastructure/kubernetes/overlays/pre-prod/apps/
+          kubectl apply -k infrastructure/kubernetes/overlays/preprod/apps/
 
       - name: Wait for rollout
         run: |
@@ -167,8 +167,8 @@ jobs:
         with:
           payload: |
             {
-              "text": "✅ Apps deployed to pre-prod",
-              "blocks": [{"type": "section","text": {"type": "mrkdwn","text": "✅ *Apps deployed to pre-prod*\n*Tag:* `${{ steps.tag.outputs.image-tag }}`\n*Author:* ${{ github.actor }}\n*<${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|View logs>*"}}]
+              "text": "✅ Apps deployed to preprod",
+              "blocks": [{"type": "section","text": {"type": "mrkdwn","text": "✅ *Apps deployed to preprod*\n*Tag:* `${{ steps.tag.outputs.image-tag }}`\n*Author:* ${{ github.actor }}\n*<${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|View logs>*"}}]
             }
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
@@ -180,7 +180,7 @@ jobs:
         with:
           payload: |
             {
-              "text": "❌ Apps deploy to pre-prod failed",
+              "text": "❌ Apps deploy to preprod failed",
               "blocks": [{"type": "section","text": {"type": "mrkdwn","text": "❌ *Apps deploy failed*\n*Tag:* `${{ steps.tag.outputs.image-tag }}`\n*Author:* ${{ github.actor }}\n*<${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|View logs>*"}}]
             }
         env:
