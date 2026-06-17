@@ -6,7 +6,6 @@ namespace: ecom-preprod
 resources:
   - namespace.yml
   - configmap-env.yml
-  - postgres-cluster.yaml
 
 patches:
   - patch: |-
