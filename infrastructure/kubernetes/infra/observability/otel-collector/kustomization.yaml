@@ -3,3 +3,4 @@ kind: Kustomization
 
 resources:
   - otel-collector-configmap.yml
+  - collector.yaml
