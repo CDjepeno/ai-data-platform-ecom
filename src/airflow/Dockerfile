@@ -1,16 +1,18 @@
 FROM apache/airflow:3.2.2-python3.12
 
 USER root
-RUN mkdir -p /app/warehouse && chown -R 50000 /app
+
+RUN mkdir -p /app/warehouse && \
+    chown -R 50000:0 /app
 
 USER airflow
 
-# Copy the full etl_ecom project (pyproject.toml + package)
 COPY --chown=airflow:airflow src/etl_ecom /opt/etl_ecom
 
+ENV PYTHONPATH=/opt/etl_ecom
+
 RUN pip install --no-cache-dir \
-    "numpy<2"  \ 
-    "apache-airflow-providers-airbyte>=4.0.0" \
+    "numpy<2" \
     "duckdb>=1.5.2" \
     "pyarrow>=17.0.0" \
     "pyiceberg>=0.7.0" \
