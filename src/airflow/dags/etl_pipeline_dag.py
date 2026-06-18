@@ -3,50 +3,65 @@ import os
 
 import requests
 from airflow.sdk import dag, task
+from requests.auth import HTTPBasicAuth
 
-AIRBYTE_BASE_URL = "http://172.18.0.1:8888/api/public/v1"
-AIRBYTE_CONNECTION_ID = "45efdbc6-79a4-4444-96e1-882f7f440619"
-AIRBYTE_CLIENT_ID = "734226c8-5388-4ad1-9856-538c72bb517f"
-AIRBYTE_CLIENT_SECRET = "Ep5VNnNJbPhTcAi5G5bpVfYJC737Nxg1"
+
+
+AIRBYTE_BASE_URL = os.getenv(
+    "AIRBYTE_BASE_URL",
+    "http://airbyte-server:8000/api/public/v1"
+)
+AIRBYTE_CLIENT_ID = os.getenv("AIRBYTE_CLIENT_ID")
+AIRBYTE_CLIENT_SECRET = os.getenv("AIRBYTE_CLIENT_SECRET")
+AIRBYTE_CONNECTION_ID = os.getenv("AIRBYTE_CONNECTION_ID")
 
 _SERVICE = "airflow.etl_pipeline"
 
+if not AIRBYTE_CLIENT_ID:
+    raise ValueError("AIRBYTE_CLIENT_ID is not set")
 
-def _get_airbyte_token() -> str:
-    """Obtain a short-lived Bearer token from Airbyte."""
-    resp = requests.post(
-        f"{AIRBYTE_BASE_URL}/applications/token",
-        headers={"Content-Type": "application/json"},
-        json={
-            "grant_type": "client_credentials",
-            "client_id": AIRBYTE_CLIENT_ID,
-            "client_secret": AIRBYTE_CLIENT_SECRET,
-        },
-        timeout=30,
+if not AIRBYTE_CLIENT_SECRET:
+    raise ValueError("AIRBYTE_CLIENT_SECRET is not set")
+
+if not AIRBYTE_CONNECTION_ID:
+    raise ValueError("AIRBYTE_CONNECTION_ID is not set")
+
+
+def _get_airbyte_token() -> HTTPBasicAuth:
+    return HTTPBasicAuth(
+        AIRBYTE_CLIENT_ID or "",
+        AIRBYTE_CLIENT_SECRET or "",
     )
-    resp.raise_for_status()
-    return resp.json()["access_token"]
 
 
-def _wait_for_job(job_id: str, token: str, poll_interval: int = 10) -> None:
-    """Poll Airbyte until the sync job reaches a terminal state."""
+def _wait_for_job(job_id: str, auth, poll_interval: int = 10) -> None:
     import time
-
     while True:
         resp = requests.get(
             f"{AIRBYTE_BASE_URL}/jobs/{job_id}",
-            headers={"Authorization": f"Bearer {token}"},
+            auth=auth,
             timeout=30,
         )
         resp.raise_for_status()
         status = resp.json().get("status")
-
         if status == "succeeded":
             return
         if status in {"failed", "cancelled", "incomplete"}:
             raise RuntimeError(f"Airbyte job {job_id} ended with status: {status}")
-
         time.sleep(poll_interval)
+
+
+# Dans airbyte_sync() :
+auth = _get_airbyte_token()
+resp = requests.post(
+    f"{AIRBYTE_BASE_URL}/jobs",
+    auth=auth,
+    json={"connectionId": AIRBYTE_CONNECTION_ID, "jobType": "sync"},
+    timeout=30,
+)
+resp.raise_for_status()
+job_id = resp.json()["jobId"]
+_wait_for_job(job_id, auth)
 
 
 @dag(
