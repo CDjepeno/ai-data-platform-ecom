@@ -8,6 +8,8 @@ on:
     paths:
       - 'infrastructure/kubernetes/platform/**'
       - 'infrastructure/kubernetes/overlays/preprod/infra/**'
+      - 'infrastructure/kubernetes/overlays/preprod/airflow/**' 
+      - 'infrastructure/kubernetes/overlays/preprod/airbyte/**' 
       - '.github/workflows/deploy-platform.yml'
   workflow_dispatch:
 
@@ -60,14 +62,87 @@ jobs:
             --from-literal=MINIO_ENDPOINT=http://minio:9000 \
             -n ecom-preprod \
             --dry-run=client -o yaml | kubectl apply -f -
+      
+      - name: Ensure Airflow namespace exists
+        run: |
+          kubectl create namespace airflow \
+            --dry-run=client -o yaml | kubectl apply -f -
+      
+      - name: Create Airbyte secret for Airflow
+        run: |
+          CLIENT_ID=$(kubectl get secret airbyte-auth-secrets -n airbyte \
+            -o jsonpath='{.data.instance-admin-client-id}' | base64 -d)
+          CLIENT_SECRET=$(kubectl get secret airbyte-auth-secrets -n airbyte \
+            -o jsonpath='{.data.instance-admin-client-secret}' | base64 -d)
+          
+          kubectl create secret generic airflow-airbyte-secret \
+            --namespace=airflow \
+            --from-literal=AIRBYTE_CLIENT_ID=$CLIENT_ID \
+            --from-literal=AIRBYTE_CLIENT_SECRET=$CLIENT_SECRET \
+            --from-literal=AIRBYTE_CONNECTION_ID=${{ secrets.AIRBYTE_CONNECTION_ID }} \
+            --dry-run=client -o yaml | kubectl apply -f -
+      
+
+      - name: Create Airflow ETL secret
+        run: |
+          kubectl create secret generic airflow-etl-secret \
+            -n airflow \
+            --from-literal=POSTGRES_USER=${{ secrets.POSTGRES_USER }} \
+            --from-literal=POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }} \
+            --from-literal=POSTGRES_HOST=${{ secrets.POSTGRES_HOST }} \
+            --from-literal=MINIO_ROOT_USER=${{ secrets.MINIO_ROOT_USER }} \
+            --from-literal=MINIO_ROOT_PASSWORD=${{ secrets.MINIO_ROOT_PASSWORD }} \
+            --from-literal=AWS_ACCESS_KEY_ID=${{ secrets.MINIO_ROOT_USER }} \
+            --from-literal=AWS_SECRET_ACCESS_KEY=${{ secrets.MINIO_ROOT_PASSWORD }} \
+            --dry-run=client -o yaml | kubectl apply -f -
 
       - name: Show diff before applying
         run: |
-          kubectl diff -k infrastructure/kubernetes/overlays/preprod/infra/ || true
+          kubectl diff -k infrastructure/kubernetes/overlays/preprod/ || true
+      
+      - name: Cleanup ETL Job
+        run: |
+          kubectl delete job etl-pipeline \
+            -n ecom-preprod \
+            --ignore-not-found=true
 
       - name: Deploy platform
         run: |
-          kubectl apply -k infrastructure/kubernetes/overlays/preprod/infra/
+          kubectl apply -k infrastructure/kubernetes/overlays/preprod/
+      
+      - name: Deploy Airflow
+        run: |
+          helm repo add apache-airflow https://airflow.apache.org
+          helm repo update
+
+          helm upgrade --install airflow apache-airflow/airflow \
+            -n airflow \
+            --create-namespace \
+            -f infrastructure/kubernetes/overlays/preprod/airflow/values.preprod.yml
+      
+      - name: Wait for Airflow
+        run: |
+          kubectl rollout status deployment/airflow-api-server \
+            -n airflow \
+            --timeout=300s
+
+          kubectl rollout status deployment/airflow-dag-processor \
+            -n airflow \
+            --timeout=300s
+
+          kubectl rollout status deployment/airflow-statsd \
+            -n airflow \
+            --timeout=300s
+
+      - name: Wait for Airflow StatefulSets
+        run: |
+          kubectl rollout status statefulset/airflow-scheduler \
+            -n airflow \
+            --timeout=300s
+
+          kubectl rollout status statefulset/airflow-triggerer \
+            -n airflow \
+            --timeout=300s
 
       - name: Restart Trino
         run: |

@@ -7,3 +7,4 @@ resources:
   - infra/
   - postgres/
   - airbyte/ 
+  - airflow/
