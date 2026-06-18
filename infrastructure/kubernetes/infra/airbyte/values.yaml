@@ -1,0 +1,40 @@
+global:
+  database:
+    type: "external"
+    secretName: "airbyte-postgres-secret"
+    host: "postgres-source-rw.postgres.svc.cluster.local"
+    port: 5432
+    database: "airbyte"
+    user: "airbyte" 
+
+postgresql:
+  enabled: false
+
+minio:
+  enabled: true
+
+server:
+  livenessProbe:
+    initialDelaySeconds: 180    # give server 2min before first check
+    periodSeconds: 30
+    failureThreshold: 5
+  readinessProbe:
+    initialDelaySeconds: 120
+    periodSeconds: 30
+    failureThreshold: 5
+  resources:
+    requests:
+      memory: "1Gi"             # increase from 512Mi
+      cpu: "200m"
+    limits:
+      memory: "2Gi"             # increase from 1Gi
+      cpu: "1000m"
+
+webapp:
+  resources:
+    requests:
+      memory: "256Mi"
+      cpu: "100m"
+    limits:
+      memory: "512Mi"
+      cpu: "300m"
