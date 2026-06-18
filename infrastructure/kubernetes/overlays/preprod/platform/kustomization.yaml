@@ -8,3 +8,4 @@ resources:
   - http-route-minio.yaml
   - http-route-qdrant.yaml
   - http-route-trino.yaml
+  - configmap-etl.yaml
