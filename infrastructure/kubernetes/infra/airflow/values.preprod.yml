@@ -8,9 +8,10 @@ executor: LocalExecutor
 # ─────────────────────────────────────
 images:
   airflow:
-    repository: airflow-ecom
-    tag: local
-    pullPolicy: Never
+    repository: ghcr.io/cdjepeno/ecom-airflow
+    tag: latest
+    pullPolicy: Always
+
 
 # ─────────────────────────────────────
 # DATABASE MIGRATION JOB
@@ -28,7 +29,6 @@ dags:
     branch: main
     subPath: src/airflow/dags
     period: 60s
-    credentialsSecret: airflow-git-secret
 
 # ─────────────────────────────────────
 # WEBSERVER
@@ -45,7 +45,7 @@ createUserJob:
 # METADATA DB — bundled PostgreSQL
 # ─────────────────────────────────────
 postgresql:
-  enabled: true
+  enabled: false
 
 # ─────────────────────────────────────
 # MISC
@@ -57,3 +57,13 @@ config:
 env:
   - name: AIRBYTE_BASE_URL
     value: "http://airbyte-server:8000/api/public/v1"
+
+data:
+  metadataSecretName: airflow-postgres-secret
+  resultBackendSecretName: airflow-postgres-secret
+
+fernetKeySecretName: airflow-fernet-key
+
+# extraEnvFrom:
+#   - secretRef:
+#       name: airflow-airbyte-secret
