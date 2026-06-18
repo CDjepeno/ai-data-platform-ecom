@@ -1,11 +1,18 @@
+# infrastructure/kubernetes/infra/observability/otel-collector/otel-collector.yaml
 apiVersion: opentelemetry.io/v1beta1
 kind: OpenTelemetryCollector
 metadata:
   name: otel
   namespace: observability
-
 spec:
   mode: deployment
+  image: ghcr.io/open-telemetry/opentelemetry-collector-releases/opentelemetry-collector-contrib:0.153.0
+
+  ports:
+    - name: metrics-app
+      port: 8889
+      targetPort: 8889
+      protocol: TCP
 
   config:
     receivers:
@@ -18,24 +25,26 @@ spec:
       batch: {}
 
     exporters:
+      debug:
+        verbosity: basic
       otlp/tempo:
-      endpoint: tempo.observability.svc.cluster.local:4317
-      tls:
-        insecure: true
+        endpoint: tempo.observability.svc.cluster.local:4317
+        tls:
+          insecure: true
+      prometheus:
+        endpoint: "0.0.0.0:8889"
 
     service:
       pipelines:
         traces:
           receivers: [otlp]
           processors: [batch]
-          exporters: [otlp/tempo]
-
+          exporters: [otlp_grpc/tempo]
         metrics:
           receivers: [otlp]
           processors: [batch]
-          exporters: []
-
+          exporters: [prometheus]
         logs:
           receivers: [otlp]
           processors: [batch]
-          exporters: []
+          exporters: [debug]
