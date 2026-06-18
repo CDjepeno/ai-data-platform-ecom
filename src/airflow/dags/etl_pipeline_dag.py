@@ -4,12 +4,24 @@ import os
 import requests
 from airflow.sdk import dag, task
 
-AIRBYTE_BASE_URL = "http://172.18.0.1:8888/api/public/v1"
-AIRBYTE_CONNECTION_ID = "45efdbc6-79a4-4444-96e1-882f7f440619"
-AIRBYTE_CLIENT_ID = "734226c8-5388-4ad1-9856-538c72bb517f"
-AIRBYTE_CLIENT_SECRET = "Ep5VNnNJbPhTcAi5G5bpVfYJC737Nxg1"
+AIRBYTE_BASE_URL = os.getenv(
+    "AIRBYTE_BASE_URL",
+    "http://airbyte-server:8000/api/public/v1"
+)
+AIRBYTE_CLIENT_ID = os.getenv("AIRBYTE_CLIENT_ID")
+AIRBYTE_CLIENT_SECRET = os.getenv("AIRBYTE_CLIENT_SECRET")
+AIRBYTE_CONNECTION_ID = os.getenv("AIRBYTE_CONNECTION_ID")
 
 _SERVICE = "airflow.etl_pipeline"
+
+if not AIRBYTE_CLIENT_ID:
+    raise ValueError("AIRBYTE_CLIENT_ID is not set")
+
+if not AIRBYTE_CLIENT_SECRET:
+    raise ValueError("AIRBYTE_CLIENT_SECRET is not set")
+
+if not AIRBYTE_CONNECTION_ID:
+    raise ValueError("AIRBYTE_CONNECTION_ID is not set")
 
 
 def _get_airbyte_token() -> str:
