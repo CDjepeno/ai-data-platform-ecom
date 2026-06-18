@@ -4,7 +4,10 @@ import os
 import requests
 from airflow.sdk import dag, task
 
-AIRBYTE_BASE_URL = "http://172.18.0.1:8888/api/public/v1"
+AIRBYTE_BASE_URL = os.getenv(
+    "AIRBYTE_BASE_URL",
+    "http://airbyte-server:8000/api/public/v1"
+)
 AIRBYTE_CONNECTION_ID = "45efdbc6-79a4-4444-96e1-882f7f440619"
 AIRBYTE_CLIENT_ID = "734226c8-5388-4ad1-9856-538c72bb517f"
 AIRBYTE_CLIENT_SECRET = "Ep5VNnNJbPhTcAi5G5bpVfYJC737Nxg1"
