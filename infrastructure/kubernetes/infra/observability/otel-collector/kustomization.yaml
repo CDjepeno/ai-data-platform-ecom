@@ -4,4 +4,4 @@ kind: Kustomization
 resources:
   - otel-collector-configmap.yml
   - collector.yaml
-  - otel-collector-service.yaml
+  - otel-collector-service.yml
