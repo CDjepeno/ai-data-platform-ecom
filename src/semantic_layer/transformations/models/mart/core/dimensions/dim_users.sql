@@ -9,25 +9,20 @@ WITH snapshot_users AS (
 
 SELECT
 
-    ROW_NUMBER() OVER (ORDER BY user_id, dbt_valid_from) AS user_sk,
-
     user_id,
+
     email,
     role,
     created_at,
     updated_at,
     row_hash,
-
-
     dbt_valid_from AS valid_from,
+
     dbt_valid_to AS valid_to,
+    dbt_loaded_at,
 
-     CASE
-        WHEN dbt_valid_to IS NULL
-            THEN true
-        ELSE false
-    END AS is_current,
+    ROW_NUMBER() OVER (ORDER BY user_id, dbt_valid_from) AS user_sk,
 
-    dbt_loaded_at
+    COALESCE(dbt_valid_to IS NULL, FALSE) AS is_current
 
 FROM snapshot_users

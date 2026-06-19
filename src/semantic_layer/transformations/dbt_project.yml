@@ -18,8 +18,10 @@ seed-paths: ["seeds"]
 macro-paths: ["macros"]
 snapshot-paths: ["snapshots"]
 
+target-path: "/tmp/sqlfluff-dbt-target"
+
 clean-targets:         # directories to be removed by `dbt clean`
-  - "target"
+  - "/tmp/sqlfluff-dbt-target"
   - "dbt_packages"
 
 

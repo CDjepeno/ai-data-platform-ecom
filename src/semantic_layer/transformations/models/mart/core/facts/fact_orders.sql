@@ -1,17 +1,11 @@
+-- noqa: disable=TMP
 {{ config(materialized='table') }}
 
-WITH orders AS (
-
-    SELECT *
-    FROM {{ ref('stg_orders') }}
-
-),
-
-dim_branches AS (
+WITH dim_branches AS (
 
     SELECT *
     FROM {{ ref('dim_branches') }}
-    WHERE is_current = true
+    WHERE is_current = TRUE
 
 ),
 
@@ -19,7 +13,7 @@ dim_customers AS (
 
     SELECT *
     FROM {{ ref('dim_customers') }}
-    WHERE is_current = true
+    WHERE is_current = TRUE
 
 ),
 
@@ -35,30 +29,28 @@ SELECT
     o.order_id,
 
     -- Foreign Keys vers dimensions
-    COALESCE(b.branch_sk, -1) AS branch_sk,
-    COALESCE(c.customer_sk, -1) AS customer_sk,
-    COALESCE(d.date_sk, -1) AS date_sk,
-
-    -- Degenerate dimensions
     b.country AS branch_country,
     b.city AS branch_city,
-
-    -- Business measures
     o.total_amount,
+
+    -- Degenerate dimensions
     o.status,
     o.order_date,
 
-    o.created_at
+    -- Business measures
+    o.created_at,
+    COALESCE(b.branch_sk, -1) AS branch_sk,
+    COALESCE(c.customer_sk, -1) AS customer_sk,
 
-FROM {{ ref('stg_orders') }} o
+    COALESCE(d.date_sk, -1) AS date_sk
 
-LEFT JOIN {{ ref('dim_branches') }} b
+FROM {{ ref('stg_orders') }} AS o
+
+LEFT JOIN dim_branches AS b
     ON o.branch_id = b.branch_id
-    AND b.is_current = true
 
-LEFT JOIN {{ ref('dim_customers') }} c
+LEFT JOIN dim_customers AS c
     ON o.customer_id = c.customer_id
-    AND c.is_current = true
 
-LEFT JOIN {{ ref('dim_date') }} d
+LEFT JOIN dim_date AS d
     ON CAST(o.created_at AS DATE) = d.full_date

@@ -69,7 +69,6 @@ def load_single_table_to_iceberg(
             df = conn.execute(f"""
                 SELECT
                     *,
-                    CAST(NOW() AS TIMESTAMP) AS ingested_at,
                     '{run_id}' AS run_id
                 FROM read_parquet('{parquet_glob}', union_by_name=true)
             """).fetch_arrow_table()
@@ -139,7 +138,6 @@ def load_campaign_table_to_iceberg(
         df = conn.execute(f"""
             SELECT
                 *,
-                CAST(NOW() AS TIMESTAMP) AS ingested_at,
                 '{run_id}' AS run_id
             FROM read_parquet('{parquet_glob}', union_by_name=true)
         """).fetch_arrow_table()

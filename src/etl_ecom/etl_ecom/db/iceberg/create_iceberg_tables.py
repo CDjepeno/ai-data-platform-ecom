@@ -1,6 +1,3 @@
-from pyiceberg.partitioning import PartitionField, PartitionSpec
-from pyiceberg.transforms import IdentityTransform
-
 from etl_ecom.db.engine import get_duckdb_connection
 from etl_ecom.scripts.iceberg.iceberg import get_iceberg_catalog
 from etl_ecom.db.mapper.arrow_iceberg_mapper import arrow_to_iceberg_schema
@@ -38,30 +35,15 @@ def create_iceberg_tables():
 
             arrow_table = con.execute(f"""
                 SELECT *,
-                CURRENT_TIMESTAMP AS ingested_at,
-                CURRENT_DATE AS ingestion_date,
-                'init' AS run_id  
+                'init' AS run_id
                 FROM postgres_db.public.{table_name}
                 LIMIT 0
             """).fetch_arrow_table()
 
             schema = arrow_to_iceberg_schema(arrow_table.schema)
 
-            ingestion_field = next(
-                field for field in schema.fields if field.name == "ingestion_date"
-            )
-
-            partition_spec = PartitionSpec(
-                PartitionField(
-                    source_id=ingestion_field.field_id,
-                    field_id=1000,
-                    transform=IdentityTransform(),
-                    name="ingestion_date",
-                )
-            )
-
             catalog.create_table(
-                identifier=full_name, schema=schema, partition_spec=partition_spec
+                identifier=full_name, schema=schema
             )
 
     finally:

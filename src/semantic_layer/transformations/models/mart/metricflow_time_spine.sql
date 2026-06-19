@@ -1,4 +1,3 @@
 {{ config(materialized='table') }}
 
-select
-    current_date as date_day
+SELECT current_date AS date_day

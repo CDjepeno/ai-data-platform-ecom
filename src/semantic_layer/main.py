@@ -15,7 +15,7 @@ from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
 
 
 def _setup_tracing() -> None:
-    endpoint = os.getenv("OTEL_EXPORTER_OTLP_ENDPOINT", "http://otel-collector:4318")
+    endpoint = os.getenv("OTEL_EXPORTER_OTLP_ENDPOINT", "http://otel-collector.observability.svc.cluster.local:4318")
     service_name = os.getenv("OTEL_SERVICE_NAME", "semantic_layer")
     provider = TracerProvider(resource=Resource({SERVICE_NAME: service_name}))
     provider.add_span_processor(

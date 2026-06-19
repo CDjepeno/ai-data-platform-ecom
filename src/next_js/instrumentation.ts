@@ -20,7 +20,7 @@ export async function register() {
 
   const endpoint =
     process.env.OTEL_EXPORTER_OTLP_ENDPOINT ??
-    "http://otel-collector-opentelemetry-collector.ecom-local.svc.cluster.local:4318";
+    "http://otel-collector.observability.svc.cluster.local:4318";
 
   const exporter = new OTLPTraceExporter({ url: `${endpoint}/v1/traces` });
 

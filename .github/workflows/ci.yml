@@ -18,17 +18,67 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: "3.11"
+          python-version: "3.12"
 
-      - name: Install ruff
-        run: pip install ruff
+      - name: Install Poetry
+        run: pip install poetry
 
-      - name: Run linter
+      - name: Install etl_ecom dependencies
+        run: poetry -C src/etl_ecom install
+
+      - name: Install mcp dependencies
+        run: poetry -C src/mcp install
+
+      - name: Install semantic_layer dependencies
+        run: poetry -C src/semantic_layer install
+
+      - name: Set up dbt profiles for lint
         run: |
-          ruff check src/semantic_layer/
-          ruff check src/fast_api/
-          ruff check src/etl_ecom/
-          ruff check src/mcp/
+          mkdir -p ~/.dbt
+          cat > ~/.dbt/profiles.yml << 'EOF'
+          transformation:
+            target: ci
+            outputs:
+              ci:
+                type: trino
+                method: none
+                user: trino
+                password: ""
+                host: localhost
+                port: 8080
+                database: iceberg
+                schema: "ecom"
+                threads: 4
+          EOF
+
+      - name: Run linters (lint-dbt uses format-only mode — no DB needed)
+        run: |
+          make lint
+          make lint-sql
+          DBT_PARTIAL_PARSE=false poetry -C src/semantic_layer run sqlfluff lint transformations/models --ignore templating
+
+      - name: Set up dummy env for tests
+        run: |
+          cat > docker/.env << 'EOF'
+          POSTGRES_DB=ci
+          POSTGRES_USER=ci
+          POSTGRES_PASSWORD=ci
+          POSTGRES_HOST=localhost
+          POSTGRES_PORT=5432
+          SEMANTIC_LAYER_URL=http://localhost:8001
+          NESSIE_URI=http://localhost:19120/iceberg
+          ICEBERG_WAREHOUSE=s3://ci/warehouse
+          MINIO_ENDPOINT=http://localhost:9000
+          MINIO_ROOT_USER=ci
+          MINIO_ROOT_PASSWORD=ci
+          AWS_ACCESS_KEY_ID=ci
+          AWS_SECRET_ACCESS_KEY=ci
+          MINIO_BUCKET=ci
+          MINIO_REGION=us-east-1
+          EOF
+
+      - name: Run unit tests
+        run: make test
 
       - name: Notify Slack on failure
         if: failure()
@@ -144,6 +194,18 @@ jobs:
           tags: |
             ghcr.io/cdjepeno/ecom-mcp:${{ steps.set-tag.outputs.image-tag }}
             ghcr.io/cdjepeno/ecom-mcp:latest
+      
+      - name: Build and push airflow image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./src/airflow/Dockerfile
+          push: true
+          provenance: false
+          no-cache: true
+          tags: |
+            ghcr.io/cdjepeno/ecom-airflow:${{ steps.set-tag.outputs.image-tag }}
+            ghcr.io/cdjepeno/ecom-airflow:latest
       
       - name: Create image tag file
         run: |

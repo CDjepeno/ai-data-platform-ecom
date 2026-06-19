@@ -8,7 +8,7 @@ from opentelemetry.sdk.trace.export import SimpleSpanProcessor
 
 _OTLP_ENDPOINT = os.getenv(
     "OTEL_EXPORTER_OTLP_ENDPOINT",
-    "otel-collector-opentelemetry-collector.ecom-local.svc.cluster.local:4317",
+    "otel-collector.observability.svc.cluster.local:4318",
 )
 
 _provider_initialized = False
