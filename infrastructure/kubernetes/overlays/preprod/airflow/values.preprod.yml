@@ -54,9 +54,6 @@ config:
   core:
     load_examples: "False"
 
-env:
-  - name: AIRBYTE_BASE_URL
-    value: "http://airbyte-server:8000/api/public/v1"
 
 data:
   metadataSecretName: airflow-postgres-secret
