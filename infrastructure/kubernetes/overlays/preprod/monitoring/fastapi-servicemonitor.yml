@@ -1,0 +1,17 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: fastapi
+  labels:
+    release: monitoring
+spec:
+  namespaceSelector:
+    matchNames:
+      - ecom-preprod
+  selector:
+    matchLabels:
+      app: fastapi
+  endpoints:
+    - port: http
+      path: /metrics
+      interval: 15s

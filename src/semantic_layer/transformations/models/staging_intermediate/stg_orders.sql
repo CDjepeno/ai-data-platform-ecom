@@ -3,58 +3,56 @@
 ) }}
 
 WITH source_data AS (
-    SELECT  *
+    SELECT *
     FROM {{ source('raw', 'orders') }}
 ),
 
 cleaned AS (
-    SELECT  
-    order_id,
-    customer_id,
-    branch_id,
-    order_date,
-    status,
-    ingested_at,
-    total_amount,
-    created_at,
-    updated_at,
-    CURRENT_TIMESTAMP AS dbt_loaded_at,
-    '{{ invocation_id }}' AS dbt_run_id,
-    to_hex(
-        md5(
-            to_utf8(
-                concat_ws(
-                    '|',
-                    CAST(customer_id AS VARCHAR),
-                    CAST(branch_id AS VARCHAR),
-                    coalesce(status, ''),
-                    CAST(total_amount AS VARCHAR),
-                    CAST(order_date AS VARCHAR)
+    SELECT
+        order_id,
+        customer_id,
+        branch_id,
+        order_date,
+        status,
+        total_amount,
+        created_at,
+        updated_at,
+        CURRENT_TIMESTAMP AS dbt_loaded_at,
+        '{{ invocation_id }}' AS dbt_run_id,
+        TO_HEX(
+            MD5(
+                TO_UTF8(
+                    CONCAT_WS(
+                        '|',
+                        CAST(customer_id AS VARCHAR),
+                        CAST(branch_id AS VARCHAR),
+                        COALESCE(status, ''),
+                        CAST(total_amount AS VARCHAR),
+                        CAST(order_date AS VARCHAR)
+                    )
                 )
             )
-        )
-    ) AS row_hash
-FROM source_data
+        ) AS row_hash
+    FROM source_data
 ),
 
 deduplicated AS (
-    SELECT 
+    SELECT
         *,
         ROW_NUMBER() OVER (
-            PARTITION BY order_id 
+            PARTITION BY order_id
             ORDER BY updated_at DESC
         ) AS rn
     FROM cleaned
 )
 
 
-SELECT 
+SELECT
     order_id,
     customer_id,
     branch_id,
     order_date,
     status,
-    ingested_at,
     total_amount,
     created_at,
     updated_at,

@@ -1,0 +1,5 @@
+[sqlfluff]
+templater = dbt
+
+[sqlfluff:templater:dbt]
+project_dir = transformations

@@ -15,7 +15,7 @@ products AS (
         product_sku,
         name AS product_name
     FROM {{ ref('dim_products') }}
-    WHERE is_current = true
+    WHERE is_current = TRUE
 
 ),
 
@@ -50,22 +50,22 @@ SELECT
     p.product_name,
     o.branch_country,
     o.branch_city,
-    o.status        AS order_status,
+    o.status AS order_status,
     o.order_date,
 
     -- Measures
     oi.quantity,
-    oi.price         AS unit_price,
+    oi.price AS unit_price,
     oi.line_total,
 
     oi.dbt_loaded_at,
     oi.row_hash,
     oi.dbt_run_id
 
-FROM order_items oi
+FROM order_items AS oi
 
-LEFT JOIN products p
+LEFT JOIN products AS p
     ON oi.product_id = p.product_id
 
-LEFT JOIN orders o
+LEFT JOIN orders AS o
     ON oi.order_id = o.order_id

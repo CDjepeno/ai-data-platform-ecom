@@ -11,18 +11,17 @@ cleaned AS (
     SELECT
         product_id,
         product_sku,
-        COALESCE(TRIM(name), 'Unknown') AS name,
-        TRIM(description)               AS description,
+        COALESCE(TRIM(name), 'Unknown') AS name,  -- noqa: RF04
+        TRIM(description) AS description,
         price,
         created_at,
         updated_at,
-        ingested_at,
-        CURRENT_TIMESTAMP               AS dbt_loaded_at,
-        '{{ invocation_id }}'           AS dbt_run_id,
-        to_hex(
-            md5(
-                to_utf8(
-                    concat_ws(
+        CURRENT_TIMESTAMP AS dbt_loaded_at,
+        '{{ invocation_id }}' AS dbt_run_id,
+        TO_HEX(
+            MD5(
+                TO_UTF8(
+                    CONCAT_WS(
                         '|',
                         COALESCE(TRIM(name), ''),
                         CAST(price AS VARCHAR),
@@ -52,7 +51,6 @@ SELECT
     price,
     created_at,
     updated_at,
-    ingested_at,
     dbt_loaded_at,
     dbt_run_id,
     row_hash
