@@ -51,17 +51,6 @@ def _wait_for_job(job_id: str, auth, poll_interval: int = 10) -> None:
         time.sleep(poll_interval)
 
 
-# Dans airbyte_sync() :
-auth = _get_airbyte_token()
-resp = requests.post(
-    f"{AIRBYTE_BASE_URL}/jobs",
-    auth=auth,
-    json={"connectionId": AIRBYTE_CONNECTION_ID, "jobType": "sync"},
-    timeout=30,
-)
-resp.raise_for_status()
-job_id = resp.json()["jobId"]
-_wait_for_job(job_id, auth)
 
 
 @dag(
@@ -75,27 +64,16 @@ def etl_pipeline() -> None:
 
     @task(task_id="airbyte_sync_postgres_to_minio")
     def airbyte_sync() -> None:
-        """Trigger Airbyte sync and wait for completion."""
-        from etl_ecom.telemetry import setup_tracing
-
-        tracer = setup_tracing(_SERVICE)
-        with tracer.start_as_current_span("airbyte_sync_postgres_to_minio"):
-            token = _get_airbyte_token()
-            resp = requests.post(
-                f"{AIRBYTE_BASE_URL}/jobs",
-                headers={
-                    "Authorization": f"Bearer {token}",
-                    "Content-Type": "application/json",
-                },
-                json={
-                    "connectionId": AIRBYTE_CONNECTION_ID,
-                    "jobType": "sync",
-                },
-                timeout=30,
-            )
-            resp.raise_for_status()
-            job_id = resp.json()["jobId"]
-            _wait_for_job(job_id, token)
+        auth = _get_airbyte_token()
+        resp = requests.post(
+            f"{AIRBYTE_BASE_URL}/jobs",
+            auth=auth,  # plus de header Bearer
+            json={"connectionId": AIRBYTE_CONNECTION_ID, "jobType": "sync"},
+            timeout=30,
+        )
+        resp.raise_for_status()
+        job_id = resp.json()["jobId"]
+        _wait_for_job(job_id, auth)
 
     @task(task_id="initialize_warehouse")
     def initialize_warehouse() -> None:
