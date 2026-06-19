@@ -68,7 +68,7 @@ extraEnvFrom: |
       name: airflow-etl-secret
   - configMapRef:
       name: airflow-etl-config
-   - configMapRef:
+  - configMapRef:
       name: etl-config
   
   
