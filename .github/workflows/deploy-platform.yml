@@ -68,6 +68,20 @@ jobs:
           kubectl create namespace airflow \
             --dry-run=client -o yaml | kubectl apply -f -
       
+      - name: Create Airbyte secret for Airflow
+        run: |
+          CLIENT_ID=$(kubectl get secret airbyte-auth-secrets -n airbyte \
+            -o jsonpath='{.data.instance-admin-client-id}' | base64 -d)
+          CLIENT_SECRET=$(kubectl get secret airbyte-auth-secrets -n airbyte \
+            -o jsonpath='{.data.instance-admin-client-secret}' | base64 -d)
+          
+          kubectl create secret generic airflow-airbyte-secret \
+            --namespace=airflow \
+            --from-literal=AIRBYTE_CLIENT_ID=$CLIENT_ID \
+            --from-literal=AIRBYTE_CLIENT_SECRET=$CLIENT_SECRET \
+            --from-literal=AIRBYTE_CONNECTION_ID=${{ secrets.AIRBYTE_CONNECTION_ID }} \
+            --dry-run=client -o yaml | kubectl apply -f -
+      
 
       - name: Create Airflow ETL secret
         run: |
