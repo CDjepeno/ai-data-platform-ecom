@@ -84,6 +84,12 @@ jobs:
       - name: Show diff before applying
         run: |
           kubectl diff -k infrastructure/kubernetes/overlays/preprod/ || true
+      
+      - name: Cleanup ETL Job
+        run: |
+          kubectl delete job etl-pipeline \
+            -n ecom-preprod \
+            --ignore-not-found=true
 
       - name: Deploy platform
         run: |
