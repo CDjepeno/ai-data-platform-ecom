@@ -9,11 +9,11 @@ data:
   POSTGRES_USER: "ecom_user" 
   POSTGRES_HOST: "postgres-source-rw.postgres.svc.cluster.local"
 
-  NESSIE_URI: "http://nessie:19120"
   ICEBERG_WAREHOUSE: "s3://ecom-etl/warehouse"
+  NESSIE_URI: "http://nessie.ecom-preprod.svc.cluster.local:19120"
 
-  MINIO_ENDPOINT: "http://minio:9000"
   MINIO_BUCKET: "ecom-etl"
   MINIO_REGION: "us-east-1"
+  MINIO_ENDPOINT: "http://minio.ecom-preprod.svc.cluster.local:9000"
 
-  SEMANTIC_LAYER_URL: "http://semantic-layer:8001"
+  SEMANTIC_LAYER_URL: "http://semantic-layer.ecom-preprod.svc.cluster.local:8001"
