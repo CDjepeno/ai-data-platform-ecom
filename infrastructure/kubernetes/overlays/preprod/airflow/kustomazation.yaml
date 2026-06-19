@@ -5,4 +5,3 @@ namespace: airflow
 
 resources:
   - http-route-airflow.yaml
-  - airflow-etl-configmap.yaml
