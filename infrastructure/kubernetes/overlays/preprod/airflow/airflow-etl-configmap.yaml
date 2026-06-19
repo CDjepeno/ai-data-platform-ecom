@@ -10,7 +10,7 @@ data:
   POSTGRES_HOST: "postgres-source-rw.postgres.svc.cluster.local"
 
   ICEBERG_WAREHOUSE: "s3://ecom-etl/warehouse"
-  NESSIE_URI: "http://nessie.ecom-preprod.svc.cluster.local:19120"
+  NESSIE_URI: "http://nessie.ecom-preprod.svc.cluster.local:19120/iceberg"
 
   MINIO_BUCKET: "ecom-etl"
   MINIO_REGION: "us-east-1"
