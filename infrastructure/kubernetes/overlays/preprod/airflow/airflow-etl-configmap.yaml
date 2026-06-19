@@ -6,6 +6,8 @@ metadata:
 data:
   POSTGRES_DB: "ecom_db"
   POSTGRES_PORT: "5432"
+  POSTGRES_USER: "ecom_user" 
+  POSTGRES_HOST: "ecom-postgres.ecom-preprod.svc.cluster.local"
 
   NESSIE_URI: "http://nessie:19120"
   ICEBERG_WAREHOUSE: "s3://ecom-etl/warehouse"

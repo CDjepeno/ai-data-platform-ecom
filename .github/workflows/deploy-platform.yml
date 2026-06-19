@@ -67,6 +67,7 @@ jobs:
         run: |
           kubectl create namespace airflow \
             --dry-run=client -o yaml | kubectl apply -f -
+      
 
       - name: Create Airflow ETL secret
         run: |
@@ -94,6 +95,40 @@ jobs:
       - name: Deploy platform
         run: |
           kubectl apply -k infrastructure/kubernetes/overlays/preprod/
+      
+      - name: Deploy Airflow
+        run: |
+          helm repo add apache-airflow https://airflow.apache.org
+          helm repo update
+
+          helm upgrade --install airflow apache-airflow/airflow \
+            -n airflow \
+            --create-namespace \
+            -f infrastructure/kubernetes/overlays/preprod/airflow/values.preprod.yml
+      
+      - name: Wait for Airflow
+        run: |
+          kubectl rollout status deployment/airflow-api-server \
+            -n airflow \
+            --timeout=300s
+
+          kubectl rollout status deployment/airflow-dag-processor \
+            -n airflow \
+            --timeout=300s
+
+          kubectl rollout status deployment/airflow-statsd \
+            -n airflow \
+            --timeout=300s
+
+      - name: Wait for Airflow StatefulSets
+        run: |
+          kubectl rollout status statefulset/airflow-scheduler \
+            -n airflow \
+            --timeout=300s
+
+          kubectl rollout status statefulset/airflow-triggerer \
+            -n airflow \
+            --timeout=300s
 
       - name: Restart Trino
         run: |
