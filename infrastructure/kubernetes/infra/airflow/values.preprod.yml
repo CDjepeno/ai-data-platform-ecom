@@ -26,7 +26,7 @@ dags:
   gitSync:
     enabled: true
     repo: https://github.com/CDjepeno/ai-data-platform-ecom.git
-    branch: main
+    branch: pre-prod
     subPath: src/airflow/dags
     period: 60s
 
@@ -64,6 +64,8 @@ data:
 
 fernetKeySecretName: airflow-fernet-key
 
-# extraEnvFrom:
-#   - secretRef:
-#       name: airflow-airbyte-secret
+extraEnvFrom: |
+  - secretRef:
+      name: airflow-airbyte-secret
+  - secretRef:
+      name: airflow-etl-config
