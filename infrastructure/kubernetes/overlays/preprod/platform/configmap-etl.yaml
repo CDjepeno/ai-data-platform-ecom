@@ -2,10 +2,11 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: etl-config
-  namespace: ecom-preprod
+  namespace: airflow
 data:
   MINIO_ENDPOINT: "http://minio.ecom-preprod.svc.cluster.local:9000"
   MINIO_BUCKET: "ecom-etl"
   MINIO_REGION: "us-east-1"
   NESSIE_URI: "http://nessie.ecom-preprod.svc.cluster.local:19120/iceberg"
-  ICEBERG_WAREHOUSE: "s3://ecom-etl/warehouse"
+  ICEBERG_WAREHOUSE: "s3://ecom-etl/warehouse"  
+  AWS_ENDPOINT_URL: "http://minio.ecom-preprod.svc.cluster.local:9000"
