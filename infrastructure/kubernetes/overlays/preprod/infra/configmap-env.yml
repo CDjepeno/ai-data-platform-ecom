@@ -12,7 +12,7 @@ data:
   TRINO_SCHEMA: "mart"
 
   # -- Nessie
-  NESSIE_URI: "http://nessie:19120"
+  NESSIE_URI: "http://nessie.ecom-preprod.svc.cluster.local:19120"
   QUARKUS_HTTP_PORT: "19120"
   NESSIE_VERSION_STORE_TYPE: "ROCKSDB"
   NESSIE_VERSION_STORE_PERSIST_ROCKSDB_DATABASE_PATH: "/nessie-data"
@@ -21,7 +21,7 @@ data:
   ICEBERG_WAREHOUSE: "s3://ecom-etl/warehouse"
   NESSIE_CATALOG_DEFAULT_WAREHOUSE: "warehouse"
   NESSIE_CATALOG_WAREHOUSES_WAREHOUSE_LOCATION: "s3://ecom-etl/warehouse"
-  NESSIE_CATALOG_SERVICE_S3_DEFAULT_OPTIONS_ENDPOINT: "http://minio:9000"
+  NESSIE_CATALOG_SERVICE_S3_DEFAULT_OPTIONS_ENDPOINT: "http://minio.ecom-preprod.svc.cluster.local:9000"
   NESSIE_CATALOG_SERVICE_S3_DEFAULT_OPTIONS_PATH_STYLE_ACCESS: "true"
   NESSIE_CATALOG_SERVICE_S3_DEFAULT_OPTIONS_REGION: "us-east-1"
   NESSIE_CATALOG_SERVICE_S3_DEFAULT_OPTIONS_AUTH_TYPE: "APPLICATION_GLOBAL"
@@ -58,7 +58,7 @@ data:
   # Update with your actual OVHCloud domain
   NEXT_PUBLIC_API_URL: "https://api.ecom-preprod.yourdomain.com/api"
 
-  MINIO_ENDPOINT: "http://minio:9000"
+  MINIO_ENDPOINT: "http://minio.ecom-preprod.svc.cluster.local:9000"
   MINIO_BUCKET: "ecom-etl"
   MINIO_REGION: "us-east-1"
 
