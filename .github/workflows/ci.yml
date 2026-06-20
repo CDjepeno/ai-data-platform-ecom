@@ -145,6 +145,17 @@ jobs:
             ghcr.io/cdjepeno/ecom-mcp:${{ steps.set-tag.outputs.image-tag }}
             ghcr.io/cdjepeno/ecom-mcp:latest
       
+      - name: Build and push airflow image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./src/airflow/Dockerfile  # ou le dossier qui contient ton Dockerfile Airflow
+          push: true
+          provenance: false
+          tags: |
+            ghcr.io/cdjepeno/ecom-airflow:${{ steps.set-tag.outputs.image-tag }}
+            ghcr.io/cdjepeno/ecom-airflow:latest
+      
       - name: Create image tag file
         run: |
           echo "${{ steps.set-tag.outputs.image-tag }}" > ${{ github.workspace }}/image-tag.txt
