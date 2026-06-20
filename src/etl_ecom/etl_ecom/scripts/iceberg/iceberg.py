@@ -33,7 +33,7 @@ def get_iceberg_catalog():
                 "s3.secret-access-key": settings.aws_secret_access_key,
                 "s3.region": settings.minio_region,
                 "s3.path-style-access": "true",
-                "py-io-impl": "pyiceberg.io.pyarrow.PyArrowFileIO",
+                "py-io-impl": "pyiceberg.io.fsspec.FsspecFileIO",
             },
         )
 
