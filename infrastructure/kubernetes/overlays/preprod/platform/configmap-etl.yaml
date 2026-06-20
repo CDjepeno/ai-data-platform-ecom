@@ -8,5 +8,7 @@ data:
   MINIO_BUCKET: "ecom-etl"
   MINIO_REGION: "us-east-1"
   NESSIE_URI: "http://nessie.ecom-preprod.svc.cluster.local:19120/iceberg"
+  NESSIE_CATALOG_SERVICE_S3_DEFAULT_OPTIONS_ENDPOINT: "http://minio.ecom-preprod.svc.cluster.local:9000"
+
   ICEBERG_WAREHOUSE: "s3://ecom-etl/warehouse"  
   AWS_ENDPOINT_URL: "http://minio.ecom-preprod.svc.cluster.local:9000"
