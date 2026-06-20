@@ -149,9 +149,10 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: .
-          file: ./src/airflow/Dockerfile  # ou le dossier qui contient ton Dockerfile Airflow
+          file: ./src/airflow/Dockerfile
           push: true
           provenance: false
+          no-cache: true
           tags: |
             ghcr.io/cdjepeno/ecom-airflow:${{ steps.set-tag.outputs.image-tag }}
             ghcr.io/cdjepeno/ecom-airflow:latest
