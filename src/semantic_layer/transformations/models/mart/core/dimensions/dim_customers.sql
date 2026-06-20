@@ -18,7 +18,7 @@ WITH unknown_record AS (
         CAST(NULL AS TIMESTAMP) AS valid_from,
         CAST(NULL AS TIMESTAMP) AS valid_to,
 
-        true AS is_current,
+        TRUE AS is_current,
         CAST(NULL AS TIMESTAMP) AS dbt_loaded_at
 
 ),
@@ -49,15 +49,10 @@ real_customers AS (
         updated_at,
         row_hash,
 
-
         dbt_valid_from AS valid_from,
         dbt_valid_to AS valid_to,
 
-        CASE
-            WHEN dbt_valid_to IS NULL
-                THEN true
-            ELSE false
-        END AS is_current,
+        COALESCE(dbt_valid_to IS NULL, FALSE) AS is_current,
 
         dbt_loaded_at
 

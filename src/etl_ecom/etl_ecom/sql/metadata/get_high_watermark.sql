@@ -10,7 +10,7 @@ WITH watermark_data AS (
         table_name
     FROM metadata.etl_watermark
     WHERE
-        table_name = ?
+        table_name = ?  -- noqa: LT02
 )
 
 -- Return watermark fields

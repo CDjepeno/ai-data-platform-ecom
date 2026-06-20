@@ -15,7 +15,7 @@ products AS (
         name AS product_name,
         price
     FROM {{ ref('dim_products') }}
-    WHERE is_current = true
+    WHERE is_current = TRUE
 
 ),
 
@@ -53,10 +53,10 @@ campaign_orders AS (
         c.owner,
         c.start_date,
         c.end_date,
-        c.status                        AS campaign_status,
+        c.status AS campaign_status,
         c.budget_eur,
         c.spend_eur,
-        c.revenue_eur                   AS campaign_reported_revenue_eur,
+        c.revenue_eur AS campaign_reported_revenue_eur,
         c.impressions,
         c.clicks,
         c.conversions,
@@ -65,23 +65,24 @@ campaign_orders AS (
         c.cpc_eur,
 
         p.product_name,
-        p.price                         AS product_price,
+        p.price AS product_price,
 
-        COUNT(DISTINCT o.order_id)      AS orders_during_campaign,
-        SUM(oi.quantity)                AS units_sold_during_campaign,
-        SUM(oi.quantity * oi.price)     AS actual_revenue_eur_during_campaign
+        COUNT(DISTINCT o.order_id) AS orders_during_campaign,
+        SUM(oi.quantity) AS units_sold_during_campaign,
+        SUM(oi.quantity * oi.price) AS actual_revenue_eur_during_campaign
 
-    FROM campaigns c
+    FROM campaigns AS c
 
-    LEFT JOIN products p
+    LEFT JOIN products AS p
         ON c.product_sku = p.product_sku
 
-    LEFT JOIN order_items oi
-        ON oi.product_id = p.product_id
+    LEFT JOIN order_items AS oi
+        ON p.product_id = oi.product_id
 
-    LEFT JOIN orders o
-        ON oi.order_id = o.order_id
-        AND o.order_date BETWEEN c.start_date AND c.end_date
+    LEFT JOIN orders AS o
+        ON
+            oi.order_id = o.order_id
+            AND o.order_date BETWEEN c.start_date AND c.end_date
 
     GROUP BY
         c.campaign_id,

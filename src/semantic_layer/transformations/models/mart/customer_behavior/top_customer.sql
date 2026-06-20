@@ -8,12 +8,12 @@ SELECT
 
     SUM(f.total_amount) AS total_revenue
 
-FROM {{ ref('fact_orders') }} f
+FROM {{ ref('fact_orders') }} AS f
 
-JOIN {{ ref('dim_customers') }} c
+INNER JOIN {{ ref('dim_customers') }} AS c
     ON f.customer_sk = c.customer_sk
 
-JOIN {{ ref('dim_date') }} d
+INNER JOIN {{ ref('dim_date') }} AS d
     ON f.date_sk = d.date_sk
 
 GROUP BY
@@ -23,5 +23,5 @@ GROUP BY
     c.last_name
 
 ORDER BY
-    d.year,
+    d.year ASC,
     total_revenue DESC
